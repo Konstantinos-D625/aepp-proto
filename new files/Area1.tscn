@@ -1,0 +1,248 @@
+[gd_scene format=3 uid="uid://bnebu8y46drtq"]
+
+[ext_resource type="Script" uid="uid://jd2s31fcnq7g" path="res://charsfx.gd" id="14_bhvam"]
+[ext_resource type="AudioStream" uid="uid://c40xdldqujlne" path="res://Bäring.mp3" id="18_f6iu7"]
+[ext_resource type="AudioStream" uid="uid://d0qhlbho5mseo" path="res://Medieval Trumpet Sound Effects.mp3" id="18_omgfq"]
+[ext_resource type="Texture2D" uid="uid://bhe5p16dxwnew" path="res://Εικόνες/bg1.png" id="bg"]
+[ext_resource type="Texture2D" uid="uid://bfxx88hsb0mcd" path="res://Εικόνες/char.png" id="char"]
+[ext_resource type="PackedScene" uid="uid://charselect001" path="res://CharacterSelect.tscn" id="char_select_scene"]
+[ext_resource type="Texture2D" uid="uid://dyc3hy1mvk2fn" path="res://Εικόνες/dq.png" id="dq"]
+[ext_resource type="Texture2D" uid="uid://b5yo74otw82i0" path="res://Εικόνες/friends.png" id="friends"]
+[ext_resource type="Texture2D" uid="uid://tgdmvcgnb36x" path="res://Εικόνες/house1.png" id="h1"]
+[ext_resource type="Texture2D" uid="uid://c6y4ujfhfcyxo" path="res://Εικόνες/house2.png" id="h2"]
+[ext_resource type="Texture2D" uid="uid://wl38lhsrgoog" path="res://Εικόνες/house3.png" id="h3"]
+[ext_resource type="Texture2D" uid="uid://21ajumlqk8ak" path="res://Εικόνες/house4.png" id="h4"]
+[ext_resource type="Texture2D" uid="uid://cgwkqgjbrbim0" path="res://Εικόνες/Inventory1.png" id="inv"]
+[ext_resource type="Texture2D" uid="uid://b5jkmspmb8xb3" path="res://Εικόνες/loot.png" id="loot"]
+[ext_resource type="Texture2D" uid="uid://n0onwcivmsln" path="res://Εικόνες/map.png" id="map"]
+[ext_resource type="Texture2D" uid="uid://bk5ukyemg4ah0" path="res://Εικόνες/options.png" id="options"]
+[ext_resource type="PackedScene" path="res://OptionsMenu.tscn" id="options_menu_scene"]
+[ext_resource type="Texture2D" uid="uid://cmex2ibj3lcm1" path="res://Εικόνες/sidebar.png" id="sidebar"]
+[ext_resource type="Texture2D" uid="uid://dric4kdeffx15" path="res://Εικόνες/sideq.png" id="sideq"]
+[ext_resource type="Texture2D" uid="uid://duq0kh70hnne2" path="res://Εικόνες/streak.png" id="streak"]
+
+[sub_resource type="AtlasTexture" id="board"]
+atlas = ExtResource("sidebar")
+region = Rect2(362, 66, 298, 1370)
+
+[node name="Area1" type="Control" unique_id=1095226882]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Background" type="TextureRect" parent="." unique_id=295739246]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("bg")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Houses" type="Control" parent="." unique_id=697055465]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="House2" type="TextureButton" parent="Houses" unique_id=1566822109]
+layout_mode = 1
+offset_left = 753.0
+offset_top = 1533.0
+offset_right = 988.0
+offset_bottom = 1768.0
+texture_normal = ExtResource("h2")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="House1" type="TextureButton" parent="Houses" unique_id=16797282]
+layout_mode = 1
+offset_left = 215.0
+offset_top = 485.0
+offset_right = 445.0
+offset_bottom = 715.0
+texture_normal = ExtResource("h1")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="House3" type="TextureButton" parent="Houses" unique_id=2133092652]
+layout_mode = 1
+offset_left = 177.5
+offset_top = 797.5
+offset_right = 422.5
+offset_bottom = 1042.5
+texture_normal = ExtResource("h3")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="Shop" type="TextureButton" parent="Houses" unique_id=1439656035]
+layout_mode = 1
+offset_left = 464.0
+offset_top = 118.0
+offset_right = 719.0
+offset_bottom = 373.0
+scale = Vector2(1.1323391, 1.1218349)
+texture_normal = ExtResource("h4")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="House5" type="TextureButton" parent="Houses" unique_id=332964076]
+layout_mode = 1
+offset_left = 252.33704
+offset_top = 1289.9451
+offset_right = 497.33704
+offset_bottom = 1534.9451
+texture_normal = ExtResource("h2")
+ignore_texture_size = true
+stretch_mode = 5
+flip_h = true
+
+[node name="HUD" type="Control" parent="." unique_id=1411813244]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Streak" type="TextureRect" parent="HUD" unique_id=1122792081]
+layout_mode = 1
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 354.0
+offset_bottom = 241.0
+mouse_filter = 2
+texture = ExtResource("streak")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Loot" type="TextureRect" parent="HUD" unique_id=1618197088]
+layout_mode = 1
+offset_left = 726.0
+offset_top = 16.0
+offset_right = 1064.0
+offset_bottom = 241.0
+mouse_filter = 2
+texture = ExtResource("loot")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="SideQuest" type="TextureButton" parent="HUD" unique_id=935252061]
+layout_mode = 1
+offset_left = 14.0
+offset_top = 270.0
+offset_right = 209.0
+offset_bottom = 513.0
+texture_normal = ExtResource("sideq")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="Sidebar" type="Control" parent="HUD" unique_id=128180664]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Board" type="TextureRect" parent="HUD/Sidebar" unique_id=1228165139]
+layout_mode = 1
+offset_left = 800.99994
+offset_top = 334.0
+offset_right = 1112.0
+offset_bottom = 1764.0
+scale = Vector2(0.7246066, 0.8100586)
+mouse_filter = 2
+texture = SubResource("board")
+expand_mode = 1
+
+[node name="Map" type="TextureButton" parent="HUD/Sidebar" unique_id=842044376]
+layout_mode = 1
+offset_left = 821.0
+offset_top = 404.0
+offset_right = 1016.0
+offset_bottom = 647.0
+texture_normal = ExtResource("map")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="DailyQuest" type="TextureButton" parent="HUD/Sidebar" unique_id=1148631502]
+layout_mode = 1
+offset_left = 821.0
+offset_top = 671.0
+offset_right = 1016.0
+offset_bottom = 914.0
+texture_normal = ExtResource("dq")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="Characters" type="TextureButton" parent="HUD/Sidebar" unique_id=1618537846]
+layout_mode = 1
+offset_left = 821.0
+offset_top = 938.0
+offset_right = 1016.0
+offset_bottom = 1181.0
+texture_normal = ExtResource("char")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="HUD/Sidebar/Characters" unique_id=2100962521]
+stream = ExtResource("18_omgfq")
+bus = &"SFX"
+script = ExtResource("14_bhvam")
+
+[node name="Friends" type="TextureButton" parent="HUD/Sidebar" unique_id=1650180062]
+layout_mode = 1
+offset_left = 821.0
+offset_top = 1205.0
+offset_right = 1016.0
+offset_bottom = 1448.0
+texture_normal = ExtResource("friends")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="Inventory" type="TextureButton" parent="HUD" unique_id=760664732]
+layout_mode = 1
+offset_left = 16.0
+offset_top = 1683.0
+offset_right = 208.0
+offset_bottom = 1904.0
+texture_normal = ExtResource("inv")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="Options" type="TextureButton" parent="HUD" unique_id=358228780]
+layout_mode = 1
+offset_left = 40.0
+offset_top = 152.0
+offset_right = 326.0
+offset_bottom = 343.0
+texture_normal = ExtResource("options")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="OptionsPanel" parent="HUD" unique_id=2145016266 instance=ExtResource("options_menu_scene")]
+layout_mode = 1
+
+[node name="CharacterSelect" parent="HUD" unique_id=987654321 instance=ExtResource("char_select_scene")]
+layout_mode = 1
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=318912645]
+stream = ExtResource("18_f6iu7")
+autoplay = true
+bus = &"Music"
+
+[connection signal="pressed" from="HUD/Sidebar/Characters" to="HUD/CharacterSelect" method="show_screen"]
+[connection signal="pressed" from="HUD/Sidebar/Characters" to="HUD/Sidebar/Characters/AudioStreamPlayer" method="on_pressed"]
+[connection signal="pressed" from="HUD/Options" to="HUD/OptionsPanel" method="_on_options_pressed"]

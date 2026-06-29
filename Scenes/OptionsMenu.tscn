@@ -1,0 +1,107 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://OptionsMenu.gd" id="options_script"]
+
+[sub_resource type="StyleBoxFlat" id="options_bg"]
+bg_color = Color(0.08, 0.08, 0.12, 0.97)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+
+[node name="OptionsPanel" type="Panel"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+visible = false
+theme_override_styles/panel = SubResource("options_bg")
+script = ExtResource("options_script")
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 80
+theme_override_constants/margin_right = 80
+theme_override_constants/margin_top = 100
+theme_override_constants/margin_bottom = 80
+
+[node name="VBox" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 32
+
+[node name="TitleLabel" type="Label" parent="Margin/VBox"]
+layout_mode = 2
+text = "ΡΥΘΜΙΣΕΙΣ"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 80
+
+[node name="HSep1" type="HSeparator" parent="Margin/VBox"]
+layout_mode = 2
+
+[node name="MasterLabel" type="Label" parent="Margin/VBox"]
+layout_mode = 2
+text = "Συνολική Ένταση (Master)"
+theme_override_font_sizes/font_size = 54
+
+[node name="MasterSlider" type="HSlider" parent="Margin/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 80)
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="MusicLabel" type="Label" parent="Margin/VBox"]
+layout_mode = 2
+text = "Ένταση Μουσικής"
+theme_override_font_sizes/font_size = 54
+
+[node name="MusicSlider" type="HSlider" parent="Margin/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 80)
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="SFXLabel" type="Label" parent="Margin/VBox"]
+layout_mode = 2
+text = "Ένταση Ηχητικών Εφέ"
+theme_override_font_sizes/font_size = 54
+
+[node name="SFXSlider" type="HSlider" parent="Margin/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 80)
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="HSep2" type="HSeparator" parent="Margin/VBox"]
+layout_mode = 2
+
+[node name="ButtonsRow" type="HBoxContainer" parent="Margin/VBox"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 40
+
+[node name="ResetButton" type="Button" parent="Margin/VBox/ButtonsRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(380, 120)
+text = "Επαναφορά"
+theme_override_font_sizes/font_size = 48
+
+[node name="BackButton" type="Button" parent="Margin/VBox/ButtonsRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(380, 120)
+text = "Επιστροφή"
+theme_override_font_sizes/font_size = 48
+
+[connection signal="value_changed" from="Margin/VBox/MasterSlider" to="." method="_on_master_slider_value_changed"]
+[connection signal="value_changed" from="Margin/VBox/MusicSlider" to="." method="_on_music_slider_value_changed"]
+[connection signal="value_changed" from="Margin/VBox/SFXSlider" to="." method="_on_sfx_slider_value_changed"]
+[connection signal="pressed" from="Margin/VBox/ButtonsRow/ResetButton" to="." method="_on_reset_pressed"]
+[connection signal="pressed" from="Margin/VBox/ButtonsRow/BackButton" to="." method="_on_back_pressed"]
