@@ -1,18 +1,23 @@
 63f7b34db8d8cdea90c76aacccf841ec
-::res://::1782738009
+::res://::1782741336
+default_bus_layout.tres::AudioBusLayout::5718635773021068325::1782738051::0::1::::<><><>0<>0<><>::
 icon.svg::CompressedTexture2D::3012399866630628846::1781621242::1782723478::1::::<><><>0<>0<>76f5a1d4ec04c0675f2c0cdd002904e5<>res://.godot/imported/icon.svg-218a8f2b3041327d8a5756f3a245f83b.ctex::
-default_bus_layout.tres::AudioBusLayout::5718635773021068325::1782736545::0::1::::<><><>0<>0<><>::
-::res://Music/::1782738009
+::res://Music/::1782739234
 Bäring.mp3::AudioStreamMP3::4425883104930032401::1782737949::1782738019::1::::<><><>0<>0<>e319eadb76d82ba8d2e3dd1bd290a523<>res://.godot/imported/Bäring.mp3-f3517cfd6595f8d6e65d5d4673f69df0.mp3str::
-Medieval Trumpet Sound Effects.mp3::AudioStreamMP3::4778988038431794551::1782736458::1782736497::1::::<><><>0<>0<>8af0f520ef90f9983e574dd8fcb125a1<>res://.godot/imported/Medieval Trumpet Sound Effects.mp3-63ed118c87dd0d18a8c4f7d41abc78f0.mp3str::
+charsfx.gd::GDScript::5841267518890008036::1782739234::0::1::::<>AudioStreamPlayer<><>0<>0<><>::
 lootsfx.gd::GDScript::8263214441801140579::1782737513::0::1::::<>AudioStreamPlayer<><>0<>0<><>::
-::res://Scenes/::1782737563
-Area1.tscn::PackedScene::3307231366579678210::1782737563::0::1::::<><><>0<>0<><>::uid://dpy061m7syn3x::::res://Music/lootsfx.gd<>uid://bhe5p16dxwnew::::res://Εικόνες/bg1.png<>uid://bfxx88hsb0mcd::::res://Εικόνες/char.png<>uid://dyc3hy1mvk2fn::::res://Εικόνες/dq.png<>uid://b5yo74otw82i0::::res://Εικόνες/friends.png<>uid://tgdmvcgnb36x::::res://Εικόνες/house1.png<>uid://c6y4ujfhfcyxo::::res://Εικόνες/house2.png<>uid://wl38lhsrgoog::::res://Εικόνες/house3.png<>uid://21ajumlqk8ak::::res://Εικόνες/house4.png<>uid://cgwkqgjbrbim0::::res://Εικόνες/Inventory1.png<>uid://b5jkmspmb8xb3::::res://Εικόνες/loot.png<>uid://c6uwqyp885ntg::::res://Scenes/LootPopup.tscn<>uid://n0onwcivmsln::::res://Εικόνες/map.png<>uid://dwsc6lgu1bbrx::::res://Scenes/MapPopup.tscn<>uid://bk5ukyemg4ah0::::res://Εικόνες/options.png<>uid://cmex2ibj3lcm1::::res://Εικόνες/sidebar.png<>uid://dric4kdeffx15::::res://Εικόνες/sideq.png<>uid://duq0kh70hnne2::::res://Εικόνες/streak.png
+Medieval Trumpet Sound Effects.mp3::AudioStreamMP3::4778988038431794551::1782736458::1782736497::1::::<><><>0<>0<>8af0f520ef90f9983e574dd8fcb125a1<>res://.godot/imported/Medieval Trumpet Sound Effects.mp3-63ed118c87dd0d18a8c4f7d41abc78f0.mp3str::
+::res://Scenes/::1782741012
+Area1.tscn::PackedScene::3307231366579678210::1782741012::0::1::::<><><>0<>0<><>::uid://cac8h8ntb6eux::::res://Music/Medieval Trumpet Sound Effects.mp3<>uid://cphs277dyi43y::::res://Music/charsfx.gd<>uid://b4b6wbhi3jy4p::::res://Music/Bäring.mp3<>uid://bhe5p16dxwnew::::res://Εικόνες/bg1.png<>uid://bfxx88hsb0mcd::::res://Εικόνες/char.png<>uid://dyc3hy1mvk2fn::::res://Εικόνες/dq.png<>uid://b5yo74otw82i0::::res://Εικόνες/friends.png<>uid://tgdmvcgnb36x::::res://Εικόνες/house1.png<>uid://c6y4ujfhfcyxo::::res://Εικόνες/house2.png<>uid://wl38lhsrgoog::::res://Εικόνες/house3.png<>uid://21ajumlqk8ak::::res://Εικόνες/house4.png<>uid://cgwkqgjbrbim0::::res://Εικόνες/Inventory1.png<>uid://b5jkmspmb8xb3::::res://Εικόνες/loot.png<>uid://c6uwqyp885ntg::::res://Scenes/LootPopup.tscn<>uid://n0onwcivmsln::::res://Εικόνες/map.png<>uid://dwsc6lgu1bbrx::::res://Scenes/MapPopup.tscn<>uid://bk5ukyemg4ah0::::res://Εικόνες/options.png<>uid://cmex2ibj3lcm1::::res://Εικόνες/sidebar.png<>uid://dric4kdeffx15::::res://Εικόνες/sideq.png<>uid://duq0kh70hnne2::::res://Εικόνες/streak.png<>uid://yo5qmvew6urw::::res://Scenes/OptionsMenu.tscn<>uid://charselect001::::res://Scenes/CharacterSelect.tscn
+CharacterSelect.tscn::PackedScene::5265227833291186888::1782740978::0::1::::<><><>0<>0<><>::uid://cnpjxqu3fjdn8::::res://Scripts/CharacterSelect.gd
 LootPopup.tscn::PackedScene::6991348707066874656::1782736743::0::1::::<><><>0<>0<><>::uid://cs8xjwp0ju2hc::::res://Scripts/loot_popup.gd<>uid://d21ohe8t4245y::::res://Εικόνες/board.png
 MapPopup.tscn::PackedScene::8740752792254848645::1782735872::0::1::::<><><>0<>0<><>::res://Scripts/map_popup.gd<>res://Εικόνες/map1.png
-::res://Scripts/::1782737159
+OptionsMenu.tscn::PackedScene::1715284281288564032::1782740977::0::1::::<><><>0<>0<><>::uid://kmjwcryfq44w::::res://Scripts/OptionsMenu.gd
+::res://Scripts/::1782738589
+CharacterSelect.gd::GDScript::5716850399735152383::1782738417::0::1::::<>Panel<><>0<>0<><>::
 loot_popup.gd::GDScript::6105778761568029932::1782737159::0::1::::<>Control<><>0<>0<><>::
 map_popup.gd::GDScript::3856352631502612001::1782736265::0::1::::<>Control<><>0<>0<><>::
+OptionsMenu.gd::GDScript::727246842236017652::1782738461::0::1::::<>Panel<><>0<>0<><>::
 ::res://Εικόνες/::1782732286
 bg1.png::CompressedTexture2D::2887849810531096722::1782651899::1782688772::1::::<><><>0<>0<>fc2ab68c1edb00248c394266afb39fa6<>res://.godot/imported/bg1.png-0d3f71130c553819943f2eb664d59c7a.ctex::
 bg2.png::CompressedTexture2D::4542241519415780736::1782651887::1782688772::1::::<><><>0<>0<>9835c3baa4775c1ab036b834aed59045<>res://.godot/imported/bg2.png-58d1129da4d6ba8f48b3a7c3431ae9df.ctex::

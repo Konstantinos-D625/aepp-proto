@@ -1,7 +1,0 @@
-res://Scripts/map_popup.gd
-res://Scenes/Area1.tscn
-res://default_bus_layout.tres
-res://Scripts/loot_popup.gd
-res://Scenes/LootPopup.tscn
-res://Music/lootsfx.gd
-res://Music/charsfx.gd

@@ -20,6 +20,8 @@
 [ext_resource type="Texture2D" uid="uid://cmex2ibj3lcm1" path="res://Εικόνες/sidebar.png" id="sidebar"]
 [ext_resource type="Texture2D" uid="uid://dric4kdeffx15" path="res://Εικόνες/sideq.png" id="sideq"]
 [ext_resource type="Texture2D" uid="uid://duq0kh70hnne2" path="res://Εικόνες/streak.png" id="streak"]
+[ext_resource type="PackedScene" uid="uid://optionsmenu001" path="res://Scenes/OptionsMenu.tscn" id="options_menu_scene"]
+[ext_resource type="PackedScene" uid="uid://charselect001" path="res://Scenes/CharacterSelect.tscn" id="char_select_scene"]
 
 [sub_resource type="AtlasTexture" id="board"]
 atlas = ExtResource("sidebar")
@@ -200,6 +202,7 @@ stretch_mode = 5
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="HUD/Sidebar/Characters" unique_id=1508822018]
 stream = ExtResource("8_5asjm")
+bus = &"SFX"
 script = ExtResource("13_87y4o")
 
 [node name="Friends" type="TextureButton" parent="HUD/Sidebar" unique_id=1650180062]
@@ -242,6 +245,14 @@ layout_mode = 1
 visible = false
 layout_mode = 1
 
+[node name="OptionsPanel" parent="." unique_id=2145016266 instance=ExtResource("options_menu_scene")]
+visible = false
+layout_mode = 1
+
+[node name="CharacterSelect" parent="." unique_id=987654321 instance=ExtResource("char_select_scene")]
+visible = false
+layout_mode = 1
+
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=1839775411]
 stream = ExtResource("19_87y4o")
 autoplay = true
@@ -250,3 +261,5 @@ bus = &"Music"
 [connection signal="pressed" from="HUD/Loot" to="LootPopup" method="open"]
 [connection signal="pressed" from="HUD/Sidebar/Map" to="MapPopup" method="open"]
 [connection signal="pressed" from="HUD/Sidebar/Characters" to="HUD/Sidebar/Characters/AudioStreamPlayer" method="on_pressed"]
+[connection signal="pressed" from="HUD/Sidebar/Characters" to="CharacterSelect" method="show_screen"]
+[connection signal="pressed" from="HUD/Options" to="OptionsPanel" method="_on_options_pressed"]
