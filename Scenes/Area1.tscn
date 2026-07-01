@@ -1,27 +1,55 @@
 [gd_scene format=3 uid="uid://bnebu8y46drtq"]
 
+<<<<<<< HEAD
+[ext_resource type="AudioStream" uid="uid://cwl4ofs06wqnj" path="res://Music/Smithing Sound Effect.mp3" id="4_7hroq"]
+[ext_resource type="Script" uid="uid://lgtra1umm75q" path="res://Music/blacksmithSFX.gd" id="5_wstoh"]
+[ext_resource type="AudioStream" uid="uid://cac8h8ntb6eux" path="res://Music/Medieval Trumpet Sound Effects.mp3" id="8_5asjm"]
+[ext_resource type="Script" uid="uid://cphs277dyi43y" path="res://Music/charsfx.gd" id="13_87y4o"]
+[ext_resource type="AudioStream" uid="uid://b4b6wbhi3jy4p" path="res://Music/Bäring.mp3" id="19_87y4o"]
+[ext_resource type="Texture2D" uid="uid://dwteymp21yx1o" path="res://Εικόνες/bg1.png" id="bg"]
+[ext_resource type="PackedScene" uid="uid://blacksmith001" path="res://Scenes/BlacksmithPopup.tscn" id="blacksmith_scene"]
+[ext_resource type="Texture2D" uid="uid://bfxx88hsb0mcd" path="res://Εικόνες/char.png" id="char"]
+[ext_resource type="PackedScene" uid="uid://charselect001" path="res://Scenes/CharacterSelect.tscn" id="char_select_scene"]
+[ext_resource type="PackedScene" uid="uid://cotton001" path="res://Scenes/CottonPopup.tscn" id="cotton_scene"]
+=======
 [ext_resource type="AudioStream" uid="uid://cac8h8ntb6eux" path="res://Music/Medieval Trumpet Sound Effects.mp3" id="8_5asjm"]
 [ext_resource type="Script" uid="uid://cphs277dyi43y" path="res://Music/charsfx.gd" id="13_87y4o"]
 [ext_resource type="AudioStream" uid="uid://b4b6wbhi3jy4p" path="res://Music/Bäring.mp3" id="19_87y4o"]
 [ext_resource type="Texture2D" uid="uid://bhe5p16dxwnew" path="res://Εικόνες/bg1.png" id="bg"]
 [ext_resource type="Texture2D" uid="uid://bfxx88hsb0mcd" path="res://Εικόνες/char.png" id="char"]
+>>>>>>> 3f1f9d08e17d48edf5780b8f1cdad781fcd2ae0a
 [ext_resource type="Texture2D" uid="uid://dyc3hy1mvk2fn" path="res://Εικόνες/dq.png" id="dq"]
 [ext_resource type="Texture2D" uid="uid://b5yo74otw82i0" path="res://Εικόνες/friends.png" id="friends"]
 [ext_resource type="Texture2D" uid="uid://tgdmvcgnb36x" path="res://Εικόνες/house1.png" id="h1"]
 [ext_resource type="Texture2D" uid="uid://c6y4ujfhfcyxo" path="res://Εικόνες/house2.png" id="h2"]
+<<<<<<< HEAD
+=======
 [ext_resource type="Texture2D" uid="uid://wl38lhsrgoog" path="res://Εικόνες/house3.png" id="h3"]
+>>>>>>> 3f1f9d08e17d48edf5780b8f1cdad781fcd2ae0a
 [ext_resource type="Texture2D" uid="uid://21ajumlqk8ak" path="res://Εικόνες/house4.png" id="h4"]
 [ext_resource type="Texture2D" uid="uid://cgwkqgjbrbim0" path="res://Εικόνες/Inventory1.png" id="inv"]
 [ext_resource type="Texture2D" uid="uid://b5jkmspmb8xb3" path="res://Εικόνες/loot.png" id="loot"]
 [ext_resource type="PackedScene" uid="uid://c6uwqyp885ntg" path="res://Scenes/LootPopup.tscn" id="loot_popup_scene"]
 [ext_resource type="Texture2D" uid="uid://n0onwcivmsln" path="res://Εικόνες/map.png" id="map"]
 [ext_resource type="PackedScene" uid="uid://dwsc6lgu1bbrx" path="res://Scenes/MapPopup.tscn" id="map_popup_scene"]
+<<<<<<< HEAD
+[ext_resource type="PackedScene" uid="uid://miner001" path="res://Scenes/MinerPopup.tscn" id="miner_scene"]
+[ext_resource type="Texture2D" uid="uid://bk5ukyemg4ah0" path="res://Εικόνες/options.png" id="options"]
+[ext_resource type="PackedScene" uid="uid://yo5qmvew6urw" path="res://Scenes/OptionsMenu.tscn" id="options_menu_scene"]
+[ext_resource type="Texture2D" uid="uid://cmex2ibj3lcm1" path="res://Εικόνες/sidebar.png" id="sidebar"]
+[ext_resource type="Texture2D" uid="uid://dric4kdeffx15" path="res://Εικόνες/sideq.png" id="sideq"]
+[ext_resource type="Texture2D" uid="uid://duq0kh70hnne2" path="res://Εικόνες/streak.png" id="streak"]
+
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_vmeuf"]
+load_path = "res://.godot/imported/house3.png-c83df141036063e7a008bb1fdecdfe20.ctex"
+=======
 [ext_resource type="Texture2D" uid="uid://bk5ukyemg4ah0" path="res://Εικόνες/options.png" id="options"]
 [ext_resource type="Texture2D" uid="uid://cmex2ibj3lcm1" path="res://Εικόνες/sidebar.png" id="sidebar"]
 [ext_resource type="Texture2D" uid="uid://dric4kdeffx15" path="res://Εικόνες/sideq.png" id="sideq"]
 [ext_resource type="Texture2D" uid="uid://duq0kh70hnne2" path="res://Εικόνες/streak.png" id="streak"]
 [ext_resource type="PackedScene" uid="uid://optionsmenu001" path="res://Scenes/OptionsMenu.tscn" id="options_menu_scene"]
 [ext_resource type="PackedScene" uid="uid://charselect001" path="res://Scenes/CharacterSelect.tscn" id="char_select_scene"]
+>>>>>>> 3f1f9d08e17d48edf5780b8f1cdad781fcd2ae0a
 
 [sub_resource type="AtlasTexture" id="board"]
 atlas = ExtResource("sidebar")
@@ -79,6 +107,21 @@ stretch_mode = 5
 
 [node name="House3" type="TextureButton" parent="Houses" unique_id=2133092652]
 layout_mode = 1
+<<<<<<< HEAD
+offset_left = 124.0
+offset_top = 787.0
+offset_right = 519.0
+offset_bottom = 1301.0
+texture_normal = SubResource("CompressedTexture2D_vmeuf")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="Houses/House3" unique_id=1676085497]
+stream = ExtResource("4_7hroq")
+bus = &"SFX"
+script = ExtResource("5_wstoh")
+
+=======
 offset_left = 177.5
 offset_top = 797.5
 offset_right = 422.5
@@ -87,6 +130,7 @@ texture_normal = ExtResource("h3")
 ignore_texture_size = true
 stretch_mode = 5
 
+>>>>>>> 3f1f9d08e17d48edf5780b8f1cdad781fcd2ae0a
 [node name="Shop" type="TextureButton" parent="Houses" unique_id=1439656035]
 layout_mode = 1
 offset_left = 467.0
@@ -155,6 +199,13 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+<<<<<<< HEAD
+offset_left = 1.0
+offset_top = 18.0
+offset_right = 1.0
+offset_bottom = 18.0
+=======
+>>>>>>> 3f1f9d08e17d48edf5780b8f1cdad781fcd2ae0a
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
@@ -246,11 +297,26 @@ visible = false
 layout_mode = 1
 
 [node name="OptionsPanel" parent="." unique_id=2145016266 instance=ExtResource("options_menu_scene")]
+<<<<<<< HEAD
+layout_mode = 1
+
+[node name="CharacterSelect" parent="." unique_id=987654321 instance=ExtResource("char_select_scene")]
+layout_mode = 1
+
+[node name="BlacksmithPopup" parent="." unique_id=987654322 instance=ExtResource("blacksmith_scene")]
+layout_mode = 1
+
+[node name="MinerPopup" parent="." unique_id=987654323 instance=ExtResource("miner_scene")]
+layout_mode = 1
+
+[node name="CottonPopup" parent="." unique_id=987654324 instance=ExtResource("cotton_scene")]
+=======
 visible = false
 layout_mode = 1
 
 [node name="CharacterSelect" parent="." unique_id=987654321 instance=ExtResource("char_select_scene")]
 visible = false
+>>>>>>> 3f1f9d08e17d48edf5780b8f1cdad781fcd2ae0a
 layout_mode = 1
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=1839775411]
@@ -258,6 +324,13 @@ stream = ExtResource("19_87y4o")
 autoplay = true
 bus = &"Music"
 
+<<<<<<< HEAD
+[connection signal="pressed" from="Houses/House2" to="CottonPopup" method="show_popup"]
+[connection signal="pressed" from="Houses/House1" to="MinerPopup" method="show_popup"]
+[connection signal="pressed" from="Houses/House3" to="Houses/House3/AudioStreamPlayer" method="on_pressed"]
+[connection signal="pressed" from="Houses/House3" to="BlacksmithPopup" method="show_popup"]
+=======
+>>>>>>> 3f1f9d08e17d48edf5780b8f1cdad781fcd2ae0a
 [connection signal="pressed" from="HUD/Loot" to="LootPopup" method="open"]
 [connection signal="pressed" from="HUD/Sidebar/Map" to="MapPopup" method="open"]
 [connection signal="pressed" from="HUD/Sidebar/Characters" to="HUD/Sidebar/Characters/AudioStreamPlayer" method="on_pressed"]
