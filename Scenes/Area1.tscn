@@ -3,6 +3,7 @@
 [ext_resource type="AudioStream" uid="uid://cwl4ofs06wqnj" path="res://Music/Smithing Sound Effect.mp3" id="4_7hroq"]
 [ext_resource type="Script" uid="uid://lgtra1umm75q" path="res://Music/blacksmithSFX.gd" id="5_wstoh"]
 [ext_resource type="Texture2D" uid="uid://d0x12yhenhf4v" path="res://Εικόνες/Shop_Image.png" id="6_eu2rd"]
+[ext_resource type="Texture2D" uid="uid://7mfj0iiy2k2o" path="res://Εικόνες/witchHouse.png" id="7_7i7i6"]
 [ext_resource type="AudioStream" uid="uid://cac8h8ntb6eux" path="res://Music/Medieval Trumpet Sound Effects.mp3" id="8_5asjm"]
 [ext_resource type="Script" uid="uid://cphs277dyi43y" path="res://Music/charsfx.gd" id="13_87y4o"]
 [ext_resource type="AudioStream" uid="uid://b4b6wbhi3jy4p" path="res://Music/Bäring.mp3" id="19_87y4o"]
@@ -24,6 +25,7 @@
 [ext_resource type="Texture2D" uid="uid://bk5ukyemg4ah0" path="res://Εικόνες/options.png" id="options"]
 [ext_resource type="PackedScene" uid="uid://yo5qmvew6urw" path="res://Scenes/OptionsMenu.tscn" id="options_menu_scene"]
 [ext_resource type="PackedScene" uid="uid://shop001" path="res://Scenes/ShopPopup.tscn" id="shop_scene"]
+[ext_resource type="PackedScene" uid="uid://boss001" path="res://Scenes/BossPopup.tscn" id="boss_scene"]
 [ext_resource type="Texture2D" uid="uid://cmex2ibj3lcm1" path="res://Εικόνες/sidebar.png" id="sidebar"]
 [ext_resource type="Texture2D" uid="uid://dric4kdeffx15" path="res://Εικόνες/sideq.png" id="sideq"]
 [ext_resource type="Texture2D" uid="uid://duq0kh70hnne2" path="res://Εικόνες/streak.png" id="streak"]
@@ -113,12 +115,12 @@ stretch_mode = 5
 
 [node name="House5" type="TextureButton" parent="Houses" unique_id=332964076]
 layout_mode = 1
-offset_left = 725.0
-offset_top = 1571.9999
-offset_right = 970.0
-offset_bottom = 1816.9999
+offset_left = 597.0
+offset_top = 1519.0
+offset_right = 1047.0
+offset_bottom = 1869.0
 scale = Vector2(0.9390332, 0.96248484)
-texture_normal = ExtResource("h2")
+texture_normal = ExtResource("7_7i7i6")
 ignore_texture_size = true
 stretch_mode = 5
 flip_h = true
@@ -280,6 +282,9 @@ layout_mode = 1
 [node name="ShopPopup" parent="." unique_id=987654325 instance=ExtResource("shop_scene")]
 layout_mode = 1
 
+[node name="BossPopup" parent="." unique_id=987654326 instance=ExtResource("boss_scene")]
+layout_mode = 1
+
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=1839775411]
 stream = ExtResource("19_87y4o")
 autoplay = true
@@ -290,6 +295,7 @@ bus = &"Music"
 [connection signal="pressed" from="Houses/House3" to="Houses/House3/AudioStreamPlayer" method="on_pressed"]
 [connection signal="pressed" from="Houses/House3" to="BlacksmithPopup" method="show_popup"]
 [connection signal="pressed" from="Houses/Shop" to="ShopPopup" method="show_popup"]
+[connection signal="pressed" from="Houses/House5" to="BossPopup" method="show_popup"]
 [connection signal="pressed" from="HUD/Loot" to="LootPopup" method="open"]
 [connection signal="pressed" from="HUD/Sidebar/Map" to="MapPopup" method="open"]
 [connection signal="pressed" from="HUD/Sidebar/Characters" to="HUD/Sidebar/Characters/AudioStreamPlayer" method="on_pressed"]
