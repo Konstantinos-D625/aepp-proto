@@ -4,8 +4,18 @@ extends Control
 const BG_PATH     := "res://Εικόνες/bamb_bg.png"
 const CHAR_PATH   := "res://Εικόνες/cottonman.png"
 const BOARD_PATH  := "res://Εικόνες/board.png"
-# Εδώ θα μπει η εικόνα-άσκηση αργότερα:
-const PUZZLE_PATH := "res://Εικόνες/cotton_puzzle.png"
+
+# ── Σύστημα ασκήσεων ──────────────────────────────────────────────────────
+# Αρχείο ερωτήσεων για αυτό το σπίτι/NPC. Άλλα σπίτια βάζουν άλλο JSON.
+const QUIZ_PATH := "res://cotton_quiz.json"
+
+# Πόσες ερωτήσεις ανά επίσκεψη (τυχαίες κάθε φορά). 0 = όλες.
+const QUESTIONS_PER_ROUND := 5
+
+# Loot: μόνο βαμβάκι. Η ποσότητα εξαρτάται από τη ΔΥΣΚΟΛΙΑ των ερωτήσεων που
+# απαντήθηκαν σωστά (εύκολη=1, μεσαία=2, δύσκολη=3 βαμβάκι). Πάντα δίνεται
+# τουλάχιστον COTTON_BASE. Δίνεται όταν φεύγεις, αρκεί να απάντησες ≥1 ερώτηση.
+const COTTON_BASE := 2
 
 # ── Παλέτα (βαμβακάδικο — ζεστό, κρεμ, χρυσό φως) ───────────────────────
 const C0       := Color(0, 0, 0, 0)
@@ -20,6 +30,8 @@ const C_WOOD   := Color(0.200, 0.140, 0.065)
 const C_WOOD_D := Color(0.130, 0.085, 0.035)
 const C_TEXT   := Color(0.100, 0.065, 0.025)
 const C_BLUE   := Color(0.280, 0.380, 0.580)   # μπλε λεπτομέρεια πετσέτας
+const C_OK     := Color(0.560, 0.900, 0.460)   # πράσινο «Σωστό!»
+const C_BAD    := Color(0.960, 0.450, 0.400)   # κόκκινο «Λάθος»
 
 const W := 1080.0
 const H := 1920.0
@@ -31,16 +43,39 @@ var _bubble : Control
 var _board  : Control
 var _hint   : Label
 
+# ── Κατάσταση quiz ─────────────────────────────────────────────────────────
+var _quiz         : QuizManager
+var _q_label      : Label
+var _btn_true     : Button
+var _btn_false    : Button
+var _feedback     : Label
+var _progress     : Label
+var _input_locked := false
+var _completion   : Control
+var _answered     := 0        # πόσες ερωτήσεις απαντήθηκαν σε αυτή την επίσκεψη
+var _loot_given   := false     # δόθηκε ήδη loot σε αυτή την επίσκεψη;
+
 # ═══════════════════════════════════════════════════════════════════════════
 func _ready() -> void:
 	mouse_filter = MOUSE_FILTER_STOP
 	visible = false
+	randomize()   # για διαφορετικό loot κάθε φορά
 	_build()
 	gui_input.connect(_on_gui_input)
 
 func show_popup() -> void:
 	visible   = true
 	_state    = 1
+	# Καθάρισμα τυχόν κατάστασης από προηγούμενη επίσκεψη (replay).
+	if is_instance_valid(_completion):
+		_completion.queue_free()
+	_completion = null
+	_input_locked = false
+	_answered = 0
+	_loot_given = false
+	if _feedback: _feedback.text = ""
+	if _progress: _progress.text = ""
+	_set_answer_buttons_enabled(false)
 	_char.visible      = true
 	_char.modulate.a   = 1.0
 	_bubble.visible    = true
@@ -79,6 +114,7 @@ func _go_to_state2() -> void:
 		_bubble.visible = false
 		_board.modulate.a = 0.0
 		_board.visible  = true
+		_start_quiz()
 		var tw2 := create_tween()
 		tw2.tween_property(_board, "modulate:a", 1.0, 0.55)
 	)
@@ -235,48 +271,274 @@ func _build_board() -> Control:
 	brd.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(brd)
 
-	const IMG_X := BRD_X + 80.0
-	const IMG_Y := BRD_Y + 120.0
-	const IMG_W := BRD_W - 160.0
-	const IMG_H := BRD_H - 240.0
+	# ── Περιοχή γραφής μέσα στον πίνακα (αρκετό περιθώριο ώστε να μη βγαίνει έξω) ──
+	var pad := MarginContainer.new()
+	pad.position = Vector2(BRD_X, BRD_Y)
+	pad.size     = Vector2(BRD_W, BRD_H)
+	pad.add_theme_constant_override("margin_left",   110)
+	pad.add_theme_constant_override("margin_right",  110)
+	pad.add_theme_constant_override("margin_top",    155)
+	pad.add_theme_constant_override("margin_bottom", 135)
+	pad.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(pad)
 
-	var puzzle_tex : Texture2D = null
-	if ResourceLoader.exists(PUZZLE_PATH):
-		puzzle_tex = load(PUZZLE_PATH)
-	var img := TextureRect.new()
-	if puzzle_tex:
-		img.texture      = puzzle_tex
-		img.expand_mode  = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
-		img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	else:
-		var ph := Panel.new()
-		ph.position = Vector2(IMG_X, IMG_Y)
-		ph.size     = Vector2(IMG_W, IMG_H)
-		ph.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		var s := StyleBoxFlat.new()
-		s.bg_color     = Color(0.085, 0.075, 0.055, 0.85)
-		s.border_color = C_GOLD_D
-		s.set_border_width_all(3)
-		s.set_corner_radius_all(8)
-		ph.add_theme_stylebox_override("panel", s)
-		root.add_child(ph)
-		var pl := Label.new()
-		pl.text     = "[ Εδώ θα εμφανιστεί\nη εικόνα-άσκηση ]"
-		pl.position = Vector2(IMG_X, IMG_Y)
-		pl.size     = Vector2(IMG_W, IMG_H)
-		pl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		pl.vertical_alignment   = VERTICAL_ALIGNMENT_CENTER
-		pl.add_theme_font_size_override("font_size", 32)
-		pl.add_theme_color_override("font_color", C_GOLD_D)
-		pl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		root.add_child(pl)
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 24)
+	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	pad.add_child(col)
 
-	img.position    = Vector2(IMG_X, IMG_Y)
-	img.size        = Vector2(IMG_W, IMG_H)
-	img.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root.add_child(img)
+	# Δείκτης προόδου (π.χ. «Ερώτηση 1 / 14»)
+	_progress = Label.new()
+	_progress.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_progress.add_theme_font_size_override("font_size", 26)
+	_progress.add_theme_color_override("font_color", C_GOLD_S)
+	_progress.add_theme_color_override("font_shadow_color", Color(0,0,0,0.85))
+	_progress.add_theme_constant_override("shadow_offset_x", 1)
+	_progress.add_theme_constant_override("shadow_offset_y", 2)
+	_progress.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	col.add_child(_progress)
+
+	# Εκφώνηση (με word wrapping, ευανάγνωστη πάνω στον πίνακα)
+	_q_label = Label.new()
+	_q_label.autowrap_mode        = TextServer.AUTOWRAP_WORD_SMART
+	_q_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_q_label.vertical_alignment   = VERTICAL_ALIGNMENT_CENTER
+	_q_label.size_flags_vertical  = Control.SIZE_EXPAND_FILL
+	_q_label.custom_minimum_size  = Vector2(0, 470)
+	_q_label.add_theme_font_size_override("font_size", 34)
+	_q_label.add_theme_color_override("font_color", C_PARCH)
+	_q_label.add_theme_color_override("font_shadow_color", Color(0,0,0,0.85))
+	_q_label.add_theme_constant_override("shadow_offset_x", 1)
+	_q_label.add_theme_constant_override("shadow_offset_y", 2)
+	_q_label.add_theme_constant_override("line_spacing", 10)
+	_q_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	col.add_child(_q_label)
+
+	# Κουμπιά απάντησης — ΣΩΣΤΟ / ΛΑΘΟΣ (χωρίς πληκτρολόγιο)
+	var btn_row := HBoxContainer.new()
+	btn_row.add_theme_constant_override("separation", 28)
+	btn_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	col.add_child(btn_row)
+
+	_btn_true = Button.new()
+	_btn_true.text = "ΣΩΣΤΟ"
+	_btn_true.custom_minimum_size = Vector2(0, 100)
+	_btn_true.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_style_answer_btn(_btn_true, C_OK)
+	_btn_true.pressed.connect(_on_answer_button.bind("ΣΩΣΤΟ"))
+	btn_row.add_child(_btn_true)
+
+	_btn_false = Button.new()
+	_btn_false.text = "ΛΑΘΟΣ"
+	_btn_false.custom_minimum_size = Vector2(0, 100)
+	_btn_false.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_style_answer_btn(_btn_false, C_BAD)
+	_btn_false.pressed.connect(_on_answer_button.bind("ΛΑΘΟΣ"))
+	btn_row.add_child(_btn_false)
+
+	# Ανατροφοδότηση (Σωστό! / Λάθος, δοκίμασε ξανά.)
+	_feedback = Label.new()
+	_feedback.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_feedback.custom_minimum_size  = Vector2(0, 46)
+	_feedback.add_theme_font_size_override("font_size", 30)
+	_feedback.add_theme_color_override("font_shadow_color", Color(0,0,0,0.85))
+	_feedback.add_theme_constant_override("shadow_offset_x", 1)
+	_feedback.add_theme_constant_override("shadow_offset_y", 2)
+	_feedback.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	col.add_child(_feedback)
 
 	return root
+
+# ═══════════════════════════════════════════════════════════════════════════
+# ΣΥΣΤΗΜΑ ΑΣΚΗΣΕΩΝ — η λογική ζει στον QuizManager, το scene μόνο δείχνει UI
+# ═══════════════════════════════════════════════════════════════════════════
+func _start_quiz() -> void:
+	_quiz = QuizManager.new()
+	if not _quiz.load_from_file(QUIZ_PATH):
+		_progress.text = ""
+		_q_label.text  = "⚠  Δεν ήταν δυνατή η φόρτωση των ασκήσεων."
+		_set_answer_buttons_enabled(false)
+		return
+	_quiz.question_changed.connect(_on_question_changed)
+	_quiz.answer_result.connect(_on_answer_result)
+	_quiz.quiz_completed.connect(_on_quiz_completed)
+	# Ανακάτεμα + υποσύνολο → διαφορετικές ερωτήσεις κάθε φορά που μπαίνεις.
+	_quiz.start(true, QUESTIONS_PER_ROUND)
+
+func _on_question_changed(index: int, total: int, question_text: String) -> void:
+	if _loot_given:
+		return
+	_input_locked = false
+	_q_label.text = question_text
+	_progress.text = "Ερώτηση %d / %d" % [index + 1, total]
+	_feedback.text = ""
+	_set_answer_buttons_enabled(true)
+
+func _on_answer_button(value: String) -> void:
+	if _input_locked or _quiz == null:
+		return
+	_answered += 1
+	_quiz.submit_answer(value)
+
+func _on_answer_result(correct: bool) -> void:
+	# Δείξε το αποτέλεσμα και προχώρα ΠΑΝΤΑ στην επόμενη (σωστό ή λάθος).
+	_input_locked = true
+	_set_answer_buttons_enabled(false)
+	if correct:
+		_feedback.add_theme_color_override("font_color", C_OK)
+		_feedback.text = "✔  Σωστό!"
+	else:
+		_feedback.add_theme_color_override("font_color", C_BAD)
+		_feedback.text = "✘  Λάθος!"
+	var t := get_tree().create_timer(0.9)
+	t.timeout.connect(func():
+		if is_instance_valid(_quiz) and not _loot_given:
+			_quiz.advance()
+	)
+
+func _on_quiz_completed(_score: int, _total: int) -> void:
+	# Απαντήθηκαν όλες → δώσε loot και κλείσε.
+	_finish(true)
+
+# ═══════════════════════════════════════════════════════════════════════════
+# ΚΛΕΙΣΙΜΟ + LOOT
+# ═══════════════════════════════════════════════════════════════════════════
+# Καλείται είτε όταν τελειώσουν όλες οι ερωτήσεις, είτε όταν ο παίκτης πατήσει
+# «Πίσω στο Χωριό». Δίνει loot ΜΟΝΟ αν απαντήθηκε τουλάχιστον μία ερώτηση.
+func _finish(completed: bool) -> void:
+	if _loot_given:
+		return
+	_loot_given = true
+	_input_locked = true
+	_set_answer_buttons_enabled(false)
+
+	if _answered <= 0:
+		# Δεν απάντησε τίποτα → απλώς κλείσε, χωρίς loot.
+		_close()
+		return
+
+	var score := _quiz.get_score() if _quiz else 0
+	var results := _generate_and_apply_loot()
+	var title := "Ο πωλητής σου έδωσε το βαμβάκι!" if completed else "Ευχαριστώ για τη βοήθεια!"
+	_show_completion(title, score, results)
+
+func _on_back_pressed() -> void:
+	# Αν έχει αρχίσει το quiz και έχει απαντήσει, δώσε loot· αλλιώς απλό κλείσιμο.
+	if _state == 2 and not _loot_given and _answered > 0:
+		_finish(false)
+	else:
+		_close()
+
+# ── Παραγωγή loot → γράφεται στο Currency (ίδιο autoload που χρησιμοποιεί
+# το ShopPopup/LootPopup), ώστε το βαμβάκι να φαίνεται αμέσως στην Αποθήκη
+# και να μπορεί να ξοδευτεί στο κατάστημα ──────────────────────────────────
+# Μόνο βαμβάκι· η ποσότητα εξαρτάται από τη δυσκολία των σωστών απαντήσεων.
+func _generate_and_apply_loot() -> Array:
+	var results: Array = []
+	var earned := _quiz.get_earned_difficulty() if _quiz else 0
+	var cotton := COTTON_BASE + earned
+	Currency.add("Βαμβάκι", cotton)
+	results.append({ "name": "Βαμβάκι", "amount": cotton })
+	return results
+
+# ── Οθόνη ολοκλήρωσης → μετά κλείνει το κατάστημα (επιστροφή στον χάρτη) ─────
+func _show_completion(title_text: String, score: int, results: Array) -> void:
+	var overlay := Control.new()
+	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	add_child(overlay)
+	_completion = overlay
+
+	var dim := ColorRect.new()
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	dim.color = Color(0, 0, 0, 0.55)
+	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	overlay.add_child(dim)
+
+	const PW := 820.0
+	const PH := 540.0
+	var px := (W - PW) / 2.0
+	var py := (H - PH) / 2.0
+	_shadow(overlay, Vector2(px + 8, py + 10), Vector2(PW, PH), 20)
+	_styled_panel(overlay, Vector2(px, py), Vector2(PW, PH), C_PARCH, C_GOLD, 5, 20)
+	_styled_panel(overlay, Vector2(px + 12, py + 12), Vector2(PW - 24, PH - 24), C0, C_GOLD_D, 2, 16)
+
+	var title := Label.new()
+	title.text = title_text
+	title.position = Vector2(px + 40, py + 55)
+	title.size     = Vector2(PW - 80, 170)
+	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.vertical_alignment   = VERTICAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 40)
+	title.add_theme_color_override("font_color", C_TEXT)
+	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	overlay.add_child(title)
+
+	var lines := "Σωστές απαντήσεις: %d\n\nΚέρδισες:" % score
+	for item in results:
+		lines += "\n•  +%d %s" % [item["amount"], item["name"]]
+	var loot := Label.new()
+	loot.text = lines
+	loot.position = Vector2(px + 40, py + 240)
+	loot.size     = Vector2(PW - 80, PH - 280)
+	loot.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	loot.vertical_alignment   = VERTICAL_ALIGNMENT_TOP
+	loot.add_theme_font_size_override("font_size", 30)
+	loot.add_theme_color_override("font_color", C_GOLD_D)
+	loot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	overlay.add_child(loot)
+
+	overlay.modulate.a = 0.0
+	var tw := create_tween()
+	tw.tween_property(overlay, "modulate:a", 1.0, 0.40)
+	tw.tween_interval(1.9)
+	tw.tween_callback(_close)
+
+# ── Ενεργοποίηση/απενεργοποίηση κουμπιών απάντησης ─────────────────────────
+func _set_answer_buttons_enabled(enabled: bool) -> void:
+	if _btn_true:
+		_btn_true.disabled = not enabled
+	if _btn_false:
+		_btn_false.disabled = not enabled
+
+# ── Στυλ κουμπιού απάντησης (ταιριαστό με τον πίνακα, με χρώμα-τόνο) ────────
+func _style_answer_btn(btn: Button, accent: Color) -> void:
+	btn.add_theme_font_size_override("font_size", 34)
+	var n := StyleBoxFlat.new()
+	n.bg_color = Color(0.085, 0.075, 0.055, 0.92)
+	n.border_color = accent.darkened(0.25)
+	n.set_border_width_all(4)
+	n.set_corner_radius_all(12)
+	n.shadow_color = Color(0, 0, 0, 0.55)
+	n.shadow_size = 6
+	btn.add_theme_stylebox_override("normal", n)
+
+	var h := n.duplicate() as StyleBoxFlat
+	h.bg_color = Color(0.140, 0.120, 0.085, 0.96)
+	h.border_color = accent
+	h.shadow_color = accent.lightened(0.10)
+	h.shadow_size = 14
+	btn.add_theme_stylebox_override("hover", h)
+
+	var pr := n.duplicate() as StyleBoxFlat
+	pr.bg_color = Color(0.055, 0.045, 0.030, 0.98)
+	pr.border_color = accent.darkened(0.35)
+	btn.add_theme_stylebox_override("pressed", pr)
+
+	var dis := n.duplicate() as StyleBoxFlat
+	dis.bg_color = Color(0.085, 0.075, 0.055, 0.55)
+	dis.border_color = C_GOLD_D.darkened(0.25)
+	btn.add_theme_stylebox_override("disabled", dis)
+
+	btn.add_theme_stylebox_override("focus", StyleBoxFlat.new())
+	btn.add_theme_color_override("font_color", C_PARCH)
+	btn.add_theme_color_override("font_hover_color", accent.lightened(0.35))
+	btn.add_theme_color_override("font_pressed_color", accent)
+	btn.add_theme_color_override("font_disabled_color", C_PARCH_D.darkened(0.25))
+	btn.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
+	btn.add_theme_constant_override("shadow_offset_x", 2)
+	btn.add_theme_constant_override("shadow_offset_y", 3)
 
 # ── Hint ──────────────────────────────────────────────────────────────────
 func _build_hint() -> Label:
@@ -308,7 +570,7 @@ func _build_back_button() -> void:
 	btn.add_theme_font_size_override("font_size", 30)
 	_style_back_btn(btn)
 	add_child(btn)
-	btn.pressed.connect(_close)
+	btn.pressed.connect(_on_back_pressed)
 
 # ═══════════════════════════════════════════════════════════════════════════
 # ΒΟΗΘΗΤΙΚΕΣ ΣΥΝΑΡΤΗΣΕΙΣ

@@ -15,6 +15,12 @@ run/main_scene="res://Scenes/Area1.tscn"
 config/features=PackedStringArray("4.7", "Mobile")
 config/icon="res://icon.svg"
 
+[autoload]
+
+Inventory="*res://Scripts/inventory_data.gd"
+Currency="*res://Scripts/currency_manager.gd"
+GameData="*res://Scripts/GameData.gd"
+
 [display]
 
 window/size/viewport_width=1080

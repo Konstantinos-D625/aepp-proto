@@ -1,0 +1,64 @@
+[gd_scene format=3 uid="uid://doi3j0i6x8yld"]
+
+[ext_resource type="Script" path="res://Scripts/daily_quest_exercises.gd" id="1_script"]
+
+[sub_resource type="StyleBoxFlat" id="bg"]
+bg_color = Color(0.055, 0.038, 0.018, 0.97)
+
+[node name="DailyQuestExercises" type="Panel"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+visible = false
+theme_override_styles/panel = SubResource("bg")
+script = ExtResource("1_script")
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 80
+theme_override_constants/margin_right = 80
+theme_override_constants/margin_top = 160
+theme_override_constants/margin_bottom = 100
+
+[node name="VBox" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 40
+alignment = 1
+
+[node name="TitleLabel" type="Label" parent="Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.94, 0.76, 0.16, 1)
+theme_override_font_sizes/font_size = 56
+text = "Daily Quest — Ασκήσεις"
+horizontal_alignment = 1
+
+[node name="HintLabel" type="Label" parent="Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.868, 0.83, 0.685, 1)
+theme_override_font_sizes/font_size = 34
+text = "Εδώ θα εμφανίζονται οι εκφωνήσεις των ασκήσεων."
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="ExercisesContainer" type="VBoxContainer" parent="Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="BackButton" type="Button" parent="Margin/VBox"]
+layout_mode = 2
+size_flags_horizontal = 4
+custom_minimum_size = Vector2(320, 110)
+theme_override_font_sizes/font_size = 40
+text = "◄  Πίσω"
+
+[connection signal="pressed" from="Margin/VBox/BackButton" to="." method="_on_back_pressed"]
