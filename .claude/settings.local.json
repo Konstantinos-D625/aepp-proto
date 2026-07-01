@@ -1,8 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Read(//c/Users/knder/Downloads/Godot games/**)",
-      "Read(//c/Users/knder/Downloads/Godot games/c-sharp-quest/**)"
-    ]
-  }
-}

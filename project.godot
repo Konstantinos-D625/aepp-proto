@@ -12,11 +12,7 @@ config_version=5
 
 config/name="AEPP Prototype"
 run/main_scene="res://Scenes/Area1.tscn"
-<<<<<<< HEAD
 config/features=PackedStringArray("4.7", "Mobile")
-=======
-config/features=PackedStringArray("4.6", "Mobile")
->>>>>>> 3f1f9d08e17d48edf5780b8f1cdad781fcd2ae0a
 config/icon="res://icon.svg"
 
 [display]

@@ -173,11 +173,7 @@ func _header() -> void:
 
 func _grid() -> void:
 	for i in range(6):
-<<<<<<< HEAD
 		var row := int(i / 2.0)
-=======
-		var row := i / 2
->>>>>>> 3f1f9d08e17d48edf5780b8f1cdad781fcd2ae0a
 		var col := i % 2
 		_portrait(i, MX + col * (PW + GX), GRID_Y + row * (PH + GY))
 
@@ -233,7 +229,6 @@ func _portrait(idx: int, x: float, y: float) -> void:
 
 	# ── Portrait image / locked placeholder ──────
 	if not locked:
-<<<<<<< HEAD
 		var char_tr := TextureRect.new()
 		char_tr.texture      = CHAR_TEX
 		char_tr.position     = Vector2(x + AI, y + AI)
@@ -242,16 +237,6 @@ func _portrait(idx: int, x: float, y: float) -> void:
 		char_tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		char_tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		add_child(char_tr)
-=======
-		var tr := TextureRect.new()
-		tr.texture      = CHAR_TEX
-		tr.position     = Vector2(x + AI, y + AI)
-		tr.size         = Vector2(PW - AI*2, art_h)
-		tr.expand_mode  = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
-		tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		add_child(tr)
->>>>>>> 3f1f9d08e17d48edf5780b8f1cdad781fcd2ae0a
 		# Star badge
 		_lbl(self, "★", Vector2(x + PW - 50, y + AI + 4), Vector2(40, 40),
 			 36, C_GOLD, HORIZONTAL_ALIGNMENT_CENTER, Color(0,0,0,0.95), 2, 2)
@@ -544,19 +529,11 @@ func _sb(bg: Color, border: Color, bw: int, cr: int = 0) -> StyleBoxFlat:
 	s.corner_radius_bottom_left  = cr
 	return s
 
-<<<<<<< HEAD
 func _add_panel(parent: Control, pos: Vector2, sz: Vector2, bg: Color,
 				border: Color, bw: int, cr: int, cr_bottom: int) -> Panel:
 	var p := Panel.new()
 	p.position = pos
 	p.size     = sz
-=======
-func _add_panel(parent: Control, pos: Vector2, size: Vector2, bg: Color,
-				border: Color, bw: int, cr: int, cr_bottom: int) -> Panel:
-	var p := Panel.new()
-	p.position = pos
-	p.size     = size
->>>>>>> 3f1f9d08e17d48edf5780b8f1cdad781fcd2ae0a
 	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var s := StyleBoxFlat.new()
 	s.bg_color     = bg
@@ -570,32 +547,18 @@ func _add_panel(parent: Control, pos: Vector2, size: Vector2, bg: Color,
 	parent.add_child(p)
 	return p
 
-<<<<<<< HEAD
 func _cr(pos: Vector2, sz: Vector2, col: Color) -> void:
 	var r := ColorRect.new()
 	r.position = pos
 	r.size     = sz
-=======
-func _cr(pos: Vector2, size: Vector2, col: Color) -> void:
-	var r := ColorRect.new()
-	r.position = pos
-	r.size     = size
->>>>>>> 3f1f9d08e17d48edf5780b8f1cdad781fcd2ae0a
 	r.color    = col
 	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(r)
 
-<<<<<<< HEAD
 func _cr_child(parent: Control, pos: Vector2, sz: Vector2, col: Color) -> void:
 	var r := ColorRect.new()
 	r.position = pos
 	r.size     = sz
-=======
-func _cr_child(parent: Control, pos: Vector2, size: Vector2, col: Color) -> void:
-	var r := ColorRect.new()
-	r.position = pos
-	r.size     = size
->>>>>>> 3f1f9d08e17d48edf5780b8f1cdad781fcd2ae0a
 	r.color    = col
 	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	parent.add_child(r)
