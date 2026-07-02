@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://optionsmenu001"]
+[gd_scene format=3 uid="uid://yo5qmvew6urw"]
 
 [ext_resource type="Script" uid="uid://kmjwcryfq44w" path="res://Scripts/OptionsMenu.gd" id="options_script"]
 
