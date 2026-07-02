@@ -3,12 +3,18 @@ extends Panel
 const CHAR_TEX := preload("res://Εικόνες/char.png")
 
 const CHAR_DATA: Array[Dictionary] = [
-	{"name": "Lyra Shadowveil", "class": "Μάγισσα Σκιών",    "color": Color(0.28, 0.08, 0.40), "locked": false},
-	{"name": "Aelindra",        "class": "Τοξότης Ξωτικών",  "color": Color(0.08, 0.20, 0.12), "locked": true},
-	{"name": "Elder Bromwick",  "class": "Αρχαίος Δρυΐδης",  "color": Color(0.10, 0.16, 0.26), "locked": true},
-	{"name": "Thordin",         "class": "Νάνος Πολεμιστής", "color": Color(0.26, 0.14, 0.04), "locked": true},
-	{"name": "Sir Gareth",      "class": "Σιδηρούς Ιππότης", "color": Color(0.16, 0.17, 0.20), "locked": true},
-	{"name": "Lady Seraphina",  "class": "Ευγενής Μάγισσα",  "color": Color(0.28, 0.05, 0.08), "locked": true},
+	{"name": "Lyra Shadowveil", "class": "Μάγισσα Σκιών",    "color": Color(0.28, 0.08, 0.40), "locked": false,
+		"stats": {"Άμυνα": 6, "Επίθεση": 12, "Ταχύτητα": 9, "Εξυπνάδα": 14, "Δύναμη": 5}},
+	{"name": "Aelindra",        "class": "Τοξότης Ξωτικών",  "color": Color(0.08, 0.20, 0.12), "locked": true,
+		"stats": {"Άμυνα": 7, "Επίθεση": 13, "Ταχύτητα": 15, "Εξυπνάδα": 9, "Δύναμη": 7}},
+	{"name": "Elder Bromwick",  "class": "Αρχαίος Δρυΐδης",  "color": Color(0.10, 0.16, 0.26), "locked": true,
+		"stats": {"Άμυνα": 8, "Επίθεση": 9, "Ταχύτητα": 6, "Εξυπνάδα": 15, "Δύναμη": 6}},
+	{"name": "Thordin",         "class": "Νάνος Πολεμιστής", "color": Color(0.26, 0.14, 0.04), "locked": true,
+		"stats": {"Άμυνα": 14, "Επίθεση": 11, "Ταχύτητα": 5, "Εξυπνάδα": 6, "Δύναμη": 15}},
+	{"name": "Sir Gareth",      "class": "Σιδηρούς Ιππότης", "color": Color(0.16, 0.17, 0.20), "locked": true,
+		"stats": {"Άμυνα": 15, "Επίθεση": 10, "Ταχύτητα": 6, "Εξυπνάδα": 7, "Δύναμη": 12}},
+	{"name": "Lady Seraphina",  "class": "Ευγενής Μάγισσα",  "color": Color(0.28, 0.05, 0.08), "locked": true,
+		"stats": {"Άμυνα": 7, "Επίθεση": 14, "Ταχύτητα": 10, "Εξυπνάδα": 13, "Δύναμη": 5}},
 ]
 
 # ── Palette ───────────────────────────────────────────────────────
@@ -40,12 +46,16 @@ const AI     := 10.0   # art inset
 const PLH    := 76.0   # name-plate height
 
 var _bar: Panel
+var _selected_idx := -1
+var _edit_popup: CharacterEditPopup
 
 func _ready() -> void:
 	_overlay()
 	_header()
 	_grid()
 	_action_bar()
+	_edit_popup = preload("res://Scenes/CharacterEditPopup.tscn").instantiate()
+	add_child(_edit_popup)
 	# Fade-in entrance
 	modulate.a = 0.0
 	var tw := create_tween()
@@ -502,10 +512,15 @@ func _vdiv_child(parent: Control, xp: float) -> void:
 # SIGNAL HANDLERS
 # ═══════════════════════════════════════════════════════════════
 
-func _on_char_selected(_idx: int) -> void:
+func _on_char_selected(idx: int) -> void:
+	_selected_idx = idx
 	_bar.visible = true
 
-func _on_action_edit() -> void:    _bar.visible = false
+func _on_action_edit() -> void:
+	_bar.visible = false
+	if _selected_idx >= 0 and _selected_idx < CHAR_DATA.size():
+		_edit_popup.open_character(CHAR_DATA[_selected_idx])
+
 func _on_action_back() -> void:    _bar.visible = false
 func _on_action_confirm() -> void: _bar.visible = false
 func _on_back_pressed() -> void:
