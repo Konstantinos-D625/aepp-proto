@@ -16,7 +16,7 @@ const AVATAR_BASE := preload("res://Εικόνες/avatar.png")
 # περιθώριο) του avatar.png, υπολογισμένο από το bounding box του alpha
 # channel· χρησιμοποιείται ως AtlasTexture.region ώστε να εμφανίζεται
 # "γεμάτο" μέσα στο πλαίσιο αντί να κάθεται μικρό στη μέση.
-const AVATAR_CROP := Rect2(274, 25, 130, 327)
+const AVATAR_CROP := Rect2(269, 16, 139, 337)
 
 # Στόχοι (Rect2) για κάθε equip-layer, σε ΤΟΠΙΚΕΣ συντεταγμένες μέσα στο
 # πλαίσιο avatar (0,0 = πάνω-αριστερά της περιοχής avatar, ΜΕΤΑ το εσωτερικό
@@ -70,16 +70,17 @@ func _ready() -> void:
 	# πόδια) αντί να καλύπτει ολόκληρο το avatar. Το όπλο ξεχωρίζει καθώς
 	# κρατιέται δίπλα στο σώμα, όχι πάνω του.
 	_avatar_layer_targets = {
-		Inventory.SLOT_HELMET: Rect2(126, 0,  95, 68),
-		Inventory.SLOT_CHEST:  Rect2(97,  56, 153, 145),
-		Inventory.SLOT_LEGS:   Rect2(114, 193, 119, 116),
-		Inventory.SLOT_BOOTS:  Rect2(89,  291, 170, 137),
+		Inventory.SLOT_HELMET: Rect2(100, 0,  30, 73),
+		Inventory.SLOT_CHEST:  Rect2(100,  60, 159, 141),
+		Inventory.SLOT_LEGS:   Rect2(112, 193, 124, 116),
+		Inventory.SLOT_BOOTS:  Rect2(86,  291, 177, 137),
 		Inventory.SLOT_WEAPON: Rect2(150, 30, 198, 358),
 	}
 	_build()
 	Inventory.equipment_changed.connect(func(_slot, _id):
 		_refresh_slots()
 		_refresh_avatar()
+		_refresh_stats()
 	)
 
 ## Δημόσια μέθοδος ανοίγματος — καλείται από CharacterSelect.gd με το
@@ -203,10 +204,18 @@ func _build_portrait_and_stats() -> void:
 		_stat_labels[stat_name] = val
 		row_y += row_h
 
+## Κάθε στατιστικό = βάση χαρακτήρα (πάντα 0 προς το παρόν, βλ.
+## CharacterSelect.CHAR_DATA) + άθροισμα του "stat_bonus" απ' όλα τα
+## εξοπλισμένα αντικείμενα (Inventory.get_equipped_stat_bonus) — π.χ. η
+## Επίθεση ανεβαίνει μόνο από το εξοπλισμένο όπλο, η Άμυνα από κάθε κομμάτι
+## πανοπλίας. Πάντα μέσα σε 0-20, ό,τι κι αν προκύψει αθροιστικά.
 func _refresh_stats() -> void:
-	var stats: Dictionary = _data.get("stats", {})
+	var base_stats: Dictionary = _data.get("stats", {})
 	for stat_name in _stat_labels:
-		(_stat_labels[stat_name] as Label).text = str(int(stats.get(stat_name, 0)))
+		var base: int = int(base_stats.get(stat_name, 0))
+		var bonus: int = Inventory.get_equipped_stat_bonus(stat_name)
+		var total: int = clampi(base + bonus, 0, 20)
+		(_stat_labels[stat_name] as Label).text = str(total)
 
 ## Ενημερώνει κάθε equip-layer του avatar με βάση το τι είναι εξοπλισμένο
 ## αυτή τη στιγμή στο αντίστοιχο slot. Αν το εξοπλισμένο item δεν έχει δικό
@@ -215,12 +224,7 @@ func _refresh_stats() -> void:
 func _refresh_avatar() -> void:
 	for slot in _avatar_layers:
 		var layer: TextureRect = _avatar_layers[slot]
-		var equipped: Dictionary = Inventory.get_equipped(slot)
-		var overlay_path: String = str(equipped.get("avatar_overlay", ""))
-		if overlay_path != "" and ResourceLoader.exists(overlay_path):
-			layer.texture = _cropped_texture(overlay_path, equipped.get("avatar_overlay_region", Rect2()))
-		else:
-			layer.texture = null
+		layer.texture = Inventory.get_item_texture(Inventory.get_equipped(slot))
 
 # ── Κάτω μέρος: 4 θέσεις εξοπλισμού ─────────────────────────────────────────
 func _build_equipment() -> void:
@@ -300,31 +304,10 @@ func _refresh_slots() -> void:
 		(_slot_name_labels[slot] as Label).text = str(equipped.get("name", "— Κενό —"))
 		var icon: TextureRect = _slot_icons.get(slot)
 		if icon:
-			icon.texture = _card_texture(equipped)
-
-## Το texture μιας κάρτας εξοπλισμού: προτιμά το (σωστά κομμένο) avatar_overlay
-## αν υπάρχει, αλλιώς πέφτει πίσω στο γενικό "icon" (π.χ. για αντικείμενα που
-## δεν έχουν ακόμα δικό τους art). Πάντα μέσα σε bounded Rect2 στον καλούντα
-## (STRETCH_KEEP_ASPECT_CENTERED) — δεν μπορεί ποτέ να "ξεχειλίσει" την κάρτα.
-func _card_texture(equipped: Dictionary) -> Texture2D:
-	var overlay_path: String = str(equipped.get("avatar_overlay", ""))
-	if overlay_path != "" and ResourceLoader.exists(overlay_path):
-		return _cropped_texture(overlay_path, equipped.get("avatar_overlay_region", Rect2()))
-	var icon_path: String = str(equipped.get("icon", ""))
-	if icon_path != "" and ResourceLoader.exists(icon_path):
-		return load(icon_path)
-	return null
-
-## Φορτώνει το path και το περιορίζει (αν δοθεί region) σε AtlasTexture, ώστε
-## να φαίνεται μόνο το πραγματικό περιεχόμενο χωρίς το διάφανο περιθώριο.
-func _cropped_texture(path: String, region: Rect2) -> Texture2D:
-	var tex: Texture2D = load(path)
-	if tex == null or region.size == Vector2.ZERO:
-		return tex
-	var atlas := AtlasTexture.new()
-	atlas.atlas  = tex
-	atlas.region = region
-	return atlas
+			# Ίδια πηγή εικόνας (Inventory.get_item_texture) με το avatar
+			# από πάνω και με το Αποθήκη/InventoryPopup — bounded Rect2 στον
+			# καλούντα (STRETCH_KEEP_ASPECT_CENTERED), δεν ξεχειλίζει ποτέ.
+			icon.texture = Inventory.get_item_texture(equipped)
 
 # ═══════════════════════════════════════════════════════════════
 # ΕΠΙΛΟΓΕΑΣ ΕΞΟΠΛΙΣΜΟΥ (picker) — λίστα owned items για μια θέση

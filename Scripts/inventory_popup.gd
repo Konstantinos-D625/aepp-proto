@@ -68,10 +68,10 @@ func _make_item_card(item: Dictionary) -> Control:
 
 	var icon := TextureRect.new()
 	icon.custom_minimum_size = Vector2(150, 150)
-	icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	if ResourceLoader.exists(item["icon"]):
-		icon.texture = load(item["icon"])
+	# Ίδια πηγή εικόνας με το Character Scene (Inventory.get_item_texture) —
+	# ώστε το ίδιο αντικείμενο να δείχνει πάντα την ίδια εικόνα παντού.
+	icon.texture = Inventory.get_item_texture(item)
 	row.add_child(icon)
 
 	var info := VBoxContainer.new()

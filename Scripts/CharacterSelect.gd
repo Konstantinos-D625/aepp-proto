@@ -2,19 +2,18 @@ extends Panel
 
 const CHAR_TEX := preload("res://Εικόνες/char.png")
 
+# Κάθε χαρακτήρας ξεκινάει με ΟΛΑ τα στατιστικά στο 0 (κλίμακα 0-20 για το
+# καθένα) — δεν χρειάζεται να δηλωθεί "stats" εδώ, το CharacterEditPopup το
+# διαβάζει με προεπιλογή 0 όταν λείπει. Η πραγματική τιμή προκύπτει
+# αποκλειστικά από τον εξοπλισμό (βλ. CharacterEditPopup._refresh_stats):
+# τα όπλα ανεβάζουν μόνο Επίθεση, κάθε κομμάτι πανοπλίας ανεβάζει Άμυνα.
 const CHAR_DATA: Array[Dictionary] = [
-	{"name": "Lyra Shadowveil", "class": "Μάγισσα Σκιών",    "color": Color(0.28, 0.08, 0.40), "locked": false,
-		"stats": {"Άμυνα": 6, "Επίθεση": 12, "Ταχύτητα": 9, "Εξυπνάδα": 14, "Δύναμη": 5}},
-	{"name": "Aelindra",        "class": "Τοξότης Ξωτικών",  "color": Color(0.08, 0.20, 0.12), "locked": true,
-		"stats": {"Άμυνα": 7, "Επίθεση": 13, "Ταχύτητα": 15, "Εξυπνάδα": 9, "Δύναμη": 7}},
-	{"name": "Elder Bromwick",  "class": "Αρχαίος Δρυΐδης",  "color": Color(0.10, 0.16, 0.26), "locked": true,
-		"stats": {"Άμυνα": 8, "Επίθεση": 9, "Ταχύτητα": 6, "Εξυπνάδα": 15, "Δύναμη": 6}},
-	{"name": "Thordin",         "class": "Νάνος Πολεμιστής", "color": Color(0.26, 0.14, 0.04), "locked": true,
-		"stats": {"Άμυνα": 14, "Επίθεση": 11, "Ταχύτητα": 5, "Εξυπνάδα": 6, "Δύναμη": 15}},
-	{"name": "Sir Gareth",      "class": "Σιδηρούς Ιππότης", "color": Color(0.16, 0.17, 0.20), "locked": true,
-		"stats": {"Άμυνα": 15, "Επίθεση": 10, "Ταχύτητα": 6, "Εξυπνάδα": 7, "Δύναμη": 12}},
-	{"name": "Lady Seraphina",  "class": "Ευγενής Μάγισσα",  "color": Color(0.28, 0.05, 0.08), "locked": true,
-		"stats": {"Άμυνα": 7, "Επίθεση": 14, "Ταχύτητα": 10, "Εξυπνάδα": 13, "Δύναμη": 5}},
+	{"name": "Lyra Shadowveil", "class": "Μάγισσα Σκιών",    "color": Color(0.28, 0.08, 0.40), "locked": false},
+	{"name": "Aelindra",        "class": "Τοξότης Ξωτικών",  "color": Color(0.08, 0.20, 0.12), "locked": true},
+	{"name": "Elder Bromwick",  "class": "Αρχαίος Δρυΐδης",  "color": Color(0.10, 0.16, 0.26), "locked": true},
+	{"name": "Thordin",         "class": "Νάνος Πολεμιστής", "color": Color(0.26, 0.14, 0.04), "locked": true},
+	{"name": "Sir Gareth",      "class": "Σιδηρούς Ιππότης", "color": Color(0.16, 0.17, 0.20), "locked": true},
+	{"name": "Lady Seraphina",  "class": "Ευγενής Μάγισσα",  "color": Color(0.28, 0.05, 0.08), "locked": true},
 ]
 
 # ── Palette ───────────────────────────────────────────────────────

@@ -412,12 +412,12 @@ func _finish(completed: bool) -> void:
 	_input_locked = true
 	_set_answer_buttons_enabled(false)
 
-	if _answered <= 0:
-		# Δεν απάντησε τίποτα → απλώς κλείσε, χωρίς loot.
+	# Χωρίς έστω μία σωστή απάντηση δεν δίνεται καθόλου βαμβάκι.
+	var score := _quiz.get_score() if _quiz else 0
+	if _answered <= 0 or score <= 0:
 		_close()
 		return
 
-	var score := _quiz.get_score() if _quiz else 0
 	var results := _generate_and_apply_loot()
 	var title := "Ο πωλητής σου έδωσε το βαμβάκι!" if completed else "Ευχαριστώ για τη βοήθεια!"
 	_show_completion(title, score, results)

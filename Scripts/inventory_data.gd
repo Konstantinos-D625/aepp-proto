@@ -35,17 +35,26 @@ const SLOT_LABELS := {
 
 const MAX_STAT := 5
 
+# ── Character-stat μπόνους (Character Scene) ────────────────────────────────
+# Κάθε χαρακτήρας ξεκινάει από 0 σε όλα (βλ. CharacterSelect.CHAR_DATA) — το
+# "stat_bonus" εδώ είναι το πόσο ανεβάζει το ΣΥΓΚΕΚΡΙΜΕΝΟ στατιστικό του
+# χαρακτήρα ΟΤΑΝ το item είναι εξοπλισμένο (άσχετο από το παλιότερο "stats"
+# πεδίο πιο κάτω, που είναι quality-δείκτης για το Αποθήκη/InventoryPopup).
+# Όπλα -> μόνο Επίθεση (1-20)· κάθε κομμάτι πανοπλίας -> Άμυνα (1-5). Προς το
+# παρόν όλα δίνουν 1 (είναι τα αρχικά/default) — θα ρυθμιστούν ανά αντικείμενο
+# αργότερα.
 const ITEMS := {
 	"sword_1": {
 		"name": "Σπαθί των Αρχαρίων",
-		"icon": "res://Εικόνες/sword.png",
 		"category": CATEGORY_WEAPON,
 		"avatar_overlay": "res://Εικόνες/sword_avatar.png",
 		# Περιοχή (σε pixel του πηγαίου PNG) όπου βρίσκεται το πραγματικό
 		# περιεχόμενο (χωρίς το διάφανο περιθώριο) — υπολογίστηκε από το
 		# bounding box του alpha channel, ώστε το layering στο Character
-		# Scene να ευθυγραμμίζεται σωστά αντί να γεμίζει όλο τον καμβά.
+		# Scene (και η εικόνα στο Αποθήκη/InventoryPopup) να ευθυγραμμίζεται
+		# σωστά αντί να γεμίζει όλο τον καμβά.
 		"avatar_overlay_region": Rect2(186, 87, 342, 233),
+		"stat_bonus": { "Επίθεση": 1 },
 		"stats": {
 			"Δύναμη": 1,
 			"Άμυνα": 1,
@@ -54,82 +63,96 @@ const ITEMS := {
 	},
 	"armor_1": {
 		"name": "Πανοπλία των Αρχαρίων",
-		"icon": "res://Εικόνες/armor.png",
 		"category": CATEGORY_ARMOR,
 		"slot": SLOT_CHEST,
 		"avatar_overlay": "res://Εικόνες/chestplate.png",
-		"avatar_overlay_region": Rect2(258, 76, 156, 235),
+		"avatar_overlay_region": Rect2(265, 78, 147, 158),
+		"stat_bonus": { "Άμυνα": 1 },
 		"stats": {
 			"Δύναμη": 0,
 			"Άμυνα": 1,
 			"Βάρος": 4,
 		},
 	},
-	# ── Αγοράσιμα από το ShopPopup (Scripts/shop_popup.gd) ────────────────
+	# ── Αγοράσιμα από το ShopPopup (Scripts/shop_popup.gd) — δεν έχουν ακόμα
+	# δικό τους art, οπότε δανείζονται προσωρινά την εικόνα του ίδιου είδους
+	# (ξίφος/θώρακας) αντί για το παλιό γενικό sword.png/armor.png.
 	"sword_student": {
 		"name": "Ξίφος Μαθητή",
-		"icon": "res://Εικόνες/sword.png",
 		"category": CATEGORY_WEAPON,
+		"avatar_overlay": "res://Εικόνες/sword_avatar.png",
+		"avatar_overlay_region": Rect2(186, 87, 342, 233),
+		"stat_bonus": { "Επίθεση": 1 },
 		"stats": { "Δύναμη": 2, "Άμυνα": 0, "Βάρος": 2 },
 	},
 	"sword_double": {
 		"name": "Δίκοπο Σπαθί",
-		"icon": "res://Εικόνες/sword.png",
 		"category": CATEGORY_WEAPON,
+		"avatar_overlay": "res://Εικόνες/sword_avatar.png",
+		"avatar_overlay_region": Rect2(186, 87, 342, 233),
+		"stat_bonus": { "Επίθεση": 1 },
 		"stats": { "Δύναμη": 3, "Άμυνα": 0, "Βάρος": 3 },
 	},
 	"axe_war": {
 		"name": "Πέλεκυς Πολέμου",
-		"icon": "res://Εικόνες/sword.png",
 		"category": CATEGORY_WEAPON,
+		"avatar_overlay": "res://Εικόνες/sword_avatar.png",
+		"avatar_overlay_region": Rect2(186, 87, 342, 233),
+		"stat_bonus": { "Επίθεση": 1 },
 		"stats": { "Δύναμη": 5, "Άμυνα": 0, "Βάρος": 5 },
 	},
 	"armor_leather": {
 		"name": "Δερμάτινη Πανοπλία",
-		"icon": "res://Εικόνες/armor.png",
 		"category": CATEGORY_ARMOR,
 		"slot": SLOT_CHEST,
+		"avatar_overlay": "res://Εικόνες/chestplate.png",
+		"avatar_overlay_region": Rect2(265, 78, 147, 158),
+		"stat_bonus": { "Άμυνα": 1 },
 		"stats": { "Δύναμη": 0, "Άμυνα": 2, "Βάρος": 2 },
 	},
 	"armor_iron": {
 		"name": "Σιδερένια Πανοπλία",
-		"icon": "res://Εικόνες/armor.png",
 		"category": CATEGORY_ARMOR,
 		"slot": SLOT_CHEST,
+		"avatar_overlay": "res://Εικόνες/chestplate.png",
+		"avatar_overlay_region": Rect2(265, 78, 147, 158),
+		"stat_bonus": { "Άμυνα": 1 },
 		"stats": { "Δύναμη": 0, "Άμυνα": 4, "Βάρος": 4 },
 	},
 	"armor_knight_shield": {
 		"name": "Ασπίδα Ιππότη",
-		"icon": "res://Εικόνες/armor.png",
 		"category": CATEGORY_ARMOR,
+		"avatar_overlay": "res://Εικόνες/chestplate.png",
+		"avatar_overlay_region": Rect2(265, 78, 147, 158),
+		"stat_bonus": { "Άμυνα": 1 },
 		"stats": { "Δύναμη": 0, "Άμυνα": 5, "Βάρος": 3 },
 	},
 	# ── Θέσεις εξοπλισμού χωρίς προηγούμενη κάλυψη στο καζάνι ─────────────
 	"helmet_basic": {
 		"name": "Κράνος Μαθητή",
-		"icon": "res://Εικόνες/armor.png",
 		"category": CATEGORY_ARMOR,
 		"slot": SLOT_HELMET,
 		"avatar_overlay": "res://Εικόνες/helmet.png",
-		"avatar_overlay_region": Rect2(259, 63, 160, 247),
+		"avatar_overlay_region": Rect2(265, 74, 148, 217),
+		"stat_bonus": { "Άμυνα": 1 },
 		"stats": { "Δύναμη": 0, "Άμυνα": 1, "Βάρος": 1 },
 	},
 	"legs_basic": {
 		"name": "Παντελόνι Μαθητή",
-		"icon": "res://Εικόνες/armor.png",
 		"category": CATEGORY_ARMOR,
 		"slot": SLOT_LEGS,
 		"avatar_overlay": "res://Εικόνες/leggings.png",
-		"avatar_overlay_region": Rect2(275, 119, 137, 198),
+		"avatar_overlay_region": Rect2(294, 168, 90, 168),
+		"stat_bonus": { "Άμυνα": 1 },
 		"stats": { "Δύναμη": 0, "Άμυνα": 1, "Βάρος": 1 },
 	},
 	"boots_basic": {
 		"name": "Μπότες Μαθητή",
-		"icon": "res://Εικόνες/armor.png",
 		"category": CATEGORY_ARMOR,
 		"slot": SLOT_BOOTS,
 		"avatar_overlay": "res://Εικόνες/boots.png",
-		"avatar_overlay_region": Rect2(212, 125, 248, 201),
+		"avatar_overlay_region": Rect2(234, 178, 218, 157),
+		"stat_bonus": { "Άμυνα": 1 },
 		"stats": { "Δύναμη": 0, "Άμυνα": 1, "Βάρος": 1 },
 	},
 }
@@ -207,3 +230,30 @@ func get_equipped(slot: String) -> Dictionary:
 	var entry: Dictionary = (ITEMS[id] as Dictionary).duplicate(true)
 	entry["id"] = id
 	return entry
+
+## Άθροισμα του "stat_bonus"[stat_name] απ' όλα τα εξοπλισμένα αντικείμενα
+## (όλα τα SLOTS + SLOT_WEAPON) — π.χ. πόσο ανεβάζει η Επίθεση από το
+## εξοπλισμένο όπλο, ή η Άμυνα από όλα τα κομμάτια πανοπλίας μαζί.
+func get_equipped_stat_bonus(stat_name: String) -> int:
+	var total := 0
+	for slot in equipped:
+		var bonus: Dictionary = get_equipped(slot).get("stat_bonus", {})
+		total += int(bonus.get(stat_name, 0))
+	return total
+
+## Η εικόνα ενός αντικειμένου, κομμένη (μέσω AtlasTexture) στο πραγματικό της
+## περιεχόμενο με βάση "avatar_overlay"/"avatar_overlay_region". ΜΙΑ κοινή
+## πηγή για όλες τις οθόνες που δείχνουν αντικείμενα (Character Scene,
+## Αποθήκη/InventoryPopup), ώστε να δείχνουν πάντα την ίδια εικόνα.
+func get_item_texture(item: Dictionary) -> Texture2D:
+	var path: String = str(item.get("avatar_overlay", ""))
+	if path == "" or not ResourceLoader.exists(path):
+		return null
+	var tex: Texture2D = load(path)
+	var region: Rect2 = item.get("avatar_overlay_region", Rect2())
+	if tex == null or region.size == Vector2.ZERO:
+		return tex
+	var atlas := AtlasTexture.new()
+	atlas.atlas  = tex
+	atlas.region = region
+	return atlas
