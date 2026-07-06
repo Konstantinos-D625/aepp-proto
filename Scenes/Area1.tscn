@@ -2,24 +2,21 @@
 
 [ext_resource type="AudioStream" uid="uid://cwl4ofs06wqnj" path="res://Music/Smithing Sound Effect.mp3" id="4_7hroq"]
 [ext_resource type="Script" uid="uid://lgtra1umm75q" path="res://Music/blacksmithSFX.gd" id="5_wstoh"]
-[ext_resource type="Texture2D" uid="uid://d0x12yhenhf4v" path="res://Εικόνες/Shop_Image.png" id="6_eu2rd"]
-[ext_resource type="Texture2D" uid="uid://jbn600rgy5i1" path="res://Εικόνες/witchHouse.png" id="7_7i7i6"]
 [ext_resource type="AudioStream" uid="uid://cac8h8ntb6eux" path="res://Music/Medieval Trumpet Sound Effects.mp3" id="8_5asjm"]
 [ext_resource type="Script" uid="uid://cphs277dyi43y" path="res://Music/charsfx.gd" id="13_87y4o"]
 [ext_resource type="AudioStream" uid="uid://b4b6wbhi3jy4p" path="res://Music/Bäring.mp3" id="19_87y4o"]
 [ext_resource type="Texture2D" uid="uid://dwteymp21yx1o" path="res://Εικόνες/bg1.png" id="bg"]
 [ext_resource type="PackedScene" uid="uid://blacksmith001" path="res://Scenes/BlacksmithPopup.tscn" id="blacksmith_scene"]
+[ext_resource type="PackedScene" uid="uid://ftwod68gmpix" path="res://Scenes/BossPopup.tscn" id="boss_scene"]
 [ext_resource type="Texture2D" uid="uid://bfxx88hsb0mcd" path="res://Εικόνες/char.png" id="char"]
 [ext_resource type="PackedScene" uid="uid://charselect001" path="res://Scenes/CharacterSelect.tscn" id="char_select_scene"]
 [ext_resource type="PackedScene" uid="uid://cotton001" path="res://Scenes/CottonPopup.tscn" id="cotton_scene"]
-[ext_resource type="Texture2D" uid="uid://dyc3hy1mvk2fn" path="res://Εικόνες/dq.png" id="dq"]
-[ext_resource type="PackedScene" uid="uid://b4i3ybrjf1ngw" path="res://Scenes/DailyQuestPopup.tscn" id="dailyquest_popup_scene"]
 [ext_resource type="PackedScene" uid="uid://doi3j0i6x8yld" path="res://Scenes/DailyQuestExercises.tscn" id="dailyquest_exercises_scene"]
+[ext_resource type="PackedScene" uid="uid://b4i3ybrjf1ngw" path="res://Scenes/DailyQuestPopup.tscn" id="dailyquest_popup_scene"]
+[ext_resource type="Texture2D" uid="uid://dyc3hy1mvk2fn" path="res://Εικόνες/dq.png" id="dq"]
 [ext_resource type="Texture2D" uid="uid://b5yo74otw82i0" path="res://Εικόνες/friends.png" id="friends"]
-[ext_resource type="Texture2D" uid="uid://tgdmvcgnb36x" path="res://Εικόνες/house1.png" id="h1"]
-[ext_resource type="Texture2D" uid="uid://c6y4ujfhfcyxo" path="res://Εικόνες/house2.png" id="h2"]
 [ext_resource type="Texture2D" uid="uid://cgwkqgjbrbim0" path="res://Εικόνες/Inventory1.png" id="inv"]
-[ext_resource type="PackedScene" uid="uid://inventorypopup001" path="res://Scenes/InventoryPopup.tscn" id="inventory_popup_scene"]
+[ext_resource type="PackedScene" uid="uid://mx4he0vrynwy" path="res://Scenes/InventoryPopup.tscn" id="inventory_popup_scene"]
 [ext_resource type="Texture2D" uid="uid://b5jkmspmb8xb3" path="res://Εικόνες/loot.png" id="loot"]
 [ext_resource type="PackedScene" uid="uid://c6uwqyp885ntg" path="res://Scenes/LootPopup.tscn" id="loot_popup_scene"]
 [ext_resource type="Texture2D" uid="uid://n0onwcivmsln" path="res://Εικόνες/map.png" id="map"]
@@ -28,17 +25,13 @@
 [ext_resource type="Texture2D" uid="uid://bk5ukyemg4ah0" path="res://Εικόνες/options.png" id="options"]
 [ext_resource type="PackedScene" uid="uid://yo5qmvew6urw" path="res://Scenes/OptionsMenu.tscn" id="options_menu_scene"]
 [ext_resource type="PackedScene" uid="uid://boywbmrd7cmun" path="res://Scenes/ShopPopup.tscn" id="shop_scene"]
-[ext_resource type="PackedScene" uid="uid://ftwod68gmpix" path="res://Scenes/BossPopup.tscn" id="boss_scene"]
 [ext_resource type="Texture2D" uid="uid://cmex2ibj3lcm1" path="res://Εικόνες/sidebar.png" id="sidebar"]
 [ext_resource type="Texture2D" uid="uid://dric4kdeffx15" path="res://Εικόνες/sideq.png" id="sideq"]
-[ext_resource type="Texture2D" uid="uid://duq0kh70hnne2" path="res://Εικόνες/streak.png" id="streak"]
-
-[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_vmeuf"]
-load_path = "res://.godot/imported/house3.png-c83df141036063e7a008bb1fdecdfe20.ctex"
+[ext_resource type="PackedScene" uid="uid://witchmap001" path="res://Scenes/WitchMapPopup.tscn" id="witch_map_popup_scene"]
 
 [sub_resource type="AtlasTexture" id="board"]
 atlas = ExtResource("sidebar")
-region = Rect2(362, 66, 298, 1370)
+region = Rect2(144, 26, 120, 547)
 
 [node name="Area1" type="Control" unique_id=1095226882]
 layout_mode = 3
@@ -71,32 +64,31 @@ mouse_filter = 2
 
 [node name="House2" type="TextureButton" parent="Houses" unique_id=1566822109]
 layout_mode = 1
-offset_left = 257.0
-offset_top = 1255.0
-offset_right = 492.0
-offset_bottom = 1490.0
-texture_normal = ExtResource("h2")
+offset_left = -1.0
+offset_top = 1317.0
+offset_right = 234.0
+offset_bottom = 1552.0
+scale = Vector2(1.7506768, 1.3942848)
 ignore_texture_size = true
 stretch_mode = 5
 
 [node name="House1" type="TextureButton" parent="Houses" unique_id=16797282]
 layout_mode = 1
-offset_left = 264.0
-offset_top = 485.0
-offset_right = 494.00003
-offset_bottom = 715.0
-scale = Vector2(1.0100487, 0.9802529)
-texture_normal = ExtResource("h1")
+offset_left = -4.0
+offset_top = 346.0
+offset_right = 226.00003
+offset_bottom = 576.0
+scale = Vector2(1.6307224, 1.3290178)
 ignore_texture_size = true
 stretch_mode = 5
 
 [node name="House3" type="TextureButton" parent="Houses" unique_id=2133092652]
 layout_mode = 1
-offset_left = 124.0
-offset_top = 787.0
-offset_right = 519.0
-offset_bottom = 1301.0
-texture_normal = SubResource("CompressedTexture2D_vmeuf")
+offset_left = -1.0
+offset_top = 769.0
+offset_right = 394.0
+offset_bottom = 1283.0
+scale = Vector2(1, 0.74563676)
 ignore_texture_size = true
 stretch_mode = 5
 
@@ -107,23 +99,21 @@ script = ExtResource("5_wstoh")
 
 [node name="Shop" type="TextureButton" parent="Houses" unique_id=1439656035]
 layout_mode = 1
-offset_left = 343.0
-offset_top = 35.0
-offset_right = 743.0
-offset_bottom = 305.0
-scale = Vector2(1.1817884, 1.1898025)
-texture_normal = ExtResource("6_eu2rd")
+offset_left = 379.0
+offset_top = 14.0
+offset_right = 779.0
+offset_bottom = 284.0
+scale = Vector2(1.423687, 1.9535856)
 ignore_texture_size = true
 stretch_mode = 5
 
-[node name="House5" type="TextureButton" parent="Houses" unique_id=332964076]
+[node name="ForestPathButton" type="TextureButton" parent="Houses" unique_id=332964076]
 layout_mode = 1
-offset_left = 597.0
-offset_top = 1519.0
-offset_right = 1047.0
-offset_bottom = 1869.0
-scale = Vector2(0.9390332, 0.96248484)
-texture_normal = ExtResource("7_7i7i6")
+offset_left = 557.0
+offset_top = 1225.0
+offset_right = 1007.0
+offset_bottom = 1575.0
+scale = Vector2(1.1390574, 1.5368633)
 ignore_texture_size = true
 stretch_mode = 5
 
@@ -135,17 +125,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-
-[node name="Streak" type="TextureRect" parent="HUD" unique_id=1122792081]
-layout_mode = 1
-offset_left = 5.0
-offset_top = 119.0
-offset_right = 343.0
-offset_bottom = 344.0
-mouse_filter = 2
-texture = ExtResource("streak")
-expand_mode = 1
-stretch_mode = 5
 
 [node name="Loot" type="TextureButton" parent="HUD" unique_id=1618197088]
 layout_mode = 1
@@ -159,10 +138,10 @@ stretch_mode = 5
 
 [node name="SideQuest" type="TextureButton" parent="HUD" unique_id=935252061]
 layout_mode = 1
-offset_left = 14.0
-offset_top = 270.0
-offset_right = 209.0
-offset_bottom = 513.0
+offset_left = 26.0
+offset_top = 148.0
+offset_right = 221.0
+offset_bottom = 391.0
 texture_normal = ExtResource("sideq")
 ignore_texture_size = true
 stretch_mode = 5
@@ -182,68 +161,69 @@ mouse_filter = 2
 
 [node name="Board" type="TextureRect" parent="HUD/Sidebar" unique_id=1228165139]
 layout_mode = 1
-offset_left = 811.00006
-offset_top = 332.0
-offset_right = 1104.2422
-offset_bottom = 1704.1171
-scale = Vector2(0.7711782, 0.8760186)
+offset_left = 420.0
+offset_top = 1288.0
+offset_right = 660.0
+offset_bottom = 2288.0
+rotation = -1.5707963
+scale = Vector2(0.92881244, 1.4376389)
+pivot_offset = Vector2(120, 500)
 mouse_filter = 2
 texture = SubResource("board")
 expand_mode = 1
 
-[node name="Map" type="TextureButton" parent="HUD/Sidebar" unique_id=842044376]
+[node name="Buttons" type="HBoxContainer" parent="HUD/Sidebar" unique_id=1148631600]
 layout_mode = 1
-offset_left = 345.0
-offset_top = 1591.0
-offset_right = 725.0
-offset_bottom = 1950.0
-texture_normal = ExtResource("map")
-ignore_texture_size = true
-stretch_mode = 5
+offset_top = 1660.0
+offset_right = 960.0
+offset_bottom = 1860.0
+scale = Vector2(1.1313591, 1.1981258)
+mouse_filter = 2
+theme_override_constants/separation = 20
+alignment = 1
 
-[node name="DailyQuest" type="TextureButton" parent="HUD/Sidebar" unique_id=1148631502]
-layout_mode = 1
-offset_left = 826.0
-offset_top = 616.0
-offset_right = 1021.0
-offset_bottom = 859.0
-texture_normal = ExtResource("dq")
-ignore_texture_size = true
-stretch_mode = 5
-
-[node name="Characters" type="TextureButton" parent="HUD/Sidebar" unique_id=1618537846]
-layout_mode = 1
-offset_left = 826.0
-offset_top = 845.0
-offset_right = 1021.0
-offset_bottom = 1088.0
+[node name="Characters" type="TextureButton" parent="HUD/Sidebar/Buttons" unique_id=1618537846]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
 texture_normal = ExtResource("char")
 ignore_texture_size = true
 stretch_mode = 5
 
-[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="HUD/Sidebar/Characters" unique_id=1508822018]
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="HUD/Sidebar/Buttons/Characters" unique_id=1508822018]
 stream = ExtResource("8_5asjm")
 bus = &"SFX"
 script = ExtResource("13_87y4o")
 
-[node name="Friends" type="TextureButton" parent="HUD/Sidebar" unique_id=1650180062]
-layout_mode = 1
-offset_left = 826.0
-offset_top = 1062.0
-offset_right = 1021.0
-offset_bottom = 1305.0
-texture_normal = ExtResource("friends")
+[node name="Inventory" type="TextureButton" parent="HUD/Sidebar/Buttons" unique_id=760664732]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+texture_normal = ExtResource("inv")
 ignore_texture_size = true
 stretch_mode = 5
 
-[node name="Inventory" type="TextureButton" parent="HUD" unique_id=760664732]
-layout_mode = 1
-offset_left = 846.0
-offset_top = 411.00003
-offset_right = 953.1903
-offset_bottom = 589.727
-scale = Vector2(1.4646851, 1.3819964)
-texture_normal = ExtResource("inv")
+[node name="Map" type="TextureButton" parent="HUD/Sidebar/Buttons" unique_id=842044376]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+texture_normal = ExtResource("map")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="DailyQuest" type="TextureButton" parent="HUD/Sidebar/Buttons" unique_id=1148631502]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+texture_normal = ExtResource("dq")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="Friends" type="TextureButton" parent="HUD/Sidebar/Buttons" unique_id=1650180062]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+texture_normal = ExtResource("friends")
 ignore_texture_size = true
 stretch_mode = 5
 
@@ -282,15 +262,21 @@ layout_mode = 1
 layout_mode = 1
 
 [node name="InventoryPopup" parent="." unique_id=987654325 instance=ExtResource("inventory_popup_scene")]
+visible = false
 layout_mode = 1
 
 [node name="ShopPopup" parent="." unique_id=987654326 instance=ExtResource("shop_scene")]
+layout_mode = 1
+
+[node name="WitchMapPopup" parent="." unique_id=987654330 instance=ExtResource("witch_map_popup_scene")]
+visible = false
 layout_mode = 1
 
 [node name="BossPopup" parent="." unique_id=987654327 instance=ExtResource("boss_scene")]
 layout_mode = 1
 
 [node name="DailyQuestPopup" parent="." unique_id=987654328 instance=ExtResource("dailyquest_popup_scene")]
+visible = false
 layout_mode = 1
 
 [node name="DailyQuestExercises" parent="." unique_id=987654329 instance=ExtResource("dailyquest_exercises_scene")]
@@ -306,12 +292,12 @@ bus = &"Music"
 [connection signal="pressed" from="Houses/House3" to="Houses/House3/AudioStreamPlayer" method="on_pressed"]
 [connection signal="pressed" from="Houses/House3" to="BlacksmithPopup" method="show_popup"]
 [connection signal="pressed" from="Houses/Shop" to="ShopPopup" method="show_popup"]
-[connection signal="pressed" from="Houses/House5" to="BossPopup" method="show_popup"]
+[connection signal="pressed" from="Houses/ForestPathButton" to="WitchMapPopup" method="show_popup"]
 [connection signal="pressed" from="HUD/Loot" to="LootPopup" method="open"]
-[connection signal="pressed" from="HUD/Sidebar/Map" to="MapPopup" method="open"]
-[connection signal="pressed" from="HUD/Sidebar/DailyQuest" to="DailyQuestPopup" method="open"]
-[connection signal="pressed" from="HUD/Sidebar/Characters" to="HUD/Sidebar/Characters/AudioStreamPlayer" method="on_pressed"]
-[connection signal="pressed" from="HUD/Sidebar/Characters" to="CharacterSelect" method="show_screen"]
+[connection signal="pressed" from="HUD/Sidebar/Buttons/Characters" to="HUD/Sidebar/Buttons/Characters/AudioStreamPlayer" method="on_pressed"]
+[connection signal="pressed" from="HUD/Sidebar/Buttons/Characters" to="CharacterSelect" method="show_screen"]
+[connection signal="pressed" from="HUD/Sidebar/Buttons/Inventory" to="InventoryPopup" method="open"]
+[connection signal="pressed" from="HUD/Sidebar/Buttons/Map" to="MapPopup" method="open"]
+[connection signal="pressed" from="HUD/Sidebar/Buttons/DailyQuest" to="DailyQuestPopup" method="open"]
 [connection signal="pressed" from="HUD/Options" to="OptionsPanel" method="_on_options_pressed"]
-[connection signal="pressed" from="HUD/Inventory" to="InventoryPopup" method="open"]
 [connection signal="go_pressed" from="DailyQuestPopup" to="DailyQuestExercises" method="open"]

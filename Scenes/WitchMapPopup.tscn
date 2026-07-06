@@ -1,0 +1,52 @@
+[gd_scene format=3 uid="uid://witchmap001"]
+
+[ext_resource type="Script" uid="uid://cppltoqha00cc" path="res://Scripts/witch_map_popup.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://bo3revpnfp643" path="res://Εικόνες/witch_map.png" id="2_bg"]
+[ext_resource type="Texture2D" uid="uid://jbn600rgy5i1" path="res://Εικόνες/witchHouse.png" id="3_house"]
+
+[node name="WitchMapPopup" type="Control" unique_id=1387227623]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_script")
+
+[node name="Background" type="TextureRect" parent="." unique_id=1262811452]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("2_bg")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="WitchHouseButton" type="TextureButton" parent="." unique_id=396499609]
+unique_name_in_owner = true
+layout_mode = 1
+offset_left = 55.00009
+offset_top = 244.0
+offset_right = 742.44434
+offset_bottom = 640.5169
+scale = Vector2(1.3048328, 1.4349954)
+texture_normal = ExtResource("3_house")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="BackButton" type="Button" parent="." unique_id=1589816828]
+unique_name_in_owner = true
+layout_mode = 1
+offset_left = 150.0
+offset_top = 1782.0
+offset_right = 540.0
+offset_bottom = 1866.0
+theme_override_font_sizes/font_size = 30
+text = "◄   Πίσω στο Χωριό"
+
+[connection signal="pressed" from="BackButton" to="." method="_on_back_pressed"]
