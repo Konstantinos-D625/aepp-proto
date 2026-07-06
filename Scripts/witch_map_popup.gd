@@ -12,9 +12,15 @@ extends Control
 # Area1.tscn, εμφανίζεται/κρύβεται με show_popup()/close_popup() + fade
 # tween, όχι πραγματικό change_scene_to_file (αυτό χρησιμοποιείται μόνο στο
 # map_popup.gd για μετάβαση ΜΕΤΑΞΥ περιοχών, όχι για υπο-τοποθεσίες μέσα σε
-# μία περιοχή). Το WitchHouseButton -> BossPopup.show_popup() συνδέεται στο
-# Area1.tscn (cross-popup σύνδεση, ίδιο μοτίβο με Houses/House2 -> CottonPopup).
-
+# μία περιοχή).
+#
+# ΠΡΟΣΟΧΗ — WitchHouseButton -> BossPopup.show_popup(): αυτή η σύνδεση
+# συνδέεται ΕΔΩ, ΣΕ ΚΩΔΙΚΑ (_ready παρακάτω), ΟΧΙ ως connection στο
+# Area1.tscn. Μια δοκιμασμένη cross-scene σύνδεση εκεί (από κόμβο ΜΕΣΑ σε
+# αυτό το instanced sub-scene προς sibling του Area1) αποδείχτηκε εύθραυστη
+# — η Godot την πετούσε επανειλημμένα σε κάθε σοβαρή επεξεργασία/save του
+# Area1.tscn. Η σύνδεση σε κώδικα δεν εξαρτάται από metadata του .tscn, άρα
+# δεν μπορεί να χαθεί με τον ίδιο τρόπο.
 const C_WOOD    := Color(0.200, 0.120, 0.052)
 const C_GOLD    := Color(0.940, 0.760, 0.160)
 const C_GOLD_S  := Color(1.000, 0.920, 0.560)
@@ -22,6 +28,14 @@ const C_GOLD_S  := Color(1.000, 0.920, 0.560)
 func _ready() -> void:
 	hide()
 	_style_back_button(%BackButton)
+	%WitchHouseButton.pressed.connect(_on_witch_house_pressed)
+
+## Ο γονιός (Area1) έχει το BossPopup ως άμεσο sibling — βλ. σχόλιο πιο πάνω
+## για το γιατί η σύνδεση γίνεται εδώ αντί για connection στο Area1.tscn.
+func _on_witch_house_pressed() -> void:
+	var boss := get_parent().get_node_or_null("BossPopup")
+	if boss:
+		boss.show_popup()
 
 func show_popup() -> void:
 	visible = true

@@ -62,7 +62,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="House2" type="TextureButton" parent="Houses" unique_id=1566822109]
+[node name="CottonShop" type="TextureButton" parent="Houses" unique_id=1566822109]
 layout_mode = 1
 offset_left = -1.0
 offset_top = 1317.0
@@ -72,7 +72,7 @@ scale = Vector2(1.7506768, 1.3942848)
 ignore_texture_size = true
 stretch_mode = 5
 
-[node name="House1" type="TextureButton" parent="Houses" unique_id=16797282]
+[node name="Mineshaft" type="TextureButton" parent="Houses" unique_id=16797282]
 layout_mode = 1
 offset_left = -4.0
 offset_top = 346.0
@@ -82,7 +82,7 @@ scale = Vector2(1.6307224, 1.3290178)
 ignore_texture_size = true
 stretch_mode = 5
 
-[node name="House3" type="TextureButton" parent="Houses" unique_id=2133092652]
+[node name="HouBlacksmithShopse3" type="TextureButton" parent="Houses" unique_id=2133092652]
 layout_mode = 1
 offset_left = -1.0
 offset_top = 769.0
@@ -92,7 +92,7 @@ scale = Vector2(1, 0.74563676)
 ignore_texture_size = true
 stretch_mode = 5
 
-[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="Houses/House3" unique_id=1676085497]
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="Houses/HouBlacksmithShopse3" unique_id=1676085497]
 stream = ExtResource("4_7hroq")
 bus = &"SFX"
 script = ExtResource("5_wstoh")
@@ -109,10 +109,10 @@ stretch_mode = 5
 
 [node name="ForestPathButton" type="TextureButton" parent="Houses" unique_id=332964076]
 layout_mode = 1
-offset_left = 557.0
-offset_top = 1225.0
-offset_right = 1007.0
-offset_bottom = 1575.0
+offset_left = 560.0
+offset_top = 1175.0
+offset_right = 1010.0
+offset_bottom = 1525.0
 scale = Vector2(1.1390574, 1.5368633)
 ignore_texture_size = true
 stretch_mode = 5
@@ -287,10 +287,10 @@ stream = ExtResource("19_87y4o")
 autoplay = true
 bus = &"Music"
 
-[connection signal="pressed" from="Houses/House2" to="CottonPopup" method="show_popup"]
-[connection signal="pressed" from="Houses/House1" to="MinerPopup" method="show_popup"]
-[connection signal="pressed" from="Houses/House3" to="Houses/House3/AudioStreamPlayer" method="on_pressed"]
-[connection signal="pressed" from="Houses/House3" to="BlacksmithPopup" method="show_popup"]
+[connection signal="pressed" from="Houses/CottonShop" to="CottonPopup" method="show_popup"]
+[connection signal="pressed" from="Houses/Mineshaft" to="MinerPopup" method="show_popup"]
+[connection signal="pressed" from="Houses/HouBlacksmithShopse3" to="Houses/HouBlacksmithShopse3/AudioStreamPlayer" method="on_pressed"]
+[connection signal="pressed" from="Houses/HouBlacksmithShopse3" to="BlacksmithPopup" method="show_popup"]
 [connection signal="pressed" from="Houses/Shop" to="ShopPopup" method="show_popup"]
 [connection signal="pressed" from="Houses/ForestPathButton" to="WitchMapPopup" method="show_popup"]
 [connection signal="pressed" from="HUD/Loot" to="LootPopup" method="open"]

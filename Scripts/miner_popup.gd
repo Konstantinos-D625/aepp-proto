@@ -283,7 +283,11 @@ func _build_board() -> Control:
 	pad.size     = Vector2(BRD_W, BRD_H)
 	pad.add_theme_constant_override("margin_left",   90)
 	pad.add_theme_constant_override("margin_right",  90)
-	pad.add_theme_constant_override("margin_top",    150)
+	# Το board.png έχει ~15% διάφανο περιθώριο στην κορυφή πριν καν ξεκινήσει
+	# το ξύλινο πλαίσιο (bounding box της εικόνας, όχι του BRD_H) — 150 δεν
+	# έφτανε. 340 (~25.8% του BRD_H=1320) το κατεβάζει ακόμα πιο καθαρά μέσα
+	# στο ορατό ξύλο (μετά από feedback ότι το 260 ήταν ακόμα λίγο ψηλά).
+	pad.add_theme_constant_override("margin_top",    340)
 	pad.add_theme_constant_override("margin_bottom", 130)
 	pad.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(pad)
