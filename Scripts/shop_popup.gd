@@ -4,11 +4,10 @@ extends Control
 # παίκτη (Χρυσό, Κασμίρ, Βαμβάκι, Σίδερο). Οι πόροι αφαιρούνται μέσω του
 # Currency autoload, οπότε το LootPopup βλέπει αμέσως τα νέα ποσά.
 
-const WEAPONS: Array[Dictionary] = [
-	{ "id": "sword_student", "name": "Ξίφος Μαθητή",    "desc": "+5 Επίθεση",  "cost": {"Σίδερο": 5,  "Χρυσό": 20},               "icon": "⚔" },
-	{ "id": "sword_double",  "name": "Δίκοπο Σπαθί",    "desc": "+12 Επίθεση", "cost": {"Σίδερο": 12, "Χρυσό": 60},               "icon": "⚔" },
-	{ "id": "axe_war",       "name": "Πέλεκυς Πολέμου", "desc": "+20 Επίθεση", "cost": {"Σίδερο": 20, "Κασμίρ": 3, "Χρυσό": 120}, "icon": "🪓" },
-]
+# Τα όπλα δεν είναι πια μια στατική λίστα — έρχονται δυναμικά από το
+# WeaponInventory autoload. Κάθε κατηγορία (μαχαίρι, σπαθί, ...) έχει 9
+# ξεχωριστά αγοράσιμα όπλα (ένα ανά old_level). Το Shop ΜΟΝΟ πουλάει· η
+# αναβάθμιση/πώληση γίνεται αποκλειστικά στο Inventory. Βλ. Scripts/weapon_inventory.gd.
 
 const ARMOR: Array[Dictionary] = [
 	{ "id": "armor_leather",      "name": "Δερμάτινη Πανοπλία", "desc": "+8 Άμυνα",  "cost": {"Βαμβάκι": 10, "Χρυσό": 15},              "icon": "🛡" },
@@ -34,8 +33,10 @@ const W := 1080.0
 const H := 1920.0
 const HDR_H := 240.0
 const TAB_H := 96.0
+const CAT_BAR_H := 68.0
 
 var _category := "weapons"
+var _selected_weapon_category: String = WeaponInventory.CATEGORIES[0]
 
 var _currency_strip: Control
 var _currency_labels := {}   # currency name -> Label
@@ -43,12 +44,15 @@ var _scroll: ScrollContainer
 var _grid: GridContainer
 var _tab_weapons: Button
 var _tab_armor: Button
+var _weapon_cat_bar: ScrollContainer
+var _weapon_cat_buttons: Dictionary = {}   # category -> Button
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	visible = false
 	_build()
 	Currency.changed.connect(_update_currency_labels)
+	WeaponInventory.changed.connect(_on_weapons_changed)
 
 func show_popup() -> void:
 	visible = true
@@ -69,7 +73,9 @@ func _build() -> void:
 	_build_dim()
 	_build_header()
 	_build_tabs()
+	_build_weapon_category_bar()
 	_build_grid_area()
+	_layout_grid_area()
 	_refresh_grid()
 
 func _build_dim() -> void:
@@ -157,10 +163,32 @@ func _build_tabs() -> void:
 
 	_update_tabs()
 
+## Δεύτερη γραμμή tabs — μόνο για τις 9 κατηγορίες όπλων (μαχαίρι < σπαθί <
+## σφυρί < σιδηρομπουνιά < τσεκούρι < αξίνα < λεπίδα < μαστίγιο < τόξο).
+## Κρύβεται όταν είναι επιλεγμένη η καρτέλα "ΠΑΝΟΠΛΙΕΣ".
+func _build_weapon_category_bar() -> void:
+	_weapon_cat_bar = ScrollContainer.new()
+	_weapon_cat_bar.position = Vector2(0, HDR_H + TAB_H + 6)
+	_weapon_cat_bar.size     = Vector2(W, CAT_BAR_H)
+	_weapon_cat_bar.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	add_child(_weapon_cat_bar)
+
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 10)
+	_weapon_cat_bar.add_child(row)
+
+	for category in WeaponInventory.CATEGORIES:
+		var btn := Button.new()
+		btn.text = category
+		btn.custom_minimum_size = Vector2(150, CAT_BAR_H - 8)
+		btn.add_theme_font_size_override("font_size", 22)
+		_style_iron(btn, category == _selected_weapon_category)
+		row.add_child(btn)
+		_weapon_cat_buttons[category] = btn
+		btn.pressed.connect(func(): _select_weapon_category(category))
+
 func _build_grid_area() -> void:
 	_scroll = ScrollContainer.new()
-	_scroll.position = Vector2(0, HDR_H + TAB_H + 16)
-	_scroll.size     = Vector2(W, H - HDR_H - TAB_H - 16)
 	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	add_child(_scroll)
 
@@ -185,21 +213,101 @@ func _set_category(cat: String) -> void:
 		return
 	_category = cat
 	_update_tabs()
+	_layout_grid_area()
 	_refresh_grid()
 
 func _update_tabs() -> void:
 	_style_iron(_tab_weapons, _category == "weapons")
 	_style_iron(_tab_armor,   _category == "armor")
 
+## Η κάτω περιοχή (grid) μετακινείται όταν εμφανίζεται/κρύβεται η γραμμή
+## κατηγοριών όπλων, ώστε να μην επικαλύπτονται τα στοιχεία.
+func _layout_grid_area() -> void:
+	_weapon_cat_bar.visible = _category == "weapons"
+	var top := HDR_H + TAB_H + 16
+	if _category == "weapons":
+		top += CAT_BAR_H + 10
+	_scroll.position = Vector2(0, top)
+	_scroll.size     = Vector2(W, H - top)
+
+func _select_weapon_category(category: String) -> void:
+	if _selected_weapon_category == category:
+		return
+	_selected_weapon_category = category
+	for cat in _weapon_cat_buttons:
+		_style_iron(_weapon_cat_buttons[cat], cat == category)
+	_refresh_grid()
+
 func _refresh_grid() -> void:
 	for c in _grid.get_children():
 		c.queue_free()
-	var items: Array[Dictionary] = WEAPONS if _category == "weapons" else ARMOR
-	for item in items:
+	if _category == "weapons":
+		for id in WeaponInventory.get_items_in_category(_selected_weapon_category):
+			_grid.add_child(_make_weapon_card(id))
+		return
+	for item in ARMOR:
 		_grid.add_child(_make_item_card(item))
 
+func _on_weapons_changed() -> void:
+	if _category == "weapons":
+		_refresh_grid()
+
 # ═══════════════════════════════════════════════════════════════
-# ΚΑΡΤΑ ΑΝΤΙΚΕΙΜΕΝΟΥ
+# ΚΑΡΤΑ ΟΠΛΟΥ (WeaponInventory autoload — μόνο αγορά· η αναβάθμιση/πώληση
+# γίνονται αποκλειστικά στο Inventory)
+# ═══════════════════════════════════════════════════════════════
+func _make_weapon_card(id: String) -> Control:
+	const CW := 490.0
+	const CH := 320.0
+
+	var owned: bool = WeaponInventory.is_owned(id)
+
+	var card := Panel.new()
+	card.custom_minimum_size = Vector2(CW, CH)
+	card.add_theme_stylebox_override("panel", _sb(C_DARK, C_GOLD_D if owned else C_GOLD_D.darkened(0.25), 3, 10))
+
+	var icon := TextureRect.new()
+	icon.position = Vector2(20, 16)
+	icon.size     = Vector2(CW - 40, 140)
+	icon.expand_mode  = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var icon_path := WeaponInventory.get_icon_path(id)
+	if ResourceLoader.exists(icon_path):
+		icon.texture = load(icon_path)
+	card.add_child(icon)
+
+	_lbl(card, WeaponInventory.get_weapon_name(id), Vector2(16, 158), Vector2(CW - 32, 34),
+		 22, C_BONE, HORIZONTAL_ALIGNMENT_CENTER)
+
+	_lbl(card, "⚔ Επίθεση %d" % WeaponInventory.get_base_attack(id), Vector2(20, 192), Vector2(CW - 40, 28),
+		 18, C_SILVER, HORIZONTAL_ALIGNMENT_CENTER)
+
+	if owned:
+		_lbl(card, "Κατοχή — Επίπεδο %d/%d" % [WeaponInventory.get_tier(id), WeaponInventory.UPGRADE_MAX_TIER],
+			 Vector2(20, 220), Vector2(CW - 40, 26), 16, C_GOLD, HORIZONTAL_ALIGNMENT_CENTER)
+	else:
+		_lbl(card, "%d %s" % [WeaponInventory.get_base_price(id), Currency.ICONS.get("Χρυσό", "🪙")],
+			 Vector2(20, 220), Vector2(CW - 40, 26), 20, C_GOLD, HORIZONTAL_ALIGNMENT_CENTER)
+
+	var buy := Button.new()
+	buy.position = Vector2(20, CH - 66)
+	buy.size     = Vector2(CW - 40, 50)
+	buy.text     = "ΑΓΟΡΑΣΜΕΝΟ" if owned else "ΑΓΟΡΑ"
+	buy.disabled = owned
+	_style_iron(buy, not owned)
+	card.add_child(buy)
+	if not owned:
+		buy.pressed.connect(func(): _buy_weapon(id))
+
+	return card
+
+func _buy_weapon(id: String) -> void:
+	if not WeaponInventory.buy(id):
+		_flash_insufficient()
+
+# ═══════════════════════════════════════════════════════════════
+# ΚΑΡΤΑ ΑΝΤΙΚΕΙΜΕΝΟΥ (Πανοπλίες — αμετάβλητη λογική)
 # ═══════════════════════════════════════════════════════════════
 func _make_item_card(item: Dictionary) -> Control:
 	const CW := 490.0

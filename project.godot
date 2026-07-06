@@ -20,6 +20,7 @@ config/icon="res://icon.svg"
 Inventory="*res://Scripts/inventory_data.gd"
 Currency="*res://Scripts/currency_manager.gd"
 GameData="*res://Scripts/GameData.gd"
+WeaponInventory="*res://Scripts/weapon_inventory.gd"
 
 [display]
 

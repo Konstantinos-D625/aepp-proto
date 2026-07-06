@@ -23,6 +23,12 @@ extends Node
 const SAVE_PATH := "user://game_data.cfg"
 const DAILY_QUEST_REQUIRED_CORRECT := 3
 
+# ΠΡΟΣΩΡΙΝΟ διακόπτης δοκιμών: όταν false, το _load()/_save() δεν αγγίζουν
+# καθόλου το δίσκο — κάθε εκκίνηση ξεκινάει πάντα από τα αρχικά (streak,
+# daily quest, ΚΑΙ όπλα, αφού όλα περνάνε από το ίδιο save file). Γύρνα το σε
+# true για να ξαναενεργοποιηθεί η μόνιμη αποθήκευση.
+const SAVE_ENABLED := false
+
 # ── Streak ────────────────────────────────────────────────────────────────
 var streak: int = 0
 var last_streak_date: String = ""              # "YYYY-MM-DD"
@@ -32,6 +38,13 @@ var daily_quest_correct_count: int = 0
 var daily_quest_completed: bool = false
 var daily_quest_completed_date: String = ""     # "YYYY-MM-DD"
 var daily_quest_session_date: String = ""       # "YYYY-MM-DD" — πότε ξεκίνησε η τρέχουσα μέτρηση
+
+# ── Weapon inventory (WeaponInventory autoload) ──────────────────────────
+# item_id -> {"owned": bool, "tier": int}. Το GameData είναι ΜΟΝΟ ο
+# persistence layer εδώ· η λογική (κατάλογος όπλων, τιμές, κανόνες) ζει στο
+# Scripts/weapon_inventory.gd, ακολουθώντας τον κανόνα παραπάνω ότι κάθε νέο
+# save-data προστίθεται ΕΔΩ και όχι σε ξεχωριστό save system.
+var weapons: Dictionary = {}
 
 
 func _ready() -> void:
@@ -96,6 +109,18 @@ func _complete_daily_quest() -> void:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
+# ΔΗΜΟΣΙΟ API — WEAPON INVENTORY (persistence μόνο· λογική στο WeaponInventory)
+# ═══════════════════════════════════════════════════════════════════════════
+
+func get_weapon_state(weapon_name: String) -> Dictionary:
+	return weapons.get(weapon_name, {})
+
+func save_weapon_state(weapon_name: String, data: Dictionary) -> void:
+	weapons[weapon_name] = data
+	_save()
+
+
+# ═══════════════════════════════════════════════════════════════════════════
 # SAVE SYSTEM (ConfigFile — ίδιο μοτίβο με OptionsMenu.gd)
 # ═══════════════════════════════════════════════════════════════════════════
 
@@ -103,6 +128,8 @@ func _today_string() -> String:
 	return Time.get_date_string_from_system()
 
 func _load() -> void:
+	if not SAVE_ENABLED:
+		return
 	var config := ConfigFile.new()
 	if config.load(SAVE_PATH) != OK:
 		return
@@ -112,8 +139,11 @@ func _load() -> void:
 	daily_quest_completed       = config.get_value("daily_quest", "completed", false)
 	daily_quest_completed_date  = config.get_value("daily_quest", "completed_date", "")
 	daily_quest_session_date    = config.get_value("daily_quest", "session_date", "")
+	weapons                     = config.get_value("weapons", "state", {})
 
 func _save() -> void:
+	if not SAVE_ENABLED:
+		return
 	var config := ConfigFile.new()
 	config.set_value("streak", "count", streak)
 	config.set_value("streak", "last_date", last_streak_date)
@@ -121,4 +151,5 @@ func _save() -> void:
 	config.set_value("daily_quest", "completed", daily_quest_completed)
 	config.set_value("daily_quest", "completed_date", daily_quest_completed_date)
 	config.set_value("daily_quest", "session_date", daily_quest_session_date)
+	config.set_value("weapons", "state", weapons)
 	config.save(SAVE_PATH)

@@ -20,9 +20,13 @@ const SLOT_LEGS   := "legs"
 const SLOT_BOOTS  := "boots"
 const SLOTS: Array[String] = [SLOT_HELMET, SLOT_CHEST, SLOT_LEGS, SLOT_BOOTS]
 
-# Η θέση όπλου είναι ξεχωριστή από τα SLOTS (πανοπλία) — δεν ταιριάζει με
-# "slot" πεδίο στο ITEMS, ταιριάζει με category == CATEGORY_WEAPON (βλ.
-# _item_matches_slot). Το Character Scene τη δείχνει σε ξεχωριστό section.
+# Η θέση όπλου είναι ξεχωριστή από τα SLOTS (πανοπλία) και ΔΕΝ αντλεί από το
+# ITEMS παρακάτω — τα όπλα ζουν αποκλειστικά στο WeaponInventory autoload
+# (Scripts/weapon_inventory.gd, 9 κατηγορίες × 9 επίπεδα = 81 όπλα, με δικό
+# του σύστημα αγοράς/αναβάθμισης/πώλησης). Το equip()/get_equipped()/
+# get_owned_by_slot() παρακάτω γεφυρώνουν το SLOT_WEAPON σε αυτό το autoload
+# ώστε το Character Scene να το βλέπει με το ίδιο Dictionary-σχήμα
+# ("name"/"avatar_overlay"/"stat_bonus") που έχουν τα κανονικά ITEMS.
 const SLOT_WEAPON := "weapon"
 
 const SLOT_LABELS := {
@@ -40,27 +44,12 @@ const MAX_STAT := 5
 # "stat_bonus" εδώ είναι το πόσο ανεβάζει το ΣΥΓΚΕΚΡΙΜΕΝΟ στατιστικό του
 # χαρακτήρα ΟΤΑΝ το item είναι εξοπλισμένο (άσχετο από το παλιότερο "stats"
 # πεδίο πιο κάτω, που είναι quality-δείκτης για το Αποθήκη/InventoryPopup).
-# Όπλα -> μόνο Επίθεση (1-20)· κάθε κομμάτι πανοπλίας -> Άμυνα (1-5). Προς το
-# παρόν όλα δίνουν 1 (είναι τα αρχικά/default) — θα ρυθμιστούν ανά αντικείμενο
-# αργότερα.
+# Κάθε κομμάτι πανοπλίας -> Άμυνα 1 (default, θα ρυθμιστεί ανά αντικείμενο
+# αργότερα). Η Επίθεση ΔΕΝ ορίζεται εδώ πια — έρχεται από
+# WeaponInventory.get_total_attack() του εξοπλισμένου όπλου (1-20, ήδη στην
+# ίδια κλίμακα με το clamp 0-20 του CharacterEditPopup._refresh_stats — βλ.
+# _weapon_as_item παρακάτω και weapon_inventory.gd/get_base_attack).
 const ITEMS := {
-	"sword_1": {
-		"name": "Σπαθί των Αρχαρίων",
-		"category": CATEGORY_WEAPON,
-		"avatar_overlay": "res://Εικόνες/sword_avatar.png",
-		# Περιοχή (σε pixel του πηγαίου PNG) όπου βρίσκεται το πραγματικό
-		# περιεχόμενο (χωρίς το διάφανο περιθώριο) — υπολογίστηκε από το
-		# bounding box του alpha channel, ώστε το layering στο Character
-		# Scene (και η εικόνα στο Αποθήκη/InventoryPopup) να ευθυγραμμίζεται
-		# σωστά αντί να γεμίζει όλο τον καμβά.
-		"avatar_overlay_region": Rect2(186, 87, 342, 233),
-		"stat_bonus": { "Επίθεση": 1 },
-		"stats": {
-			"Δύναμη": 1,
-			"Άμυνα": 1,
-			"Βάρος": 4,
-		},
-	},
 	"armor_1": {
 		"name": "Πανοπλία των Αρχαρίων",
 		"category": CATEGORY_ARMOR,
@@ -76,31 +65,7 @@ const ITEMS := {
 	},
 	# ── Αγοράσιμα από το ShopPopup (Scripts/shop_popup.gd) — δεν έχουν ακόμα
 	# δικό τους art, οπότε δανείζονται προσωρινά την εικόνα του ίδιου είδους
-	# (ξίφος/θώρακας) αντί για το παλιό γενικό sword.png/armor.png.
-	"sword_student": {
-		"name": "Ξίφος Μαθητή",
-		"category": CATEGORY_WEAPON,
-		"avatar_overlay": "res://Εικόνες/sword_avatar.png",
-		"avatar_overlay_region": Rect2(186, 87, 342, 233),
-		"stat_bonus": { "Επίθεση": 1 },
-		"stats": { "Δύναμη": 2, "Άμυνα": 0, "Βάρος": 2 },
-	},
-	"sword_double": {
-		"name": "Δίκοπο Σπαθί",
-		"category": CATEGORY_WEAPON,
-		"avatar_overlay": "res://Εικόνες/sword_avatar.png",
-		"avatar_overlay_region": Rect2(186, 87, 342, 233),
-		"stat_bonus": { "Επίθεση": 1 },
-		"stats": { "Δύναμη": 3, "Άμυνα": 0, "Βάρος": 3 },
-	},
-	"axe_war": {
-		"name": "Πέλεκυς Πολέμου",
-		"category": CATEGORY_WEAPON,
-		"avatar_overlay": "res://Εικόνες/sword_avatar.png",
-		"avatar_overlay_region": Rect2(186, 87, 342, 233),
-		"stat_bonus": { "Επίθεση": 1 },
-		"stats": { "Δύναμη": 5, "Άμυνα": 0, "Βάρος": 5 },
-	},
+	# (θώρακας) αντί για το παλιό γενικό armor.png.
 	"armor_leather": {
 		"name": "Δερμάτινη Πανοπλία",
 		"category": CATEGORY_ARMOR,
@@ -157,17 +122,38 @@ const ITEMS := {
 	},
 }
 
-# Ξεκινάει με το αρχικό (κακό) σπαθί και μία βασική πανοπλία ανά θέση.
-var owned_items: Array[String] = ["sword_1", "armor_1", "helmet_basic", "legs_basic", "boots_basic"]
+# Ξεκινάει με μία βασική πανοπλία ανά θέση. Το όπλο ΔΕΝ είναι εδώ — βλ.
+# WeaponInventory.STARTER_WEAPON_ID (χορηγείται αυτόματα εκεί σε νέο save).
+var owned_items: Array[String] = ["armor_1", "helmet_basic", "legs_basic", "boots_basic"]
 
-# slot -> item_id (ή "" αν καμία θέση δεν είναι εξοπλισμένη εκεί).
+# slot -> item_id (ή "" αν καμία θέση δεν είναι εξοπλισμένη εκεί). Το
+# SLOT_WEAPON ξεκινάει "" εδώ σκόπιμα — αν έγραφε κατευθείαν
+# WeaponInventory.STARTER_WEAPON_ID σε αυτό το field initializer θα έτρεχε
+# ΠΡΙΝ καν φτιαχτεί το WeaponInventory autoload (το Inventory είναι πρώτο στη
+# λίστα αυτοφόρτωσης· τα field initializers τρέχουν στη σειρά κατασκευής των
+# αυτοφορτωμένων, όχι στη σειρά _ready()). Η πραγματική τιμή μπαίνει στο
+# _ready() παρακάτω, όπου ΟΛΑ τα autoloads υπάρχουν ήδη ως αντικείμενα.
 var equipped: Dictionary = {
 	SLOT_HELMET: "helmet_basic",
 	SLOT_CHEST:  "armor_1",
 	SLOT_LEGS:   "legs_basic",
 	SLOT_BOOTS:  "boots_basic",
-	SLOT_WEAPON: "sword_1",
+	SLOT_WEAPON: "",
 }
+
+func _ready() -> void:
+	if equipped.get(SLOT_WEAPON, "") == "":
+		equipped[SLOT_WEAPON] = WeaponInventory.STARTER_WEAPON_ID
+	# Αν το εξοπλισμένο όπλο πουληθεί (WeaponInventory.sell) από το Αποθήκη,
+	# αδειάζει αυτόματα η θέση εδώ αντί να μείνει "εξοπλισμένο" ένα όπλο που
+	# δεν ανήκει πια στον παίκτη — κρατάει Inventory/WeaponInventory συνεπή.
+	WeaponInventory.changed.connect(_on_weapon_inventory_changed)
+
+func _on_weapon_inventory_changed() -> void:
+	var id: String = equipped.get(SLOT_WEAPON, "")
+	if id != "" and not WeaponInventory.is_owned(id):
+		equipped[SLOT_WEAPON] = ""
+		equipment_changed.emit(SLOT_WEAPON, "")
 
 func add_item(item_id: String) -> void:
 	if not ITEMS.has(item_id):
@@ -188,19 +174,19 @@ func get_owned_by_category(category: String) -> Array[Dictionary]:
 			result.append(entry)
 	return result
 
-## True αν το item_id ταιριάζει στη θέση slot. Το SLOT_WEAPON ταιριάζει με
-## category == CATEGORY_WEAPON· οι υπόλοιπες θέσεις ταιριάζουν με το
-## προαιρετικό "slot" πεδίο του ITEMS.
+## True αν το item_id ταιριάζει στη θέση slot. Καλείται μόνο για τις θέσεις
+## πανοπλίας (SLOT_WEAPON γεφυρώνεται ξεχωριστά στο WeaponInventory παρακάτω)
+## — ταιριάζει με το προαιρετικό "slot" πεδίο του ITEMS.
 func _item_matches_slot(item_id: String, slot: String) -> bool:
 	var data: Dictionary = ITEMS.get(item_id, {})
-	if slot == SLOT_WEAPON:
-		return data.get("category", "") == CATEGORY_WEAPON
 	return data.get("slot", "") == slot
 
 ## Όλα τα αντικείμενα που έχει ο παίκτης και ταιριάζουν σε συγκεκριμένη θέση
 ## εξοπλισμού (π.χ. SLOT_HELMET ή SLOT_WEAPON) — χρησιμοποιείται από το
 ## Character Scene για να δείξει τι μπορεί να εξοπλιστεί σε κάθε θέση.
 func get_owned_by_slot(slot: String) -> Array[Dictionary]:
+	if slot == SLOT_WEAPON:
+		return _get_owned_weapons_as_items()
 	var result: Array[Dictionary] = []
 	for id in owned_items:
 		if _item_matches_slot(id, slot):
@@ -212,7 +198,13 @@ func get_owned_by_slot(slot: String) -> Array[Dictionary]:
 ## Εξοπλίζει item_id στο slot (ή "" για να αδειάσει τη θέση). Αγνοεί αν το
 ## item δεν ανήκει στον παίκτη ή δεν ταιριάζει σε αυτή τη θέση.
 func equip(slot: String, item_id: String) -> void:
-	if slot != SLOT_WEAPON and not SLOTS.has(slot):
+	if slot == SLOT_WEAPON:
+		if item_id != "" and not WeaponInventory.is_owned(item_id):
+			return
+		equipped[SLOT_WEAPON] = item_id
+		equipment_changed.emit(SLOT_WEAPON, item_id)
+		return
+	if not SLOTS.has(slot):
 		return
 	if item_id != "":
 		if not owned_items.has(item_id):
@@ -225,11 +217,39 @@ func equip(slot: String, item_id: String) -> void:
 ## Το εξοπλισμένο item στο slot, ή ένα άδειο Dictionary αν καμία θέση.
 func get_equipped(slot: String) -> Dictionary:
 	var id: String = equipped.get(slot, "")
-	if id == "" or not ITEMS.has(id):
+	if id == "":
+		return {}
+	if slot == SLOT_WEAPON:
+		return _weapon_as_item(id)
+	if not ITEMS.has(id):
 		return {}
 	var entry: Dictionary = (ITEMS[id] as Dictionary).duplicate(true)
 	entry["id"] = id
 	return entry
+
+## Μετατρέπει ένα item_id του WeaponInventory (π.χ. "Σπαθί_3") στο ίδιο
+## Dictionary-σχήμα ("name"/"avatar_overlay"/"stat_bonus") που έχουν τα
+## κανονικά ITEMS, ώστε το Character Scene να μη γνωρίζει καν ότι τα όπλα
+## ζουν σε άλλο autoload. Χωρίς "avatar_overlay_region": τα νέα PNG δεν έχουν
+## ακόμα χειροκίνητο alpha-crop, οπότε εμφανίζονται ολόκληρα (best effort).
+func _weapon_as_item(id: String) -> Dictionary:
+	if not WeaponInventory.is_owned(id):
+		return {}
+	return {
+		"id": id,
+		"name": WeaponInventory.get_weapon_name(id),
+		"category": CATEGORY_WEAPON,
+		"avatar_overlay": WeaponInventory.get_icon_path(id),
+		"stat_bonus": { "Επίθεση": WeaponInventory.get_total_attack(id) },
+	}
+
+func _get_owned_weapons_as_items() -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for category in WeaponInventory.CATEGORIES:
+		for id in WeaponInventory.get_items_in_category(category):
+			if WeaponInventory.is_owned(id):
+				result.append(_weapon_as_item(id))
+	return result
 
 ## Άθροισμα του "stat_bonus"[stat_name] απ' όλα τα εξοπλισμένα αντικείμενα
 ## (όλα τα SLOTS + SLOT_WEAPON) — π.χ. πόσο ανεβάζει η Επίθεση από το
