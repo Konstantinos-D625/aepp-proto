@@ -1,0 +1,7 @@
+res://Scenes/Area1.tscn
+res://Scripts/currency_manager.gd
+res://Scripts/loot_popup.gd
+res://Scripts/shop_popup.gd
+res://Scripts/blacksmith_popup.gd
+res://Scripts/cotton_popup.gd
+res://Scripts/miner_popup.gd

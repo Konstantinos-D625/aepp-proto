@@ -77,16 +77,16 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="MoneyTitle" type="Label" parent="Board/Margin/VBox" unique_id=617246824]
+[node name="SpheresTitle" type="Label" parent="Board/Margin/VBox" unique_id=617246824]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.96, 0.84, 0.5, 1)
 theme_override_font_sizes/font_size = 32
-text = "Χρήματα"
+text = "Μαγικές Σφαίρες"
 
-[node name="MoneySep" type="HSeparator" parent="Board/Margin/VBox" unique_id=1411358185]
+[node name="SpheresSep" type="HSeparator" parent="Board/Margin/VBox" unique_id=1411358185]
 layout_mode = 2
 
-[node name="MoneyList" type="VBoxContainer" parent="Board/Margin/VBox" unique_id=364563404]
+[node name="SpheresList" type="VBoxContainer" parent="Board/Margin/VBox" unique_id=364563404]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 6
