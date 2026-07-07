@@ -5,8 +5,8 @@ extends Control
 # όταν ξοδεύονται πόροι αλλού (π.χ. στο ShopPopup) ή κερδίζονται (π.χ. στο
 # CottonPopup).
 
-const MATERIAL_KEYS: Array[String]  = ["Σίδερο", "Βαμβάκι", "Χρυσό"]
-const SPHERE_KEYS: Array[String]    = ["Σφαίρα Εξυπνάδας", "Σφαίρα Ταχύτητας", "Σφαίρα Δύναμης"]
+const MONEY_KEYS: Array[String]     = ["Χρυσό"]
+const MATERIAL_KEYS: Array[String]  = ["Κασμίρ", "Βαμβάκι", "Σίδερο"]
 
 func _ready() -> void:
 	hide()
@@ -28,7 +28,7 @@ func _on_dim_input(event: InputEvent) -> void:
 
 func _refresh() -> void:
 	_populate(%MaterialsList, MATERIAL_KEYS)
-	_populate(%SpheresList, SPHERE_KEYS)
+	_populate(%MoneyList, MONEY_KEYS)
 
 func _populate(list: VBoxContainer, currencies: Array[String]) -> void:
 	for c in list.get_children():

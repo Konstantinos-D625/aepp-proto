@@ -29,7 +29,6 @@ func _ready() -> void:
 	hide()
 	_style_back_button(%BackButton)
 	%WitchHouseButton.pressed.connect(_on_witch_house_pressed)
-	%FairyButton.pressed.connect(_on_fairy_button_pressed)
 
 ## Ο γονιός (Area1) έχει το BossPopup ως άμεσο sibling — βλ. σχόλιο πιο πάνω
 ## για το γιατί η σύνδεση γίνεται εδώ αντί για connection στο Area1.tscn.
@@ -37,14 +36,6 @@ func _on_witch_house_pressed() -> void:
 	var boss := get_parent().get_node_or_null("BossPopup")
 	if boss:
 		boss.show_popup()
-
-## Ίδιο μοτίβο/λόγος με το _on_witch_house_pressed παραπάνω — το FairyPopup
-## είναι κι αυτό sibling του Area1, το κλουβί της νεράιδας κρυμμένο στο ίδιο
-## δάσος με το σπίτι της μάγισσας.
-func _on_fairy_button_pressed() -> void:
-	var fairy := get_parent().get_node_or_null("FairyPopup")
-	if fairy:
-		fairy.show_popup()
 
 func show_popup() -> void:
 	visible = true

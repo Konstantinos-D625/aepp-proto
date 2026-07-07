@@ -3,7 +3,6 @@
 [ext_resource type="Script" uid="uid://cppltoqha00cc" path="res://Scripts/witch_map_popup.gd" id="1_script"]
 [ext_resource type="Texture2D" uid="uid://bo3revpnfp643" path="res://Εικόνες/witch_map.png" id="2_bg"]
 [ext_resource type="Texture2D" uid="uid://jbn600rgy5i1" path="res://Εικόνες/witchHouse.png" id="3_house"]
-[ext_resource type="Texture2D" uid="uid://02jy0eiwks01" path="res://Εικόνες/fairy-button.png" id="4_fairy"]
 
 [node name="WitchMapPopup" type="Control" unique_id=1387227623]
 layout_mode = 3
@@ -37,17 +36,6 @@ offset_right = 742.44434
 offset_bottom = 640.5169
 scale = Vector2(1.3048328, 1.4349954)
 texture_normal = ExtResource("3_house")
-ignore_texture_size = true
-stretch_mode = 5
-
-[node name="FairyButton" type="TextureButton" parent="." unique_id=396499610]
-unique_name_in_owner = true
-layout_mode = 1
-offset_left = 398.0
-offset_top = 935.0
-offset_right = 861.0
-offset_bottom = 1215.0
-texture_normal = ExtResource("4_fairy")
 ignore_texture_size = true
 stretch_mode = 5
 

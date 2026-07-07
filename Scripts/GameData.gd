@@ -46,13 +46,6 @@ var daily_quest_session_date: String = ""       # "YYYY-MM-DD" — πότε ξε
 # save-data προστίθεται ΕΔΩ και όχι σε ξεχωριστό save system.
 var weapons: Dictionary = {}
 
-# ── Μόνιμο stat bonus (FairyPopup, μελλοντικά ίσως κι άλλες πηγές) ──────────
-# stat_name -> μόνιμο bonus, ΕΚΤΟΣ εξοπλισμού (βλ. Inventory.get_equipped_
-# stat_bonus για το bonus εξοπλισμού — τα δύο αθροίζονται στο
-# CharacterEditPopup._refresh_stats). Η μοναδική πηγή προς το παρόν είναι η
-# Νεράιδα (Scripts/fairy_popup.gd): 1 Μαγική Σφαίρα -> +1 στο αντίστοιχο stat.
-var stat_bonus: Dictionary = {}
-
 
 func _ready() -> void:
 	_load()
@@ -128,18 +121,6 @@ func save_weapon_state(weapon_name: String, data: Dictionary) -> void:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# ΔΗΜΟΣΙΟ API — ΜΟΝΙΜΟ STAT BONUS (π.χ. ανταλλαγές στη Νεράιδα)
-# ═══════════════════════════════════════════════════════════════════════════
-
-func get_stat_bonus(stat_name: String) -> int:
-	return int(stat_bonus.get(stat_name, 0))
-
-func add_stat_bonus(stat_name: String, amount: int) -> void:
-	stat_bonus[stat_name] = get_stat_bonus(stat_name) + amount
-	_save()
-
-
-# ═══════════════════════════════════════════════════════════════════════════
 # SAVE SYSTEM (ConfigFile — ίδιο μοτίβο με OptionsMenu.gd)
 # ═══════════════════════════════════════════════════════════════════════════
 
@@ -159,7 +140,6 @@ func _load() -> void:
 	daily_quest_completed_date  = config.get_value("daily_quest", "completed_date", "")
 	daily_quest_session_date    = config.get_value("daily_quest", "session_date", "")
 	weapons                     = config.get_value("weapons", "state", {})
-	stat_bonus                  = config.get_value("stats", "bonus", {})
 
 func _save() -> void:
 	if not SAVE_ENABLED:
@@ -172,5 +152,4 @@ func _save() -> void:
 	config.set_value("daily_quest", "completed_date", daily_quest_completed_date)
 	config.set_value("daily_quest", "session_date", daily_quest_session_date)
 	config.set_value("weapons", "state", weapons)
-	config.set_value("stats", "bonus", stat_bonus)
 	config.save(SAVE_PATH)
