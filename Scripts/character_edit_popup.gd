@@ -206,14 +206,16 @@ func _build_portrait_and_stats() -> void:
 
 ## Κάθε στατιστικό = βάση χαρακτήρα (πάντα 0 προς το παρόν, βλ.
 ## CharacterSelect.CHAR_DATA) + άθροισμα του "stat_bonus" απ' όλα τα
-## εξοπλισμένα αντικείμενα (Inventory.get_equipped_stat_bonus) — π.χ. η
+## εξοπλισμένα αντικείμενα (Inventory.get_equipped_stat_bonus — π.χ. η
 ## Επίθεση ανεβαίνει μόνο από το εξοπλισμένο όπλο, η Άμυνα από κάθε κομμάτι
-## πανοπλίας. Πάντα μέσα σε 0-20, ό,τι κι αν προκύψει αθροιστικά.
+## πανοπλίας) + το ΜΟΝΙΜΟ bonus από ανταλλαγές Μαγικών Σφαιρών στη Νεράιδα
+## (GameData.get_stat_bonus — βλ. Scripts/fairy_popup.gd). Πάντα μέσα σε
+## 0-20, ό,τι κι αν προκύψει αθροιστικά.
 func _refresh_stats() -> void:
 	var base_stats: Dictionary = _data.get("stats", {})
 	for stat_name in _stat_labels:
 		var base: int = int(base_stats.get(stat_name, 0))
-		var bonus: int = Inventory.get_equipped_stat_bonus(stat_name)
+		var bonus: int = Inventory.get_equipped_stat_bonus(stat_name) + GameData.get_stat_bonus(stat_name)
 		var total: int = clampi(base + bonus, 0, 20)
 		(_stat_labels[stat_name] as Label).text = str(total)
 

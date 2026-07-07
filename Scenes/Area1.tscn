@@ -28,6 +28,7 @@
 [ext_resource type="Texture2D" uid="uid://cmex2ibj3lcm1" path="res://Εικόνες/sidebar.png" id="sidebar"]
 [ext_resource type="Texture2D" uid="uid://dric4kdeffx15" path="res://Εικόνες/sideq.png" id="sideq"]
 [ext_resource type="PackedScene" uid="uid://witchmap001" path="res://Scenes/WitchMapPopup.tscn" id="witch_map_popup_scene"]
+[ext_resource type="PackedScene" uid="uid://fairypopup001" path="res://Scenes/FairyPopup.tscn" id="fairy_popup_scene"]
 
 [sub_resource type="AtlasTexture" id="board"]
 atlas = ExtResource("sidebar")
@@ -273,6 +274,9 @@ visible = false
 layout_mode = 1
 
 [node name="BossPopup" parent="." unique_id=987654327 instance=ExtResource("boss_scene")]
+layout_mode = 1
+
+[node name="FairyPopup" parent="." unique_id=987654331 instance=ExtResource("fairy_popup_scene")]
 layout_mode = 1
 
 [node name="DailyQuestPopup" parent="." unique_id=987654328 instance=ExtResource("dailyquest_popup_scene")]
