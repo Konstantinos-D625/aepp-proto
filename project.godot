@@ -1,0 +1,40 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="AEPP Prototype"
+run/main_scene="res://Scenes/Area1.tscn"
+config/features=PackedStringArray("4.7", "Mobile")
+config/icon="res://icon.svg"
+
+[autoload]
+
+Inventory="*res://Scripts/inventory_data.gd"
+Currency="*res://Scripts/currency_manager.gd"
+GameData="*res://Scripts/GameData.gd"
+WeaponInventory="*res://Scripts/weapon_inventory.gd"
+KeyInventory="*res://Scripts/key_inventory.gd"
+ArmorInventory="*res://Scripts/armor_inventory.gd"
+
+[display]
+
+window/size/viewport_width=1080
+window/size/viewport_height=1920
+window/stretch/mode="canvas_items"
+
+[dotnet]
+
+project/assembly_name="AEPP Prototype"
+
+[rendering]
+
+rendering_device/driver.windows="d3d12"
+renderer/rendering_method="mobile"

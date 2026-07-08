@@ -1,0 +1,85 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://Scripts/room_image_popup.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://Scenes/FoundKeyPopup.tscn" id="2_found_key_popup"]
+
+[node name="RoomImagePopup" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_script")
+
+[node name="Dim" type="ColorRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.7)
+
+[node name="RoomImage" type="TextureRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CloseButton" type="Button" parent="RoomImage"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -48.0
+offset_top = 8.0
+offset_right = 0.0
+offset_bottom = 56.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 30
+text = "X"
+
+[node name="Chest" type="Button" parent="RoomImage"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+focus_mode = 0
+flat = true
+text = ""
+
+[node name="Grindstone" type="Button" parent="RoomImage"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+focus_mode = 0
+flat = true
+text = ""
+
+[node name="Basket" type="Button" parent="RoomImage"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+focus_mode = 0
+flat = true
+text = ""
+
+[node name="Shelf" type="Button" parent="RoomImage"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+focus_mode = 0
+flat = true
+text = ""
+
+[node name="FoundKeyPopup" parent="." instance=ExtResource("2_found_key_popup")]
+unique_name_in_owner = true
+layout_mode = 1

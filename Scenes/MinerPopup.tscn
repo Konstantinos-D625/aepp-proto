@@ -1,0 +1,16 @@
+[gd_scene format=3 uid="uid://miner001"]
+
+[ext_resource type="Script" path="res://Scripts/miner_popup.gd" id="script"]
+
+[sub_resource type="StyleBoxFlat" id="root_bg"]
+bg_color = Color(0, 0, 0, 0)
+
+[node name="MinerPopup" type="Control"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+visible = false
+mouse_filter = 0
+script = ExtResource("script")
