@@ -59,8 +59,14 @@ var _bubble : Control
 var _board  : Control
 var _hint   : Label
 
+# Δικός του RNG για το roll της μάχης (αντί για το global randf()) —
+# randomize() στο _ready ώστε κάθε εκτέλεση να έχει πραγματικά τυχαίο seed,
+# ανεξάρτητα από το τι κάνει οποιοσδήποτε άλλος κώδικας στο global RNG.
+var _rng := RandomNumberGenerator.new()
+
 # ═══════════════════════════════════════════════════════════════════════════
 func _ready() -> void:
+	_rng.randomize()
 	mouse_filter = MOUSE_FILTER_STOP
 	visible = false
 	_build()
@@ -410,7 +416,13 @@ func _show_odds(stats: Dictionary) -> void:
 	)
 
 func _do_attack(stats: Dictionary, probability: float) -> void:
-	var won: bool = randf() < probability
+	# Ένα roll στο [0,1): νίκη αν πέσει ΚΑΤΩ από την πιθανότητα που είδε ο
+	# παίκτης (π.χ. 44% -> νίκη όταν roll < 0.44). Τυπώνεται στο Output για
+	# να μπορεί να επαληθευτεί ότι το roll αντιστοιχεί στα εμφανιζόμενα odds.
+	var roll := _rng.randf()
+	var won: bool = roll < probability
+	print("BossFight: roll %.4f vs πιθανότητα %.4f (%d%%) -> %s"
+		% [roll, probability, int(round(probability * 100.0)), "ΝΙΚΗ" if won else "ΗΤΤΑ"])
 	if won:
 		GameData.record_boss_win()
 	else:
