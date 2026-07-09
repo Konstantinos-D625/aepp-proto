@@ -28,14 +28,16 @@ func _get_drag_data(_at_position: Vector2) -> Variant:
 	sb.border_color = Color(0.940, 0.760, 0.160)
 	sb.set_border_width_all(2)
 	sb.set_corner_radius_all(8)
-	sb.content_margin_left = 12
-	sb.content_margin_right = 12
-	sb.content_margin_top = 8
-	sb.content_margin_bottom = 8
+	# Λίγο μεγαλύτερο από παλιά (12/8, font 22) — σε οθόνη αφής το preview
+	# κρύβεται εν μέρει κάτω από το δάχτυλο, οπότε πρέπει να διαβάζεται.
+	sb.content_margin_left = 16
+	sb.content_margin_right = 16
+	sb.content_margin_top = 12
+	sb.content_margin_bottom = 12
 	wrap.add_theme_stylebox_override("panel", sb)
 	var lbl := Label.new()
 	lbl.text = preview_text
-	lbl.add_theme_font_size_override("font_size", 22)
+	lbl.add_theme_font_size_override("font_size", 28)
 	lbl.add_theme_color_override("font_color", Color(1, 1, 1))
 	wrap.add_child(lbl)
 	set_drag_preview(wrap)

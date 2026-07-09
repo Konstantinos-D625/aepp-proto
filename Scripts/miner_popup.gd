@@ -11,6 +11,13 @@ const BOARD_PATH  := "res://Εικόνες/board.png"
 # αντιστοίχισης που καταλαβαίνει το MatchingQuizManager.
 const QUIZ_PATH := "res://miner_quiz.json"
 
+# Μέγεθος των rows αντιστοίχισης — παίζεται σε κινητό (Android, portrait
+# 1080×1920), οπότε κάθε στοιχείο drag & drop πρέπει να είναι τουλάχιστον
+# όσο ένα δάχτυλο. Ίδιες τιμές χρησιμοποιεί και το Daily Quest Level 3
+# (daily_quest_exercises.gd), ώστε η αντιστοίχιση να δείχνει ίδια παντού.
+const ROW_MIN_HEIGHT := 84.0
+const ROW_FONT_SIZE  := 28
+
 # Κάθε επίσκεψη = 3 διαφορετικές ασκήσεις αντιστοίχισης (γύροι), τυχαία
 # επιλεγμένες από το pool — ίδια λογική με το QUESTIONS_PER_ROUND του
 # cotton_popup.gd, απλώς κάθε "ερώτηση" εδώ είναι μια άσκηση 5 ζευγαριών
@@ -274,37 +281,42 @@ func _build_board() -> Control:
 	const BRD_X := 60.0
 	const BRD_Y := 220.0
 	const BRD_W := 960.0
-	const BRD_H := 1320.0
+	const BRD_MIN_H := 1000.0
 
+	# Το board δεν είναι πια TextureRect σταθερού ύψους (960×1320) με σταθερά
+	# margins — μεγάλες ασκήσεις ξεχείλιζαν. Τώρα είναι PanelContainer με το
+	# board.png ως 9-slice StyleBoxTexture (ίδιο μοτίβο με το BoardPanel του
+	# DailyQuestExercises.tscn): παίρνει αυτόματα το ύψος του περιεχομένου
+	# (μεγαλώνει προς τα κάτω) και η ξύλινη κορνίζα δεν παραμορφώνεται.
+	# Το region_rect κόβει τα διάφανα περιθώρια της εικόνας (opaque bounding
+	# box: x 16-424, y 84-512 στο 441×565 png — μετρημένο από το alpha), οπότε
+	# δεν χρειάζονται πια τα παλιά «ψαγμένα» margins (340 πάνω κ.λπ.) που
+	# αντιστάθμιζαν το ~15% διάφανο πάνω μέρος.
+	var panel := PanelContainer.new()
+	panel.position = Vector2(BRD_X, BRD_Y)
+	panel.custom_minimum_size = Vector2(BRD_W, BRD_MIN_H)
+	panel.size = Vector2(BRD_W, BRD_MIN_H)
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var sb := StyleBoxTexture.new()
 	var brd_tex : Texture2D = load(BOARD_PATH)
-	var brd := TextureRect.new()
 	if brd_tex:
-		brd.texture = brd_tex
-	brd.position     = Vector2(BRD_X, BRD_Y)
-	brd.size         = Vector2(BRD_W, BRD_H)
-	brd.expand_mode  = TextureRect.EXPAND_IGNORE_SIZE
-	brd.stretch_mode = TextureRect.STRETCH_SCALE
-	brd.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root.add_child(brd)
-
-	var pad := MarginContainer.new()
-	pad.position = Vector2(BRD_X, BRD_Y)
-	pad.size     = Vector2(BRD_W, BRD_H)
-	pad.add_theme_constant_override("margin_left",   90)
-	pad.add_theme_constant_override("margin_right",  90)
-	# Το board.png έχει ~15% διάφανο περιθώριο στην κορυφή πριν καν ξεκινήσει
-	# το ξύλινο πλαίσιο (bounding box της εικόνας, όχι του BRD_H) — 150 δεν
-	# έφτανε. 340 (~25.8% του BRD_H=1320) το κατεβάζει ακόμα πιο καθαρά μέσα
-	# στο ορατό ξύλο (μετά από feedback ότι το 260 ήταν ακόμα λίγο ψηλά).
-	pad.add_theme_constant_override("margin_top",    340)
-	pad.add_theme_constant_override("margin_bottom", 130)
-	pad.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root.add_child(pad)
+		sb.texture = brd_tex
+	sb.region_rect = Rect2(16, 84, 409, 429)
+	sb.texture_margin_left   = 44.0
+	sb.texture_margin_top    = 44.0
+	sb.texture_margin_right  = 44.0
+	sb.texture_margin_bottom = 44.0
+	sb.content_margin_left   = 70.0
+	sb.content_margin_right  = 70.0
+	sb.content_margin_top    = 150.0
+	sb.content_margin_bottom = 70.0
+	panel.add_theme_stylebox_override("panel", sb)
+	root.add_child(panel)
 
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", 20)
 	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	pad.add_child(col)
+	panel.add_child(col)
 
 	var title := Label.new()
 	title.text = "⛏  Σύρε κάθε στοιχείο στη σωστή αντιστοιχία!"
@@ -416,6 +428,9 @@ func _make_left_row(index: int, text: String) -> MatchDragItem:
 	row.preview_text = "%d.  %s" % [index + 1, text]
 	row.mouse_filter = Control.MOUSE_FILTER_STOP
 	row.add_theme_stylebox_override("panel", _row_style(C_STONE))
+	# Ελάχιστο ύψος αγγίγματος για κινητό — τα rows είναι ο βασικός στόχος
+	# drag & drop του παιχνιδιού, δεν πρέπει να είναι πιο λεπτά από δάχτυλο.
+	row.custom_minimum_size = Vector2(0, ROW_MIN_HEIGHT)
 	var hbox := HBoxContainer.new()
 	hbox.add_theme_constant_override("separation", 12)
 	hbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -428,7 +443,7 @@ func _make_left_row(index: int, text: String) -> MatchDragItem:
 	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	lbl.add_theme_font_size_override("font_size", 22)
+	lbl.add_theme_font_size_override("font_size", ROW_FONT_SIZE)
 	lbl.add_theme_color_override("font_color", C_PARCH)
 	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hbox.add_child(lbl)
@@ -443,6 +458,7 @@ func _make_right_row(index: int, text: String) -> MatchDragItem:
 	row.is_target = true
 	row.mouse_filter = Control.MOUSE_FILTER_STOP
 	row.add_theme_stylebox_override("panel", _row_style(C_STONE))
+	row.custom_minimum_size = Vector2(0, ROW_MIN_HEIGHT)
 	var hbox := HBoxContainer.new()
 	hbox.add_theme_constant_override("separation", 12)
 	hbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -452,9 +468,9 @@ func _make_right_row(index: int, text: String) -> MatchDragItem:
 
 	var assigned := Label.new()
 	assigned.text = "—"
-	assigned.custom_minimum_size = Vector2(34, 0)
+	assigned.custom_minimum_size = Vector2(46, 0)
 	assigned.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	assigned.add_theme_font_size_override("font_size", 22)
+	assigned.add_theme_font_size_override("font_size", ROW_FONT_SIZE)
 	assigned.add_theme_color_override("font_color", C_AMBER)
 	assigned.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hbox.add_child(assigned)
@@ -464,7 +480,7 @@ func _make_right_row(index: int, text: String) -> MatchDragItem:
 	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	lbl.add_theme_font_size_override("font_size", 22)
+	lbl.add_theme_font_size_override("font_size", ROW_FONT_SIZE)
 	lbl.add_theme_color_override("font_color", C_PARCH)
 	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hbox.add_child(lbl)
@@ -477,20 +493,20 @@ func _make_right_row(index: int, text: String) -> MatchDragItem:
 
 func _row_badge(text: String, color: Color) -> Control:
 	var badge := PanelContainer.new()
-	badge.custom_minimum_size = Vector2(40, 40)
+	badge.custom_minimum_size = Vector2(56, 56)
 	badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var sb := StyleBoxFlat.new()
 	sb.bg_color     = color.darkened(0.30)
 	sb.border_color = color
 	sb.set_border_width_all(2)
-	sb.set_corner_radius_all(20)
+	sb.set_corner_radius_all(28)
 	badge.add_theme_stylebox_override("panel", sb)
 
 	var lbl := Label.new()
 	lbl.text = text
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl.vertical_alignment   = VERTICAL_ALIGNMENT_CENTER
-	lbl.add_theme_font_size_override("font_size", 20)
+	lbl.add_theme_font_size_override("font_size", 26)
 	lbl.add_theme_color_override("font_color", Color(1, 1, 1))
 	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	badge.add_child(lbl)

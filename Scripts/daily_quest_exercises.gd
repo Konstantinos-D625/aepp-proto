@@ -422,6 +422,10 @@ func _make_left_row(index: int, text: String) -> MatchDragItem:
 	row.preview_text = "%d.  %s" % [index + 1, text]
 	row.mouse_filter = Control.MOUSE_FILTER_STOP
 	row.add_theme_stylebox_override("panel", _row_style(C_STONE))
+	# Ελάχιστο ύψος αγγίγματος για κινητό — ίδιες τιμές με το miner_popup.gd
+	# (ROW_MIN_HEIGHT/ROW_FONT_SIZE εκεί), ώστε η αντιστοίχιση να είναι
+	# παντού εξίσου βολική σε οθόνη αφής.
+	row.custom_minimum_size = Vector2(0, 84)
 
 	var hbox := HBoxContainer.new()
 	hbox.add_theme_constant_override("separation", 10)
@@ -435,7 +439,8 @@ func _make_left_row(index: int, text: String) -> MatchDragItem:
 	lbl.text = text
 	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	lbl.add_theme_font_size_override("font_size", 20)
+	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	lbl.add_theme_font_size_override("font_size", 28)
 	lbl.add_theme_color_override("font_color", C_BONE)
 	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hbox.add_child(lbl)
@@ -449,6 +454,7 @@ func _make_right_row(index: int, text: String) -> MatchDragItem:
 	row.is_target = true
 	row.mouse_filter = Control.MOUSE_FILTER_STOP
 	row.add_theme_stylebox_override("panel", _row_style(C_STONE))
+	row.custom_minimum_size = Vector2(0, 84)
 
 	var hbox := HBoxContainer.new()
 	hbox.add_theme_constant_override("separation", 10)
@@ -459,9 +465,9 @@ func _make_right_row(index: int, text: String) -> MatchDragItem:
 
 	var assigned := Label.new()
 	assigned.text = "—"
-	assigned.custom_minimum_size = Vector2(30, 0)
+	assigned.custom_minimum_size = Vector2(46, 0)
 	assigned.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	assigned.add_theme_font_size_override("font_size", 20)
+	assigned.add_theme_font_size_override("font_size", 28)
 	assigned.add_theme_color_override("font_color", C_GOLD)
 	assigned.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hbox.add_child(assigned)
@@ -470,7 +476,8 @@ func _make_right_row(index: int, text: String) -> MatchDragItem:
 	lbl.text = text
 	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	lbl.add_theme_font_size_override("font_size", 20)
+	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	lbl.add_theme_font_size_override("font_size", 28)
 	lbl.add_theme_color_override("font_color", C_BONE)
 	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hbox.add_child(lbl)
@@ -483,19 +490,19 @@ func _make_right_row(index: int, text: String) -> MatchDragItem:
 
 func _row_badge(text: String, color: Color) -> Control:
 	var badge := PanelContainer.new()
-	badge.custom_minimum_size = Vector2(36, 36)
+	badge.custom_minimum_size = Vector2(56, 56)
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = color.darkened(0.3)
 	sb.border_color = color
 	sb.set_border_width_all(2)
-	sb.set_corner_radius_all(18)
+	sb.set_corner_radius_all(28)
 	badge.add_theme_stylebox_override("panel", sb)
 
 	var lbl := Label.new()
 	lbl.text = text
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	lbl.add_theme_font_size_override("font_size", 18)
+	lbl.add_theme_font_size_override("font_size", 26)
 	lbl.add_theme_color_override("font_color", Color(1, 1, 1))
 	badge.add_child(lbl)
 	return badge
