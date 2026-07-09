@@ -1,9 +1,10 @@
-78098b89c88a74ebe8c20117b8754620
-::res://::1783587207
+9cad1ddce9e5a63143ba340c9520626b
+::res://::1783593202
 blacksmith_quiz.json::JSON::-1::1782986437::0::1::::<><><>0<>0<><>::
 cotton.bg.png::CompressedTexture2D::7887478072552478722::1782980431::1782980448::1::::<><><>0<>0<>4f59e20a75fce349a3cf84e7cedfa687<>res://.godot/imported/cotton.bg.png-fc80643cd319784c5fdd8d4ad70e9ee2.ctex::
 cotton_quiz.json::JSON::-1::1782980431::0::1::::<><><>0<>0<><>::
 default_bus_layout.tres::AudioBusLayout::5718635773021068325::1782980446::0::1::::<><><>0<>0<><>::
+export_presets.cfg::TextFile::-1::1783592942::0::1::::<><><>0<>0<><>::
 icon.svg::CompressedTexture2D::3012399866630628846::1782980431::1782980447::1::::<><><>0<>0<>76f5a1d4ec04c0675f2c0cdd002904e5<>res://.godot/imported/icon.svg-218a8f2b3041327d8a5756f3a245f83b.ctex::
 miner_quiz.json::JSON::-1::1782983189::0::1::::<><><>0<>0<><>::
 ::res://Music/::1782980430
@@ -12,7 +13,7 @@ Bäring.mp3::AudioStreamMP3::4425883104930032401::1782980430::1782980430::1::::<
 charsfx.gd::GDScript::5841267518890008036::1782980430::0::1::::<>AudioStreamPlayer<><>0<>0<><>::
 Medieval Trumpet Sound Effects.mp3::AudioStreamMP3::4778988038431794551::1782980430::1782980430::1::::<><><>0<>0<>8af0f520ef90f9983e574dd8fcb125a1<>res://.godot/imported/Medieval Trumpet Sound Effects.mp3-63ed118c87dd0d18a8c4f7d41abc78f0.mp3str::
 Smithing Sound Effect.mp3::AudioStreamMP3::6341490168223893955::1782980430::1782980430::1::::<><><>0<>0<>4de3145bdcc055f919af6f41c454677e<>res://.godot/imported/Smithing Sound Effect.mp3-a78b2431cdd673931c2507daf01c64fe.mp3str::
-::res://Scenes/::1783585657
+::res://Scenes/::1783588468
 Area1.tscn::PackedScene::3307231366579678210::1783585657::0::1::::<><><>0<>0<><>::uid://cwl4ofs06wqnj::::res://Music/Smithing Sound Effect.mp3<>uid://lgtra1umm75q::::res://Music/blacksmithSFX.gd<>uid://cac8h8ntb6eux::::res://Music/Medieval Trumpet Sound Effects.mp3<>uid://cphs277dyi43y::::res://Music/charsfx.gd<>uid://b4b6wbhi3jy4p::::res://Music/Bäring.mp3<>uid://dyudc04ugy6ka::::res://Εικόνες/bg1.png<>uid://blacksmith001::::res://Scenes/BlacksmithPopup.tscn<>uid://ftwod68gmpix::::res://Scenes/BossPopup.tscn<>res://Scenes/CastlePopup.tscn<>uid://bfxx88hsb0mcd::::res://Εικόνες/char.png<>uid://charselect001::::res://Scenes/CharacterSelect.tscn<>uid://cotton001::::res://Scenes/CottonPopup.tscn<>uid://doi3j0i6x8yld::::res://Scenes/DailyQuestExercises.tscn<>uid://b4i3ybrjf1ngw::::res://Scenes/DailyQuestPopup.tscn<>uid://dyc3hy1mvk2fn::::res://Εικόνες/dq.png<>uid://be3wenrhbi5aa::::res://Scenes/FairyPopup.tscn<>uid://b5yo74otw82i0::::res://Εικόνες/friends.png<>uid://cgwkqgjbrbim0::::res://Εικόνες/Inventory1.png<>uid://mx4he0vrynwy::::res://Scenes/InventoryPopup.tscn<>uid://b5jkmspmb8xb3::::res://Εικόνες/loot.png<>uid://c6uwqyp885ntg::::res://Scenes/LootPopup.tscn<>uid://n0onwcivmsln::::res://Εικόνες/map.png<>uid://dwsc6lgu1bbrx::::res://Scenes/MapPopup.tscn<>uid://miner001::::res://Scenes/MinerPopup.tscn<>uid://bk5ukyemg4ah0::::res://Εικόνες/options.png<>uid://yo5qmvew6urw::::res://Scenes/OptionsMenu.tscn<>uid://boywbmrd7cmun::::res://Scenes/ShopPopup.tscn<>uid://cmex2ibj3lcm1::::res://Εικόνες/sidebar.png<>uid://dric4kdeffx15::::res://Εικόνες/sideq.png<>uid://witchmap001::::res://Scenes/WitchMapPopup.tscn
 BlacksmithPopup.tscn::PackedScene::3158638219983173432::1782980446::0::1::::<><><>0<>0<><>::res://Scripts/blacksmith_popup.gd
 BossPopup.tscn::PackedScene::391528377439692035::1782980430::0::1::::<><><>0<>0<><>::res://Scripts/boss_popup.gd
@@ -21,7 +22,7 @@ CharacterEditPopup.tscn::PackedScene::4554673681428424::1782988497::0::1::::<><>
 CharacterSelect.tscn::PackedScene::5265227833291186888::1782980446::0::1::::<><><>0<>0<><>::uid://cnpjxqu3fjdn8::::res://Scripts/CharacterSelect.gd
 ConditionKeyPopup.tscn::PackedScene::582019088134747735::1783585455::0::1::::<><><>0<>0<><>::uid://dsylvpstkxp8i::::res://Scripts/condition_key_popup.gd<>uid://d21ohe8t4245y::::res://Εικόνες/board.png<>uid://br56wqngw0bfr::::res://Scripts/key_drop_zone.gd
 CottonPopup.tscn::PackedScene::4337148518200::1782980446::0::1::::<><><>0<>0<><>::res://Scripts/cotton_popup.gd
-DailyQuestExercises.tscn::PackedScene::8160138358869587761::1783424830::0::1::::<><><>0<>0<><>::res://Scripts/daily_quest_exercises.gd
+DailyQuestExercises.tscn::PackedScene::8160138358869587761::1783588468::0::1::::<><><>0<>0<><>::res://Scripts/daily_quest_exercises.gd<>uid://d21ohe8t4245y::::res://Εικόνες/board.png
 DailyQuestPopup.tscn::PackedScene::4440155185281359766::1782980430::0::1::::<><><>0<>0<><>::res://Scripts/daily_quest_popup.gd<>uid://d21ohe8t4245y::::res://Εικόνες/board.png
 ExercisePopup.tscn::PackedScene::-1::1783430072::0::1::::<><><>0<>0<><>::res://Scripts/exercise_popup.gd<>uid://d21ohe8t4245y::::res://Εικόνες/board.png
 FairyPopup.tscn::PackedScene::2726322261760346472::1783418485::0::1::::<><><>0<>0<><>::
@@ -34,10 +35,10 @@ OptionsMenu.tscn::PackedScene::1715284281288564032::1782980446::0::1::::<><><>0<
 RoomImagePopup.tscn::PackedScene::-1::1783429359::0::1::::<><><>0<>0<><>::res://Scripts/room_image_popup.gd<>res://Scenes/FoundKeyPopup.tscn
 ShopPopup.tscn::PackedScene::3419947777078795157::1782980430::0::1::::<><><>0<>0<><>::res://Scripts/shop_popup.gd
 WitchMapPopup.tscn::PackedScene::45936093021815432::1783500141::0::1::::<><><>0<>0<><>::uid://cppltoqha00cc::::res://Scripts/witch_map_popup.gd<>uid://bo3revpnfp643::::res://Εικόνες/witch_map.png<>uid://jbn600rgy5i1::::res://Εικόνες/witchHouse.png<>uid://02jy0eiwks01::::res://Εικόνες/fairy-button.png
-::res://Scripts/::1783587090
+::res://Scripts/::1783588145
 armor_inventory.gd::GDScript::4943718543629863539::1783587017::0::1::::<>Node<><>0<>0<><>::
 blacksmith_popup.gd::GDScript::1104947120708314717::1783507022::0::1::::<>Control<><>0<>0<><>::
-boss_popup.gd::GDScript::8776902047286408081::1783427464::0::1::::<>Control<><>0<>0<><>::
+boss_popup.gd::GDScript::8776902047286408081::1783588145::0::1::::<>Control<><>0<>0<><>::
 castle_popup.gd::GDScript::1212796840026451031::1783585091::0::1::::<>Control<><>0<>0<><>::
 CharacterSelect.gd::GDScript::5716850399735152383::1783067362::0::1::::<>Panel<><>0<>0<><>::
 character_edit_popup.gd::GDScript::1554042245284210044::1783417835::0::1::::CharacterEditPopup<>Control<><>0<>0<><>::
@@ -52,7 +53,7 @@ fairy_popup.gd::GDScript::1372640122347291524::1783420476::0::1::::<>Control<><>
 found_key_popup.gd::GDScript::8012495537441729554::1783429359::0::1::::<>Control<><>0<>0<><>::
 GameData.gd::GDScript::7281786025913595614::1783427420::0::1::::<>Node<><>0<>0<><>::
 inventory_data.gd::GDScript::3332798620403996391::1783585091::0::1::::<>Node<><>0<>0<><>::
-inventory_popup.gd::GDScript::4053288783231927979::1783587090::0::1::::<>Control<><>0<>0<><>::
+inventory_popup.gd::GDScript::4053288783231927979::1783587346::0::1::::<>Control<><>0<>0<><>::
 key_drop_zone.gd::GDScript::3643484733162168551::1783429359::0::1::::<>Panel<><>0<>0<><>::
 key_inventory.gd::GDScript::549379175661400944::1783429358::0::1::::<>Node<><>0<>0<><>::
 key_token.gd::GDScript::7472227817666806628::1783429359::0::1::::<>Button<><>0<>0<><>::
@@ -60,7 +61,7 @@ loot_popup.gd::GDScript::6105778761568029932::1783586597::0::1::::<>Control<><>0
 map_popup.gd::GDScript::3856352631502612001::1783585091::0::1::::<>Control<><>0<>0<><>::
 MatchDragItem.gd::GDScript::7471654915675482530::1782985438::0::1::::MatchDragItem<>PanelContainer<><>0<>0<><>::
 MatchingQuizManager.gd::GDScript::8936308416369787290::1783424314::0::1::::MatchingQuizManager<>RefCounted<><>0<>0<><>::
-miner_popup.gd::GDScript::3248297179168208394::1783507897::0::1::::<>Control<><>0<>0<><>::
+miner_popup.gd::GDScript::3248297179168208394::1783587595::0::1::::<>Control<><>0<>0<><>::
 OptionsMenu.gd::GDScript::727246842236017652::1782980430::0::1::::<>Panel<><>0<>0<><>::
 QuizManager.gd::GDScript::1747317443515993810::1782980430::0::1::::QuizManager<>RefCounted<><>0<>0<><>::
 room_image_popup.gd::GDScript::5478719028964953031::1783585091::0::1::::<>Control<><>0<>0<><>::
