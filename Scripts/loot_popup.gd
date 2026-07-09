@@ -5,7 +5,7 @@ extends Control
 # όταν ξοδεύονται πόροι αλλού (π.χ. στο ShopPopup) ή κερδίζονται (π.χ. στο
 # CottonPopup).
 
-const MATERIAL_KEYS: Array[String]  = ["Σίδερο", "Βαμβάκι", "Κασμίρ", "Χρυσό"]
+const MATERIAL_KEYS: Array[String]  = ["Σίδερο", "Βαμβάκι", "Χρυσό"]
 const SPHERE_KEYS: Array[String]    = ["Σφαίρα Εξυπνάδας", "Σφαίρα Ταχύτητας", "Σφαίρα Δύναμης"]
 const KEY_KEYS: Array[String]       = ["Αριθμητικό Κλειδί", "Λογικό Κλειδί", "Κλειδί Χαρακτήρων"]
 

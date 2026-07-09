@@ -8,12 +8,14 @@
 [ext_resource type="Texture2D" uid="uid://dyudc04ugy6ka" path="res://Εικόνες/bg1.png" id="bg"]
 [ext_resource type="PackedScene" uid="uid://blacksmith001" path="res://Scenes/BlacksmithPopup.tscn" id="blacksmith_scene"]
 [ext_resource type="PackedScene" uid="uid://ftwod68gmpix" path="res://Scenes/BossPopup.tscn" id="boss_scene"]
+[ext_resource type="PackedScene" path="res://Scenes/CastlePopup.tscn" id="castle_popup_scene"]
 [ext_resource type="Texture2D" uid="uid://bfxx88hsb0mcd" path="res://Εικόνες/char.png" id="char"]
 [ext_resource type="PackedScene" uid="uid://charselect001" path="res://Scenes/CharacterSelect.tscn" id="char_select_scene"]
 [ext_resource type="PackedScene" uid="uid://cotton001" path="res://Scenes/CottonPopup.tscn" id="cotton_scene"]
 [ext_resource type="PackedScene" uid="uid://doi3j0i6x8yld" path="res://Scenes/DailyQuestExercises.tscn" id="dailyquest_exercises_scene"]
 [ext_resource type="PackedScene" uid="uid://b4i3ybrjf1ngw" path="res://Scenes/DailyQuestPopup.tscn" id="dailyquest_popup_scene"]
 [ext_resource type="Texture2D" uid="uid://dyc3hy1mvk2fn" path="res://Εικόνες/dq.png" id="dq"]
+[ext_resource type="PackedScene" uid="uid://be3wenrhbi5aa" path="res://Scenes/FairyPopup.tscn" id="fairy_popup_scene"]
 [ext_resource type="Texture2D" uid="uid://b5yo74otw82i0" path="res://Εικόνες/friends.png" id="friends"]
 [ext_resource type="Texture2D" uid="uid://cgwkqgjbrbim0" path="res://Εικόνες/Inventory1.png" id="inv"]
 [ext_resource type="PackedScene" uid="uid://mx4he0vrynwy" path="res://Scenes/InventoryPopup.tscn" id="inventory_popup_scene"]
@@ -28,8 +30,6 @@
 [ext_resource type="Texture2D" uid="uid://cmex2ibj3lcm1" path="res://Εικόνες/sidebar.png" id="sidebar"]
 [ext_resource type="Texture2D" uid="uid://dric4kdeffx15" path="res://Εικόνες/sideq.png" id="sideq"]
 [ext_resource type="PackedScene" uid="uid://witchmap001" path="res://Scenes/WitchMapPopup.tscn" id="witch_map_popup_scene"]
-[ext_resource type="PackedScene" uid="uid://fairypopup001" path="res://Scenes/FairyPopup.tscn" id="fairy_popup_scene"]
-[ext_resource type="PackedScene" path="res://Scenes/CastlePopup.tscn" id="castle_popup_scene"]
 
 [sub_resource type="AtlasTexture" id="board"]
 atlas = ExtResource("sidebar")
@@ -281,6 +281,7 @@ layout_mode = 1
 layout_mode = 1
 
 [node name="CastlePopup" parent="." unique_id=987654332 instance=ExtResource("castle_popup_scene")]
+visible = false
 layout_mode = 1
 
 [node name="DailyQuestPopup" parent="." unique_id=987654328 instance=ExtResource("dailyquest_popup_scene")]

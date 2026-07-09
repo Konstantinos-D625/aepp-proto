@@ -120,6 +120,11 @@ func _build_header() -> void:
 
 	_build_currency_strip(hdr)
 
+# Μόνο τα υλικά που αφορούν το Shop (η αγορά γίνεται αποκλειστικά σε Χρυσό —
+# βλ. EquipmentCatalog.buy) — όχι Σφαίρες/Κλειδιά, που δεν χρησιμοποιούνται
+# πουθενά εδώ. Ίδια σχετική σειρά με το Currency.ORDER.
+const STRIP_CURRENCIES: Array[String] = ["Χρυσό", "Βαμβάκι", "Σίδερο"]
+
 func _build_currency_strip(hdr: Control) -> void:
 	_currency_strip = Control.new()
 	_currency_strip.position = Vector2(24, 106)
@@ -127,13 +132,16 @@ func _build_currency_strip(hdr: Control) -> void:
 	_currency_strip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hdr.add_child(_currency_strip)
 
-	var count: int = Currency.ORDER.size()
+	var count: int = STRIP_CURRENCIES.size()
 	var gap := 14.0
-	var badge_w: float = (_currency_strip.size.x - gap * (count - 1)) / count
+	# Με λίγα badges το ισομοιρασμένο πλάτος θα έβγαινε υπερβολικά φαρδύ —
+	# περιορίζεται και η ομάδα κεντράρεται στο strip.
+	var badge_w: float = minf((_currency_strip.size.x - gap * (count - 1)) / count, 220.0)
+	var x0: float = (_currency_strip.size.x - (badge_w * count + gap * (count - 1))) / 2.0
 
 	for i in range(count):
-		var currency: String = Currency.ORDER[i]
-		var bx: float = i * (badge_w + gap)
+		var currency: String = STRIP_CURRENCIES[i]
+		var bx: float = x0 + i * (badge_w + gap)
 
 		var badge := Panel.new()
 		badge.position = Vector2(bx, 0)

@@ -29,6 +29,10 @@ var items: Dictionary = {}               # category -> Array[{"file": String, "n
 var stat_label: String = "Επίθεση"
 var stat_icon: String = "⚔"
 var starter_ids: Array[String] = []      # ιδιοκτησία εξ αρχής σε ολοκαίνουργιο save
+# false = ο κατάλογος ΔΕΝ έχει καθόλου σύστημα αναβάθμισης (βλ. armor_inventory.gd):
+# το can_upgrade()/upgrade() αρνούνται πάντα, και το Inventory UI κρύβει το
+# "Επίπεδο x/3" + κουμπί Αναβάθμισης. Το tier παραμένει 1 μετά την αγορά.
+var upgradable: bool = true
 
 const UPGRADE_MAX_TIER := 3
 const UPGRADE_STAT_BONUS := 2
@@ -148,7 +152,7 @@ func get_total_stat(id: String) -> int:
 	return get_base_stat(id) + (get_tier(id) - 1) * UPGRADE_STAT_BONUS
 
 func can_upgrade(id: String) -> bool:
-	return is_owned(id) and get_tier(id) < UPGRADE_MAX_TIER
+	return upgradable and is_owned(id) and get_tier(id) < UPGRADE_MAX_TIER
 
 ## Τιμή πώλησης: 50% της αρχικής τιμής αγοράς + επιστροφή όλων των coins
 ## που ξοδεύτηκαν σε upgrades.

@@ -23,7 +23,8 @@ const MATCHING_ROUNDS_PER_VISIT := 3
 # τους γύρους της επίσκεψης — αφού τώρα υπάρχουν 3 γύροι (15 ζευγάρια)
 # αντί για 1, το ανώτατο δυνατό ποσό είναι φυσιολογικά μεγαλύτερο από το
 # cotton man (έως 2+15×3=47 αντί για 2+5×3=17), ανάλογο με την επιπλέον
-# προσπάθεια.
+# προσπάθεια. Δίνεται ΜΟΝΟ αν πέτυχε τουλάχιστον ΕΝΑ σωστό ζευγάρι σε όλη
+# την επίσκεψη — 0 σωστά = κανένα loot (ούτε βάση, ούτε Σφαίρα), βλ. _finish.
 const GOLD_BASE := 2
 
 # Επιπλέον, σταθερό μπόνους (1) σε κάθε ολοκληρωμένη επίσκεψη — ο Miner
@@ -585,6 +586,12 @@ func _finish(correct_count: int, total: int, gold: int) -> void:
 	if _loot_given:
 		return
 	_loot_given = true
+	# Χωρίς έστω ΕΝΑ σωστό ζευγάρι δεν δίνεται τίποτα — ούτε το GOLD_BASE
+	# ούτε Σφαίρα· απλώς κλείνει. Ίδιος κανόνας με το cotton_popup.gd
+	# (_finish: score <= 0 -> _close χωρίς loot).
+	if correct_count <= 0:
+		_close()
+		return
 	Currency.add("Χρυσό", gold)
 	Currency.add(SPHERE_NAME, 1)
 	var results := [
