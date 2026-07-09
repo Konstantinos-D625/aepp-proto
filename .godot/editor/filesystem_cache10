@@ -1,5 +1,5 @@
 9cad1ddce9e5a63143ba340c9520626b
-::res://::1783593202
+::res://::1783595057
 blacksmith_quiz.json::JSON::-1::1782986437::0::1::::<><><>0<>0<><>::
 cotton.bg.png::CompressedTexture2D::7887478072552478722::1782980431::1782980448::1::::<><><>0<>0<>4f59e20a75fce349a3cf84e7cedfa687<>res://.godot/imported/cotton.bg.png-fc80643cd319784c5fdd8d4ad70e9ee2.ctex::
 cotton_quiz.json::JSON::-1::1782980431::0::1::::<><><>0<>0<><>::
@@ -160,7 +160,7 @@ Level6.png::CompressedTexture2D::606762665275319932::1783331296::1783331822::1::
 Level7.png::CompressedTexture2D::6349311988656780667::1783331296::1783331822::1::::<><><>0<>0<>6ea050977be9599642ab03f215eacebc<>res://.godot/imported/Level7.png-7c06b44906cb8c317b5bcea5a2a1c686.ctex::
 Level8.png::CompressedTexture2D::8342117338012865211::1783331296::1783331822::1::::<><><>0<>0<>88f17c227313d7683854e385414de373<>res://.godot/imported/Level8.png-95814c9ac2595f80c18ab79f41b503f3.ctex::
 Level9.png::CompressedTexture2D::1956952172898925084::1783331296::1783331822::1::::<><><>0<>0<>6ad25915ab507a214cdbe8def228d5b0<>res://.godot/imported/Level9.png-66645a7a5c6919cd12ed41aeed711982.ctex::
-::res://Εικόνες/::1783585104
+::res://Εικόνες/::1783595167
 armor.png::CompressedTexture2D::4396914478175038623::1782980431::1782980431::1::::<><><>0<>0<>b7dee98b125b6b9985a77da376305a5a<>res://.godot/imported/armor.png-466a34db8939a84d2c689eade312c7f6.ctex::
 armory.png::CompressedTexture2D::6324612726790246304::1783429230::1783430623::1::::<><><>0<>0<>a9a779bc0fa58e65339ddcdac49a48fa<>res://.godot/imported/armory.png-a2785dbc26f80a8aea8558e767eb4ee2.ctex::
 avatar.png::CompressedTexture2D::8389726529632551840::1783073756::1783073793::1::::<><><>0<>0<>1cb2c1ee284e1995db15ba5c0187ecd6<>res://.godot/imported/avatar.png-7de7efcd3aff5d8a204923617c233fd2.ctex::
@@ -185,6 +185,7 @@ fairy-button.png::CompressedTexture2D::1811049921955308004::1783417295::17834185
 fairy-in-cage.png::CompressedTexture2D::5313998993160690698::1783419184::1783419215::1::::<><><>0<>0<>e4299d6dc136e3b7f3ffbecb37f0973e<>res://.godot/imported/fairy-in-cage.png-cb118301f8e236eba3c4f352aa79cae8.ctex::
 fairy.png::CompressedTexture2D::7215268322229098296::1783413429::1783413851::1::::<><><>0<>0<>41c2a0a3550a8962e3ab218998aff9be<>res://.godot/imported/fairy.png-e8c360dc23b4a1bb72503b8190c24517.ctex::
 friends.png::CompressedTexture2D::4542539787933611357::1782980431::1782980449::1::::<><><>0<>0<>9e226ff7761b932bc55e40db95d2fb2a<>res://.godot/imported/friends.png-218e691852bdbe5a11451895c0143417.ctex::
+game_icon.png::CompressedTexture2D::1576973264099758988::1783595018::1783595172::1::::<><><>0<>0<>1d2ca7ee50b94bde4349c06a26ead4d8<>res://.godot/imported/game_icon.png-3622f0102587715dfa12b39019495e37.ctex::
 Gemini_Generated_Image_55zvze55zvze55zv.png::CompressedTexture2D::7878881393485247874::1783341460::1783341466::1::::<><><>0<>0<>b52dc35aefdc6ba802a26868cec69662<>res://.godot/imported/Gemini_Generated_Image_55zvze55zvze55zv.png-59acff01a82e21742b326a9df889537f.ctex::
 great_hall.png::CompressedTexture2D::7442935350364107559::1783585091::1783585104::1::::<><><>0<>0<>fd4bab0aa804069661f85a188089aa76<>res://.godot/imported/great_hall.png-8a9adfd0af90598b85b505f34201d13e.ctex::
 green-orb.png::CompressedTexture2D::3504658815731801834::1783412991::1783413851::1::::<><><>0<>0<>ef322ea32b9d42a8e677b3b2e6363a59<>res://.godot/imported/green-orb.png-f6f2e3a14eaaa3cd2839858cf928b277.ctex::
@@ -208,6 +209,7 @@ map.png::CompressedTexture2D::964938823360760827::1782980431::1782980447::1::::<
 mine.background.png::CompressedTexture2D::542150785374686221::1782980431::1782980448::1::::<><><>0<>0<>42d84fd15a550c4509c4d47497c6fed6<>res://.godot/imported/mine.background.png-28cffd5748fe57803d8df45339f34b47.ctex::
 miner.png::CompressedTexture2D::3959639038888032731::1782980431::1782980447::1::::<><><>0<>0<>befa923024d250ceb8c6be35b99b80ee<>res://.godot/imported/miner.png-af1ebaaab2c884c62cfad7477257aff4.ctex::
 options.png::CompressedTexture2D::3151473917783600719::1782980431::1782980447::1::::<><><>0<>0<>62d53450a318b7445fa6e291ab7275c9<>res://.godot/imported/options.png-16f960f75f56f287585bd8629bed29d3.ctex::
+play_store_512.png::CompressedTexture2D::3640688213712482610::1783595167::1783595172::1::::<><><>0<>0<>6b6db2a1e1e11396224ce091636665f6<>res://.godot/imported/play_store_512.png-843db7fbc2600caf2ef9d8df05d3ca14.ctex::
 random_area.png::CompressedTexture2D::9171411617740505736::1782980431::1782980448::1::::<><><>0<>0<>09360bedf330ed17c3ed6b5cf2a90e54<>res://.godot/imported/random_area.png-eb200c3e5004860d1f54fe3f2edb424f.ctex::
 red-orb.png::CompressedTexture2D::1996464713438488393::1783413068::1783413851::1::::<><><>0<>0<>ae72394f8051eef66707c37b5a7ff715<>res://.godot/imported/red-orb.png-041af3bee7a967e4a0d3441bdefe974c.ctex::
 Shop_Image.png::CompressedTexture2D::8963091960194278219::1782980431::1782980431::1::::<><><>0<>0<>739e7b45d1bb597b2d28eb0f7d048dd1<>res://.godot/imported/Shop_Image.png-d5ee16416bec713052f7ee7ce40a4310.ctex::
