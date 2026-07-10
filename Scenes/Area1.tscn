@@ -8,6 +8,7 @@
 [ext_resource type="Texture2D" uid="uid://dyudc04ugy6ka" path="res://Εικόνες/bg1.png" id="bg"]
 [ext_resource type="PackedScene" uid="uid://blacksmith001" path="res://Scenes/BlacksmithPopup.tscn" id="blacksmith_scene"]
 [ext_resource type="PackedScene" uid="uid://ftwod68gmpix" path="res://Scenes/BossPopup.tscn" id="boss_scene"]
+[ext_resource type="PackedScene" uid="uid://b7c08r38qo3h7" path="res://Scenes/BossFight.tscn" id="boss_fight_scene"]
 [ext_resource type="PackedScene" path="res://Scenes/CastlePopup.tscn" id="castle_popup_scene"]
 [ext_resource type="Texture2D" uid="uid://bfxx88hsb0mcd" path="res://Εικόνες/char.png" id="char"]
 [ext_resource type="PackedScene" uid="uid://charselect001" path="res://Scenes/CharacterSelect.tscn" id="char_select_scene"]
@@ -275,6 +276,9 @@ visible = false
 layout_mode = 1
 
 [node name="BossPopup" parent="." unique_id=987654327 instance=ExtResource("boss_scene")]
+layout_mode = 1
+
+[node name="BossFight" parent="." unique_id=987654333 instance=ExtResource("boss_fight_scene")]
 layout_mode = 1
 
 [node name="FairyPopup" parent="." unique_id=987654331 instance=ExtResource("fairy_popup_scene")]

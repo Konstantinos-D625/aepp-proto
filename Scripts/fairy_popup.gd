@@ -17,6 +17,17 @@ extends Control
 
 const BG_PATH   := "res://Εικόνες/fairy-bg.png"
 const CHAR_PATH := "res://Εικόνες/fairy-in-cage.png"
+
+# Θέση/μέγεθος της νεράιδας (ΕΝΑ σημείο ρύθμισης — τα χρησιμοποιούν και το
+# _build_character και το show_popup). Το rect αντιστοιχεί στο ΟΡΑΤΟ
+# περιεχόμενο, γιατί η εικόνα κόβεται από τα διάφανα περιθώριά της με
+# AtlasTexture στο _build_character — κράτα αναλογία ~1.13 (πλάτος/ύψος).
+# Κεντραρισμένη οριζόντια, στη ζώνη ανάμεσα στη φούσκα (τελειώνει ~700) και
+# το hint/κουμπί (ξεκινούν ~1780). Πλατύτερη από την οθόνη (1160 > 1080,
+# x αρνητικό): οι άκρες (λεπτά κλαδιά) κόβονται σκόπιμα ~40px ανά πλευρά
+# ώστε το κυρίως θέμα (κλουβί+δέντρο) να δείχνει μεγαλύτερο.
+const CHAR_SIZE := Vector2(1160, 1027)
+const CHAR_POS  := Vector2((1080.0 - 1160.0) / 2.0, 660)
 const BOARD_PATH := "res://Εικόνες/board.png"
 
 # Κάθε ανταλλαγή: 1 Μαγική Σφαίρα -> +1 στο αντίστοιχο μόνιμο stat.
@@ -65,6 +76,12 @@ func show_popup() -> void:
 	_state    = 1
 	_char.visible      = true
 	_char.modulate.a   = 1.0
+	# Ξανα-εφαρμόζεται σε ΚΑΘΕ άνοιγμα (όχι μόνο στο _build της εκκίνησης):
+	# το hot-reload των scripts στο τρέχον παιχνίδι δεν ξανατρέχει το _ready/
+	# _build, οπότε χωρίς αυτό οι αλλαγές θέσης/μεγέθους της νεράιδας δεν
+	# φαίνονται μέχρι πλήρη επανεκκίνηση — πηγή σύγχυσης στα δοκιμαστικά runs.
+	_char.position = CHAR_POS
+	_char.size     = CHAR_SIZE
 	_bubble.visible    = true
 	_bubble.modulate.a = 1.0
 	_board.visible     = false
@@ -145,18 +162,22 @@ func _build_character() -> TextureRect:
 	var tex : Texture2D = load(CHAR_PATH)
 	var char_rect := TextureRect.new()
 	if tex:
-		char_rect.texture = tex
-	# Ακόμα πιο μεγάλο (ιστορικό: 550×480 -> 720×630 -> 1300×708 -> τώρα).
-	# Ίδια αναλογία 1.835 με την πηγαία εικόνα 677×369 (χωρίς άδειο
-	# letterbox περιθώριο). Ξεκινάει από x=0 (αριστερή άκρη οθόνης) — το
-	# πλάτος ξεπερνά σκόπιμα τα 1080 της οθόνης· το δεξί κομμάτι (κυρίως ο
-	# κορμός του δέντρου, όχι το κλουβί) απλά κόβεται στην άκρη της οθόνης.
-	# Αρνητικό x: η εικόνα (2100 πλατιά) μετατοπίζεται προς τα αριστερά ώστε
-	# να φαίνεται μεγαλύτερο κομμάτι του κλουβιού (που βρίσκεται στο κέντρο-
-	# αριστερά της πηγαίας εικόνας) αντί να κόβεται στο δεξί άκρο της οθόνης.
-	char_rect.position     = Vector2(-540, 350)
-	char_rect.size         = Vector2(2100, 1145)
-	char_rect.expand_mode  = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+		# Η fairy-in-cage.png (3385×1845) έχει ΤΕΡΑΣΤΙΑ διάφανα περιθώρια —
+		# το πραγματικό περιεχόμενο ζει στο x 732-2784, y 24-1842 (μετρημένο
+		# από το alpha). Χωρίς crop, το «κέντρο» του KEEP_ASPECT_CENTERED
+		# πέφτει δεξιά/μεγαλύτερο απ' ό,τι δείχνουν τα νούμερα του rect. Το
+		# AtlasTexture κόβει ακριβώς στο ορατό, οπότε το rect παρακάτω ΕΙΝΑΙ
+		# η νεράιδα — ό,τι θέση/μέγεθος γράφει, αυτό φαίνεται.
+		var atlas := AtlasTexture.new()
+		atlas.atlas  = tex
+		atlas.region = Rect2(732, 24, 2052, 1818)
+		char_rect.texture = atlas
+	# Μικρή, τέρμα αριστερά (αναλογία περιεχομένου 2052/1818 ≈ 1.13).
+	char_rect.position     = CHAR_POS
+	char_rect.size         = CHAR_SIZE
+	# IGNORE_SIZE: το minimum size ΔΕΝ δένεται με το μέγεθος της υφής — το
+	# rect (CHAR_POS/CHAR_SIZE) έχει τον πλήρη και αποκλειστικό έλεγχο.
+	char_rect.expand_mode  = TextureRect.EXPAND_IGNORE_SIZE
 	char_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	char_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(char_rect)

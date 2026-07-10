@@ -197,8 +197,11 @@ func _refresh() -> void:
 
 	var catalog := _current_catalog()
 	var category: String = _selected_category[_current_category]
+	# Μόνο όσα ΚΑΤΕΧΕΙ ο παίκτης — τα υπόλοιπα δεν εμφανίζονται καθόλου
+	# (ολόκληρος ο κατάλογος, με τα ακλείδωτα, φαίνεται μόνο στο Shop).
 	for id in catalog.get_items_in_category(category):
-		%ItemsList.add_child(_make_equipment_card(catalog, id))
+		if catalog.is_owned(id):
+			%ItemsList.add_child(_make_equipment_card(catalog, id))
 
 # ═══════════════════════════════════════════════════════════════════════════
 # ΚΑΡΤΕΣ ΕΞΟΠΛΙΣΜΟΥ (WeaponInventory/ArmorInventory — αγορά μόνο από Shop,
@@ -224,29 +227,6 @@ func _make_equipment_card(catalog: EquipmentCatalog, id: String) -> Control:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 24)
 	card.add_child(row)
-
-	if not catalog.is_owned(id):
-		row.add_child(_make_locked_placeholder())
-
-		var locked_info := VBoxContainer.new()
-		locked_info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		locked_info.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		locked_info.add_theme_constant_override("separation", 8)
-		row.add_child(locked_info)
-
-		var locked_label := Label.new()
-		locked_label.text = "Κλειδωμένο"
-		locked_label.add_theme_color_override("font_color", C_MUTED)
-		locked_label.add_theme_font_size_override("font_size", 32)
-		locked_info.add_child(locked_label)
-
-		var hint_label := Label.new()
-		hint_label.text = "Αγόρασέ το από το Κατάστημα."
-		hint_label.add_theme_color_override("font_color", C_MUTED)
-		hint_label.add_theme_font_size_override("font_size", 20)
-		locked_info.add_child(hint_label)
-
-		return card
 
 	var icon := TextureRect.new()
 	icon.custom_minimum_size = CARD_ICON_SIZE
@@ -301,26 +281,6 @@ func _make_equipment_card(catalog: EquipmentCatalog, id: String) -> Control:
 	info.add_child(_make_sell_row(catalog, id))
 
 	return card
-
-func _make_locked_placeholder() -> Control:
-	var box := Panel.new()
-	box.custom_minimum_size = CARD_ICON_SIZE
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0, 0, 0, 0.55)
-	sb.set_corner_radius_all(12)
-	sb.border_color = Color(0, 0, 0, 0.6)
-	sb.set_border_width_all(1)
-	box.add_theme_stylebox_override("panel", sb)
-
-	var lbl := Label.new()
-	lbl.text = "🔒"
-	lbl.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	lbl.add_theme_font_size_override("font_size", 48)
-	box.add_child(lbl)
-
-	return box
 
 func _make_upgrade_row(catalog: EquipmentCatalog, id: String) -> Control:
 	var row := HFlowContainer.new()

@@ -1,3 +1,4 @@
-res://Scripts/daily_quest_exercises.gd
-res://Scripts/MatchDragItem.gd
-res://Scripts/miner_popup.gd
+res://Scripts/inventory_popup.gd
+res://Scripts/fairy_popup.gd
+res://Scripts/boss_popup.gd
+res://Scripts/witch_map_popup.gd
