@@ -51,9 +51,15 @@ const H := 1920.0
 var _data: Dictionary = {}
 var _stat_labels: Dictionary = {}    # stat name -> value Label
 var _slot_name_labels: Dictionary = {} # slot -> equipped-name Label
+var _slot_stat_labels: Dictionary = {} # slot -> equipped stat-bonus Label ("Άμυνα +12")
 var _slot_icons: Dictionary = {}     # slot -> item-image TextureRect (κάτω από το όνομα στην κάρτα)
 var _avatar_layers: Dictionary = {}  # slot -> overlay TextureRect
-var _picker: Control
+# Αγγλικές ετικέτες κατηγορίας ΜΟΝΟ για την κορυφή της κάρτας εξοπλισμού
+# (ζητήθηκε ρητά "Helmet"/"Chest Armor"/"Pants"/"Boots"/"Weapon") — δεν
+# αντικαθιστά το Inventory.SLOT_LABELS (Ελληνικά), που εξακολουθεί να
+# χρησιμοποιείται όπου αλλού χρειάζεται. Γεμίζεται στο _ready() (όχι const)
+## για τον ίδιο λόγο που γεμίζει εκεί και το _avatar_layer_targets.
+var _slot_display_label: Dictionary = {}
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
@@ -76,12 +82,29 @@ func _ready() -> void:
 		Inventory.SLOT_BOOTS:  Rect2(86,  291, 177, 137),
 		Inventory.SLOT_WEAPON: Rect2(150, 30, 198, 358),
 	}
+	_slot_display_label = {
+		Inventory.SLOT_HELMET: "Helmet",
+		Inventory.SLOT_CHEST:  "Chest Armor",
+		Inventory.SLOT_LEGS:   "Pants",
+		Inventory.SLOT_BOOTS:  "Boots",
+		Inventory.SLOT_WEAPON: "Weapon",
+	}
 	_build()
-	Inventory.equipment_changed.connect(func(_slot, _id):
+	var _do_refresh := func():
 		_refresh_slots()
 		_refresh_avatar()
 		_refresh_stats()
-	)
+	Inventory.equipment_changed.connect(func(_slot, _id): _do_refresh.call())
+	# ΚΑΙ σε upgrade/sell (WeaponInventory/ArmorInventory.changed) — ένα
+	# upgrade στο ήδη εξοπλισμένο αντικείμενο ΔΕΝ αλλάζει ποιο item_id είναι
+	# εξοπλισμένο (άρα equipment_changed δεν πυροδοτείται), αλλά αλλάζει την
+	# ΤΙΜΗ του στατιστικού που πρέπει να φανεί εδώ (π.χ. αναβάθμισε κάποιος
+	# το εξοπλισμένο του όπλο μέσα από το κλειδωμένο Inventory panel και
+	# επέστρεψε — η νέα Επίθεση πρέπει να φαίνεται αμέσως, όχι στην επόμενη
+	# αλλαγή εξοπλισμού). Ασφαλές να τρέχει άσχετα με ποιο item άλλαξε: το
+	# refresh απλά ξαναδιαβάζει τις τρέχουσες τιμές, καμία υπόθεση δεν κάνει.
+	WeaponInventory.changed.connect(func(): _do_refresh.call())
+	ArmorInventory.changed.connect(func(): _do_refresh.call())
 
 ## Δημόσια μέθοδος ανοίγματος — καλείται από CharacterSelect.gd με το
 ## Dictionary του επιλεγμένου χαρακτήρα (ένα στοιχείο του CHAR_DATA).
@@ -97,7 +120,6 @@ func open_character(char_data: Dictionary) -> void:
 	tw.tween_property(self, "modulate:a", 1.0, 0.30)
 
 func _close() -> void:
-	_close_picker()
 	var tw := create_tween()
 	tw.tween_property(self, "modulate:a", 0.0, 0.22)
 	tw.tween_callback(func(): visible = false)
@@ -170,6 +192,14 @@ func _build_portrait_and_stats() -> void:
 	base.position     = art_pos
 	base.size         = art_size
 	base.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	# EXPAND_IGNORE_SIZE: χωρίς αυτό, το Godot θέτει το minimum_size ίσο με
+	# το ΦΥΣΙΚΟ pixel μέγεθος της υφής — και επειδή Control.size ποτέ δεν
+	# πέφτει κάτω από το minimum_size, το .size παραπάνω αγνοείται σιωπηλά
+	# και το TextureRect μεγαλώνει όσο η ίδια η εικόνα (π.χ. 364×1005 για
+	# ένα σπαθί), ξεχειλίζοντας πολύ πέρα από το πλαίσιό του — αυτή ήταν η
+	# πραγματική αιτία του "outside its frame" bug, πολύ πιο έντονη στο
+	# όπλο (ψηλές εικόνες) παρά στην πανοπλία.
+	base.expand_mode  = TextureRect.EXPAND_IGNORE_SIZE
 	base.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	pframe.add_child(base)
 
@@ -183,6 +213,7 @@ func _build_portrait_and_stats() -> void:
 		layer.position     = art_pos + target.position
 		layer.size         = target.size
 		layer.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		layer.expand_mode  = TextureRect.EXPAND_IGNORE_SIZE
 		layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		pframe.add_child(layer)
 		_avatar_layers[slot] = layer
@@ -237,7 +268,7 @@ func _build_equipment() -> void:
 
 	const CARD_Y := GRID_Y + 56.0
 	const CARD_W := 490.0
-	const CARD_H := 300.0
+	const CARD_H := 320.0
 	const GAP := 20.0
 
 	var order := Inventory.SLOTS
@@ -251,42 +282,58 @@ func _build_equipment() -> void:
 
 # ── Κάτω μέρος: επιλογή όπλου (ξεχωριστό section, κάτω από την πανοπλία) ────
 func _build_weapon() -> void:
-	const TITLE_Y := 1412.0
+	const TITLE_Y := 1458.0
 	const CARD_Y  := TITLE_Y + 44.0
-	const CARD_H  := 220.0
+	const CARD_H  := 250.0
 
 	_lbl(self, "ΟΠΛΟ", Vector2(0, TITLE_Y), Vector2(W, 36),
 		28, C_GOLD_S, HORIZONTAL_ALIGNMENT_CENTER, Color(0,0,0,0.9), 1, 2)
 
 	_make_slot_card(Inventory.SLOT_WEAPON, 40.0, CARD_Y, W - 80.0, CARD_H)
 
-## Κάρτα θέσης εξοπλισμού: όνομα θέσης + όνομα αντικειμένου από πάνω, και η
-## εικόνα του αντικειμένου μεγάλη και κεντραρισμένη από κάτω (χωρίς μικρό
-## πλαίσιο-εικονίδιο). Όλα τα παιδιά εδώ γίνονται add_child ΤΟΥ card, άρα οι
-## θέσεις τους είναι πάντα ΤΟΠΙΚΕΣ ως προς το card (όχι ως προς το self).
+## Κάρτα θέσης εξοπλισμού — πατήσιμη: ανοίγει το ΙΔΙΟ Inventory panel
+## (InventoryPopup), κλειδωμένο στη σχετική κατηγορία, βλ. _on_slot_tapped.
+## Καμία δεύτερη υλοποίηση επιλογέα εδώ πια — το equip/unequip/upgrade/sell
+## γίνονται πάντα μέσα από το πραγματικό Inventory UI. Σταθερή κάθετη διάταξη:
+##   1. πάνω μέρος — όνομα κατηγορίας (πάντα, π.χ. "Helmet"/"Weapon")
+##   2. κέντρο     — εικόνα του επιλεγμένου αντικειμένου
+##   3. όνομα      — το πραγματικό όνομα του επιλεγμένου αντικειμένου (ή
+##                   "Not Selected" αν η θέση είναι άδεια)
+##   4. στατιστικό — π.χ. "Άμυνα +12"/"Επίθεση +25" (κενό αν άδεια θέση)
+## Όλα τα παιδιά εδώ γίνονται add_child ΤΟΥ card, άρα οι θέσεις τους είναι
+## πάντα ΤΟΠΙΚΕΣ ως προς το card (όχι ως προς το self).
 func _make_slot_card(slot: String, x: float, y: float, w: float, h: float) -> void:
 	var card := _add_panel(self, Vector2(x, y), Vector2(w, h), C_DARK, C_BRONZE, 3, 10)
 
-	_lbl(card, str(Inventory.SLOT_LABELS.get(slot, slot)), Vector2(0, 14), Vector2(w, 28),
+	_lbl(card, str(_slot_display_label.get(slot, slot)), Vector2(0, 14), Vector2(w, 28),
 		20, C_GOLD, HORIZONTAL_ALIGNMENT_CENTER)
 
-	var name_lbl := _lbl(card, "— Κενό —", Vector2(10, 44), Vector2(w - 20, 32),
-		22, C_BONE, HORIZONTAL_ALIGNMENT_CENTER)
-	_slot_name_labels[slot] = name_lbl
-
-	const HINT_H := 26.0
-	var image_y: float = 84.0
-	var image_h: float = h - image_y - HINT_H - 10.0
+	const NAME_H := 32.0
+	const STAT_H := 26.0
+	const BOTTOM_PAD := 14.0
+	var image_y: float = 48.0
+	var image_h: float = h - image_y - NAME_H - STAT_H - BOTTOM_PAD
 	var icon := TextureRect.new()
 	icon.position     = Vector2(24, image_y)
 	icon.size         = Vector2(w - 48, image_h)
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	# EXPAND_IGNORE_SIZE — βλ. αναλυτικό σχόλιο στο _build_portrait_and_stats:
+	# χωρίς αυτό το TextureRect μεγαλώνει όσο η ίδια η εικόνα αντί να μένει
+	# μέσα στο πλαίσιο που του ορίζουμε.
+	icon.expand_mode  = TextureRect.EXPAND_IGNORE_SIZE
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card.add_child(icon)
 	_slot_icons[slot] = icon
 
-	_lbl(card, "πάτα για αλλαγή", Vector2(0, h - HINT_H - 6), Vector2(w, HINT_H),
-		15, C_BONE_D, HORIZONTAL_ALIGNMENT_CENTER)
+	var name_lbl := _lbl(card, "Not Selected", Vector2(10, image_y + image_h + 4), Vector2(w - 20, NAME_H),
+		22, C_BONE, HORIZONTAL_ALIGNMENT_CENTER)
+	_slot_name_labels[slot] = name_lbl
+
+	# Μόνο το στατιστικό εδώ — καμία ένδειξη Selected/Not Selected πια σε
+	# αυτό το σημείο (αυτές ζουν αποκλειστικά στο κουμπί του Inventory).
+	var stat_lbl := _lbl(card, "", Vector2(10, image_y + image_h + 4 + NAME_H), Vector2(w - 20, STAT_H),
+		20, C_GOLD, HORIZONTAL_ALIGNMENT_CENTER)
+	_slot_stat_labels[slot] = stat_lbl
 
 	var btn := Button.new()
 	btn.position = Vector2(0, 0)
@@ -298,95 +345,54 @@ func _make_slot_card(slot: String, x: float, y: float, w: float, h: float) -> vo
 	btn.add_theme_stylebox_override("pressed", ts)
 	btn.add_theme_stylebox_override("focus",   ts)
 	card.add_child(btn)
-	btn.pressed.connect(func(): _open_picker(slot))
+	btn.pressed.connect(func(): _on_slot_tapped(slot))
+
+## Ανοίγει το ΙΔΙΟ InventoryPopup (εντοπίζεται μέσω group, βλ.
+## inventory_popup.gd::_ready — είναι σε άλλο κλαδί του scene tree, παιδί
+## του Area1 root, όχι του CharacterSelect/CharacterEditPopup) κλειδωμένο
+## στη σχετική κατηγορία. Το Character Editor κρύβεται όσο είναι ανοιχτό —
+## βλ. _resume_after_inventory για την επιστροφή.
+func _on_slot_tapped(slot: String) -> void:
+	var inv := get_tree().get_first_node_in_group("inventory_popup")
+	if inv == null:
+		return
+	visible = false
+	if slot == Inventory.SLOT_WEAPON:
+		var equipped: Dictionary = Inventory.get_equipped(slot)
+		var preferred := ""
+		if not equipped.is_empty():
+			preferred = WeaponInventory.get_category(str(equipped.get("id", "")))
+		inv.call("open_locked_to_weapons", self, preferred)
+	else:
+		inv.call("open_locked_to_armor_category", str(Inventory.SLOT_LABELS.get(slot, slot)), self)
+
+## Καλείται από το InventoryPopup (μέσω close_popup -> _return_target) όταν
+## ο χρήστης πατήσει Χ εκεί — γυρνάει ΑΚΡΙΒΩΣ στο Character Editor. Καμία
+## χειροκίνητη ανανέωση δεν χρειάζεται εδώ: το _refresh_slots/_refresh_avatar/
+## _refresh_stats τρέχουν ήδη ΣΥΝΕΧΕΙΑ στο παρασκήνιο σε κάθε
+## Inventory.equipment_changed (βλ. _ready), ό,τι κι αν έγινε (equip/
+## unequip/sell/upgrade) όσο ήταν κρυμμένο το Character Editor.
+func _resume_after_inventory() -> void:
+	visible = true
 
 func _refresh_slots() -> void:
 	for slot in _slot_name_labels:
 		var equipped: Dictionary = Inventory.get_equipped(slot)
-		(_slot_name_labels[slot] as Label).text = str(equipped.get("name", "— Κενό —"))
+		(_slot_name_labels[slot] as Label).text = str(equipped.get("name", "Not Selected"))
+		var stat_lbl: Label = _slot_stat_labels.get(slot)
+		if stat_lbl:
+			var bonus: Dictionary = equipped.get("stat_bonus", {})
+			if bonus.is_empty():
+				stat_lbl.text = ""
+			else:
+				var stat_name: String = bonus.keys()[0]
+				stat_lbl.text = "%s +%d" % [stat_name, int(bonus[stat_name])]
 		var icon: TextureRect = _slot_icons.get(slot)
 		if icon:
 			# Ίδια πηγή εικόνας (Inventory.get_item_texture) με το avatar
 			# από πάνω και με το Αποθήκη/InventoryPopup — bounded Rect2 στον
 			# καλούντα (STRETCH_KEEP_ASPECT_CENTERED), δεν ξεχειλίζει ποτέ.
 			icon.texture = Inventory.get_item_texture(equipped)
-
-# ═══════════════════════════════════════════════════════════════
-# ΕΠΙΛΟΓΕΑΣ ΕΞΟΠΛΙΣΜΟΥ (picker) — λίστα owned items για μια θέση
-# ═══════════════════════════════════════════════════════════════
-func _open_picker(slot: String) -> void:
-	_close_picker()
-
-	var overlay := Control.new()
-	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	overlay.mouse_filter = Control.MOUSE_FILTER_STOP
-	add_child(overlay)
-	_picker = overlay
-
-	var dim := ColorRect.new()
-	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	dim.color = Color(0, 0, 0, 0.55)
-	dim.mouse_filter = Control.MOUSE_FILTER_STOP
-	overlay.add_child(dim)
-	dim.gui_input.connect(func(event: InputEvent):
-		if event is InputEventMouseButton and event.pressed:
-			_close_picker()
-	)
-
-	const PW := 760.0
-	var options: Array[Dictionary] = Inventory.get_owned_by_slot(slot)
-	var ph: float = 160.0 + (options.size() + 1) * 96.0
-	ph = min(ph, H - 200.0)
-	var px := (W - PW) / 2.0
-	var py := (H - ph) / 2.0
-
-	var panel := _add_panel(overlay, Vector2(px, py), Vector2(PW, ph), C_DARK, C_GOLD, 4, 16)
-	panel.mouse_filter = Control.MOUSE_FILTER_STOP
-
-	_lbl(panel, "Επίλεξε: %s" % str(Inventory.SLOT_LABELS.get(slot, slot)),
-		Vector2(0, 20), Vector2(PW, 44), 28, C_GOLD_S, HORIZONTAL_ALIGNMENT_CENTER)
-	_cr_on(panel, Vector2(30, 70), Vector2(PW - 60, 2), C_GOLD_D)
-
-	var scroll := ScrollContainer.new()
-	scroll.position = Vector2(20, 84)
-	scroll.size     = Vector2(PW - 40, ph - 104)
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	panel.add_child(scroll)
-
-	var col := VBoxContainer.new()
-	col.add_theme_constant_override("separation", 10)
-	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	scroll.add_child(col)
-
-	col.add_child(_make_picker_row("— Κενό —", "", Inventory.get_equipped(slot).is_empty()))
-	for item in options:
-		var equipped_now: bool = Inventory.get_equipped(slot).get("id", "") == item.get("id", "")
-		col.add_child(_make_picker_row(str(item["name"]), str(item["id"]), equipped_now))
-
-	for child in col.get_children():
-		var btn := child as Button
-		if btn:
-			btn.pressed.connect(func():
-				_equip_from_picker(slot, btn.get_meta("item_id"))
-			)
-
-func _make_picker_row(label: String, item_id: String, equipped_now: bool) -> Button:
-	var btn := Button.new()
-	btn.text = ("★  " if equipped_now else "") + label
-	btn.custom_minimum_size = Vector2(0, 84)
-	btn.set_meta("item_id", item_id)
-	_style_iron(btn, equipped_now)
-	btn.add_theme_font_size_override("font_size", 26)
-	return btn
-
-func _equip_from_picker(slot: String, item_id: String) -> void:
-	Inventory.equip(slot, item_id)
-	_close_picker()
-
-func _close_picker() -> void:
-	if is_instance_valid(_picker):
-		_picker.queue_free()
-	_picker = null
 
 # ── Κουμπί Πίσω (κάτω, ίδιο ύφος με τα υπόλοιπα popups) ────────────────────
 func _build_back_button() -> void:

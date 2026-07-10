@@ -127,6 +127,29 @@ func save_weapon_state(weapon_name: String, data: Dictionary) -> void:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
+# ΔΗΜΟΣΙΟ API — EQUIPPED LOADOUT (Inventory autoload, βλ. Scripts/inventory_data.gd)
+# ═══════════════════════════════════════════════════════════════════════════
+# Ζητήθηκε ρητά να επιβιώνει ποιο αντικείμενο είναι εξοπλισμένο σε κάθε slot
+# μεταξύ εκτελέσεων, ΑΝΕΞΑΡΤΗΤΑ από το προσωρινό SAVE_ENABLED διακόπτη
+# παραπάνω (streak/daily quest/κατοχή όπλων παραμένουν σκόπιμα εκτός save
+# προς το παρόν). Γι' αυτό αυτές οι δύο συναρτήσεις διαβάζουν/γράφουν ΜΟΝΟ
+# το δικό τους section ("equipment") απευθείας στο ίδιο ConfigFile, χωρίς να
+# περνάνε από _load()/_save() και χωρίς να αγγίζουν κανένα άλλο section.
+
+func get_equipped_loadout() -> Dictionary:
+	var config := ConfigFile.new()
+	if config.load(SAVE_PATH) != OK:
+		return {}
+	return config.get_value("equipment", "equipped", {})
+
+func save_equipped_loadout(equipped: Dictionary) -> void:
+	var config := ConfigFile.new()
+	config.load(SAVE_PATH) # αγνόησε σφάλμα — μπορεί να μην υπάρχει ακόμα το αρχείο
+	config.set_value("equipment", "equipped", equipped)
+	config.save(SAVE_PATH)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
 # ΔΗΜΟΣΙΟ API — ΜΟΝΙΜΟ STAT BONUS (π.χ. ανταλλαγές στη Νεράιδα)
 # ═══════════════════════════════════════════════════════════════════════════
 
