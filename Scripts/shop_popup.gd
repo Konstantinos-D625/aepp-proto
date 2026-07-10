@@ -23,9 +23,12 @@ const C_BONE   := Color(0.868, 0.830, 0.685)
 
 const W := 1080.0
 const H := 1920.0
+# Ύψη ρυθμισμένα για mobile (Android, portrait): κάθε πατήσιμο στοιχείο
+# (tabs, κατηγορίες, ΑΓΟΡΑ) έχει ύψος τουλάχιστον ~72-90px ώστε να πατιέται
+# άνετα με δάχτυλο — όχι μόνο με ποντίκι.
 const HDR_H := 240.0
-const TAB_H := 96.0
-const CAT_BAR_H := 68.0
+const TAB_H := 110.0
+const CAT_BAR_H := 92.0
 
 var _category := "weapons"
 
@@ -108,13 +111,13 @@ func _build_header() -> void:
 	_lbl(hdr, "⚔  ΟΠΛΟΠΩΛΕΙΟ  🛡", Vector2(0, 24), Vector2(W, 70),
 		 48, C_BONE, HORIZONTAL_ALIGNMENT_CENTER, Color(0,0,0,0.92), 3, 4)
 
-	# Κουμπί κλεισίματος
+	# Κουμπί κλεισίματος — 84×84, μέγεθος δαχτύλου
 	var close_btn := Button.new()
 	close_btn.text     = "✕"
-	close_btn.position = Vector2(24, 26)
-	close_btn.size     = Vector2(64, 64)
+	close_btn.position = Vector2(20, 18)
+	close_btn.size     = Vector2(84, 84)
 	_style_iron(close_btn)
-	close_btn.add_theme_font_size_override("font_size", 32)
+	close_btn.add_theme_font_size_override("font_size", 40)
 	hdr.add_child(close_btn)
 	close_btn.pressed.connect(_close)
 
@@ -149,11 +152,11 @@ func _build_currency_strip(hdr: Control) -> void:
 		badge.add_theme_stylebox_override("panel", _sb(C_DARK, Currency.COLORS.get(currency, C_GOLD_D).darkened(0.2), 3, 10))
 		_currency_strip.add_child(badge)
 
-		_lbl(badge, str(Currency.ICONS.get(currency, "•")), Vector2(0, 8), Vector2(badge_w, 40),
-			 26, Currency.COLORS.get(currency, C_GOLD), HORIZONTAL_ALIGNMENT_CENTER)
+		_lbl(badge, str(Currency.ICONS.get(currency, "•")), Vector2(0, 8), Vector2(badge_w, 44),
+			 30, Currency.COLORS.get(currency, C_GOLD), HORIZONTAL_ALIGNMENT_CENTER)
 
-		var amount_lbl := _lbl(badge, "", Vector2(0, 46), Vector2(badge_w, 34),
-			 26, C_BONE, HORIZONTAL_ALIGNMENT_CENTER, Color(0,0,0,0.85), 1, 1)
+		var amount_lbl := _lbl(badge, "", Vector2(0, 52), Vector2(badge_w, 40),
+			 30, C_BONE, HORIZONTAL_ALIGNMENT_CENTER, Color(0,0,0,0.85), 1, 1)
 		_currency_labels[currency] = amount_lbl
 
 	_update_currency_labels()
@@ -169,11 +172,11 @@ func _build_tabs() -> void:
 	bar.add_theme_stylebox_override("panel", _sb(Color(0.048, 0.032, 0.015, 0.90), C0, 0))
 	add_child(bar)
 
-	_tab_weapons = _tab_button("⚔  ΟΠΛΑ", Vector2(40, 10), Vector2(480, 76))
+	_tab_weapons = _tab_button("⚔  ΟΠΛΑ", Vector2(40, 10), Vector2(480, 90))
 	bar.add_child(_tab_weapons)
 	_tab_weapons.pressed.connect(func(): _set_category("weapons"))
 
-	_tab_armor = _tab_button("🛡  ΠΑΝΟΠΛΙΕΣ", Vector2(560, 10), Vector2(480, 76))
+	_tab_armor = _tab_button("🛡  ΠΑΝΟΠΛΙΕΣ", Vector2(560, 10), Vector2(480, 90))
 	bar.add_child(_tab_armor)
 	_tab_armor.pressed.connect(func(): _set_category("armor"))
 
@@ -203,8 +206,8 @@ func _rebuild_category_bar() -> void:
 	for category in catalog.categories:
 		var btn := Button.new()
 		btn.text = catalog.get_category_label(category)
-		btn.custom_minimum_size = Vector2(150, CAT_BAR_H - 8)
-		btn.add_theme_font_size_override("font_size", 22)
+		btn.custom_minimum_size = Vector2(190, CAT_BAR_H - 8)
+		btn.add_theme_font_size_override("font_size", 26)
 		_style_iron(btn, category == _selected_category[_category])
 		row.add_child(btn)
 		_cat_buttons[category] = btn
@@ -276,8 +279,10 @@ func _on_equipment_changed() -> void:
 # αναβάθμιση/πώληση γίνονται αποκλειστικά στο Inventory)
 # ═══════════════════════════════════════════════════════════════
 func _make_equipment_card(catalog: EquipmentCatalog, id: String) -> Control:
+	# Μεγαλύτερη κάρτα από την αρχική (320 ύψος): πιο ευανάγνωστα κείμενα και
+	# κουμπί ΑΓΟΡΑ ύψους 76px — άνετος στόχος για δάχτυλο σε κινητό.
 	const CW := 490.0
-	const CH := 320.0
+	const CH := 372.0
 
 	var owned: bool = catalog.is_owned(id)
 
@@ -296,23 +301,24 @@ func _make_equipment_card(catalog: EquipmentCatalog, id: String) -> Control:
 		icon.texture = load(icon_path)
 	card.add_child(icon)
 
-	_lbl(card, catalog.get_item_name(id), Vector2(16, 158), Vector2(CW - 32, 34),
-		 22, C_BONE, HORIZONTAL_ALIGNMENT_CENTER)
+	_lbl(card, catalog.get_item_name(id), Vector2(16, 160), Vector2(CW - 32, 36),
+		 25, C_BONE, HORIZONTAL_ALIGNMENT_CENTER)
 
-	_lbl(card, "%s %s %d" % [catalog.stat_icon, catalog.stat_label, catalog.get_base_stat(id)], Vector2(20, 192), Vector2(CW - 40, 28),
-		 18, C_SILVER, HORIZONTAL_ALIGNMENT_CENTER)
+	_lbl(card, "%s %s %d" % [catalog.stat_icon, catalog.stat_label, catalog.get_base_stat(id)], Vector2(20, 198), Vector2(CW - 40, 32),
+		 22, C_SILVER, HORIZONTAL_ALIGNMENT_CENTER)
 
 	if owned:
 		_lbl(card, "Κατοχή — Επίπεδο %d/%d" % [catalog.get_tier(id), catalog.UPGRADE_MAX_TIER],
-			 Vector2(20, 220), Vector2(CW - 40, 26), 16, C_GOLD, HORIZONTAL_ALIGNMENT_CENTER)
+			 Vector2(20, 232), Vector2(CW - 40, 32), 20, C_GOLD, HORIZONTAL_ALIGNMENT_CENTER)
 	else:
 		_lbl(card, "%d %s" % [catalog.get_base_price(id), Currency.ICONS.get("Χρυσό", "🪙")],
-			 Vector2(20, 220), Vector2(CW - 40, 26), 20, C_GOLD, HORIZONTAL_ALIGNMENT_CENTER)
+			 Vector2(20, 232), Vector2(CW - 40, 32), 25, C_GOLD, HORIZONTAL_ALIGNMENT_CENTER)
 
 	var buy := Button.new()
-	buy.position = Vector2(20, CH - 66)
-	buy.size     = Vector2(CW - 40, 50)
+	buy.position = Vector2(20, CH - 92)
+	buy.size     = Vector2(CW - 40, 76)
 	buy.text     = "ΑΓΟΡΑΣΜΕΝΟ" if owned else "ΑΓΟΡΑ"
+	buy.add_theme_font_size_override("font_size", 27)
 	buy.disabled = owned
 	_style_iron(buy, not owned)
 	card.add_child(buy)
