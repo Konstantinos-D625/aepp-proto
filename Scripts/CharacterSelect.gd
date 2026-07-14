@@ -2,11 +2,19 @@ extends Panel
 
 const CHAR_TEX := preload("res://Εικόνες/char.png")
 
+# Ο βασικός ήρωας (θέση 1) δείχνει την εικόνα του φύλου που επέλεξε ο παίκτης
+# στην αρχή του παιχνιδιού (GenderSelect -> GameData.hero_gender). Η φόρτωση/
+# crop της εικόνας ζει κεντρικά στο GameData.get_hero_texture (βλ. _portrait_texture).
+
 # Κάθε χαρακτήρας ξεκινάει με ΟΛΑ τα στατιστικά στο 0 (κλίμακα 0-20 για το
 # καθένα) — δεν χρειάζεται να δηλωθεί "stats" εδώ, το CharacterEditPopup το
 # διαβάζει με προεπιλογή 0 όταν λείπει. Η πραγματική τιμή προκύπτει
 # αποκλειστικά από τον εξοπλισμό (βλ. CharacterEditPopup._refresh_stats):
 # τα όπλα ανεβάζουν μόνο Επίθεση, κάθε κομμάτι πανοπλίας ανεβάζει Άμυνα.
+#
+# Η θέση 0 είναι ο ΒΑΣΙΚΟΣ ήρωας: το όνομα/κλάση της αντικαθίστανται δυναμικά
+# ανάλογα με το φύλο (βλ. _char_data) — οι τιμές εδώ είναι η προεπιλογή
+# (κορίτσι). Οι υπόλοιπες θέσεις είναι σταθερές.
 const CHAR_DATA: Array[Dictionary] = [
 	{"name": "Lyra Shadowveil", "class": "Μάγισσα Σκιών",    "color": Color(0.28, 0.08, 0.40), "locked": false},
 	{"name": "Aelindra",        "class": "Τοξότης Ξωτικών",  "color": Color(0.08, 0.20, 0.12), "locked": true},
@@ -193,6 +201,31 @@ func _header() -> void:
 # PORTRAIT GRID
 # ═══════════════════════════════════════════════════════════════
 
+# ── Βασικός ήρωας (θέση 0) ανάλογα με το φύλο ───────────────────────────────
+
+## Τα δεδομένα κάρτας για κάθε θέση. Στη θέση 0 (βασικός ήρωας) το όνομα/κλάση
+## προσαρμόζονται στο φύλο που επιλέχθηκε στην αρχή του παιχνιδιού· "girl"
+## (προεπιλογή) κρατάει τις τιμές του CHAR_DATA, "boy" τις αντικαθιστά.
+func _char_data(idx: int) -> Dictionary:
+	if idx != 0:
+		return CHAR_DATA[idx]
+	var d: Dictionary = CHAR_DATA[0].duplicate()
+	if GameData.get_hero_gender() == "boy":
+		d["name"]  = "Aldric Shadowveil"
+		d["class"] = "Μάγος Σκιών"
+	return d
+
+## Η εικόνα του πορτρέτου: για τον βασικό ήρωα (θέση 0) η boy.png/girl.png
+## (κομμένη), αλλιώς η προεπιλεγμένη CHAR_TEX. Το crop/φόρτωμα ζει κεντρικά στο
+## GameData.get_hero_texture ώστε ΟΛΕΣ οι οθόνες (Χαρακτήρες, Character Edit,
+## μάχη με Morgana) να δείχνουν την ίδια εικόνα ήρωα. Fallback στο CHAR_TEX αν
+## λείπει η εικόνα φύλου.
+func _portrait_texture(idx: int) -> Texture2D:
+	if idx != 0:
+		return CHAR_TEX
+	var tex := GameData.get_hero_texture()
+	return tex if tex != null else CHAR_TEX
+
 func _grid() -> void:
 	for i in range(6):
 		var row := int(i / 2.0)
@@ -200,7 +233,7 @@ func _grid() -> void:
 		_portrait(i, MX + col * (PW + GX), GRID_Y + row * (PH + GY))
 
 func _portrait(idx: int, x: float, y: float) -> void:
-	var d: Dictionary = CHAR_DATA[idx]
+	var d: Dictionary = _char_data(idx)
 	var locked: bool  = bool(d["locked"])
 	var pcol: Color   = d["color"] as Color
 	var art_h: float  = PH - PLH - AI
@@ -252,7 +285,7 @@ func _portrait(idx: int, x: float, y: float) -> void:
 	# ── Portrait image / locked placeholder ──────
 	if not locked:
 		var char_tr := TextureRect.new()
-		char_tr.texture      = CHAR_TEX
+		char_tr.texture      = _portrait_texture(idx)
 		char_tr.position     = Vector2(x + AI, y + AI)
 		char_tr.size         = Vector2(PW - AI*2, art_h)
 		char_tr.expand_mode  = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
@@ -531,7 +564,7 @@ func _on_char_selected(idx: int) -> void:
 func _on_action_edit() -> void:
 	_bar.visible = false
 	if _selected_idx >= 0 and _selected_idx < CHAR_DATA.size():
-		_edit_popup.open_character(CHAR_DATA[_selected_idx])
+		_edit_popup.open_character(_char_data(_selected_idx))
 
 func _on_action_back() -> void:    _bar.visible = false
 func _on_action_confirm() -> void: _bar.visible = false

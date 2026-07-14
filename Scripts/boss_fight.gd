@@ -53,7 +53,9 @@ const SHEETS := {
 	"curse_spell": {"path": "res://Εικόνες/curse_spell.png", "frames": 6, "fps": 7.0, "loop": false},
 	"shield":      {"path": "res://Εικόνες/shield.png",      "frames": 5, "fps": 6.0, "loop": false},
 }
-const PLAYER_PATH := "res://Εικόνες/avatar.png"
+# Ο παίκτης είναι ο βασικός ήρωας του χρήστη (boy.png/girl.png ανάλογα με το
+# φύλο) — η εικόνα έρχεται από την κοινή πηγή GameData.get_hero_texture (ίδια
+# με Χαρακτήρες/Character Edit). Το παλιό avatar.png ΔΕΝ χρησιμοποιείται πλέον.
 const BG_PATH     := "res://Εικόνες/boss_bg.png"
 
 # «Καίρια» frames όπου φεύγει το εφέ προς τον παίκτη (0-indexed).
@@ -438,7 +440,7 @@ func _play_anim(anim_name: String) -> void:
 # ΠΑΙΚΤΗΣ (στατικός — idle με ελαφρύ «αναπνευστικό» bob)
 # ═══════════════════════════════════════════════════════════════════════════
 func _build_player() -> void:
-	var tex: Texture2D = load(PLAYER_PATH)
+	var tex: Texture2D = GameData.get_hero_texture()
 	_player = Sprite2D.new()
 	_player.centered = false
 	if tex:

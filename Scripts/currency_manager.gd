@@ -59,6 +59,28 @@ var _amounts := {
 	"Κλειδί Χαρακτήρων":  0,
 }
 
+# Το Currency είναι 2ο στη λίστα autoload (project.godot), ΠΡΙΝ το GameData
+# (3ο) — άρα στο _ready() το GameData δεν έχει φορτώσει ακόμα το save. Γι' αυτό
+# η φόρτωση των αποθηκευμένων ποσών αναβάλλεται με call_deferred, ώστε να τρέξει
+# αφού ολοκληρωθεί το _ready()/_load() ΟΛΩΝ των autoloads (ίδιο μοτίβο με
+# Scripts/inventory_data.gd).
+func _ready() -> void:
+	call_deferred("_load_saved")
+
+## Αντικαθιστά τα αρχικά ποσά με ό,τι είχε αποθηκευτεί (GameData.currencies).
+## Σε ολοκαίνουργιο save δεν υπάρχει τίποτα αποθηκευμένο, οπότε κρατιούνται τα
+## αρχικά ποσά — και αμέσως σώζονται ώστε το save file να αντικατοπτρίζει την
+## πραγματική αρχική κατάσταση.
+func _load_saved() -> void:
+	var saved: Dictionary = GameData.get_saved_currencies()
+	for currency in saved:
+		_amounts[currency] = int(saved[currency])
+	_persist()
+	changed.emit()
+
+func _persist() -> void:
+	GameData.save_currencies(_amounts)
+
 func get_amount(currency: String) -> int:
 	return int(_amounts.get(currency, 0))
 
@@ -74,9 +96,11 @@ func spend(cost: Dictionary) -> bool:
 		return false
 	for currency in cost:
 		_amounts[currency] = get_amount(currency) - int(cost[currency])
+	_persist()
 	changed.emit()
 	return true
 
 func add(currency: String, amount: int) -> void:
 	_amounts[currency] = get_amount(currency) + amount
+	_persist()
 	changed.emit()

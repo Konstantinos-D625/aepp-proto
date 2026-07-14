@@ -8,26 +8,12 @@ extends Control
 # Inventory autoload (Scripts/inventory_data.gd) — δεν κρατάει δικό του
 # αντίγραφο, ώστε να μένει συγχρονισμένο με το ShopPopup/InventoryPopup.
 
-const AVATAR_BASE := preload("res://Εικόνες/avatar.png")
-
-# Τα avatar.png/helmet.png/κ.λπ. είναι "προϊοντικές" φωτογραφίες αντικειμένων
-# σε δικό τους καμβά 677×369 — ΔΕΝ είναι ήδη ευθυγραμμισμένα στο σκελετό του
-# avatar. Το AVATAR_CROP είναι το πραγματικό περιεχόμενο (χωρίς το διάφανο
-# περιθώριο) του avatar.png, υπολογισμένο από το bounding box του alpha
-# channel· χρησιμοποιείται ως AtlasTexture.region ώστε να εμφανίζεται
-# "γεμάτο" μέσα στο πλαίσιο αντί να κάθεται μικρό στη μέση.
-const AVATAR_CROP := Rect2(269, 16, 139, 337)
-
-# Στόχοι (Rect2) για κάθε equip-layer, σε ΤΟΠΙΚΕΣ συντεταγμένες μέσα στο
-# πλαίσιο avatar (0,0 = πάνω-αριστερά της περιοχής avatar, ΜΕΤΑ το εσωτερικό
-# περιθώριο του πλαισίου — δες art_pos στο _build_portrait_and_stats).
-# Υπολογίστηκαν χειροκίνητα με βάση το πού πέφτει το κεφάλι/κορμός/πόδια
-# του avatar.png όταν αυτό εμφανίζεται ολόκληρο (KEEP_ASPECT_CENTERED) μέσα
-# στο ίδιο 348×428 πλαίσιο — βλ. σχόλιο στο _ready() για τις τιμές.
-# Γεμίζεται στο _ready() (όχι const) μαζί με το _avatar_layer_order, ώστε να
-# διαβάζει με ασφάλεια τα SLOT_* από το Inventory autoload.
-var _avatar_layer_order: Array[String] = []
-var _avatar_layer_targets: Dictionary = {}
+# Ο ήρωας που φαίνεται εδώ είναι ΠΑΝΤΑ ο βασικός ήρωας του παίκτη (μόνο αυτός
+# είναι ξεκλείδωτος/επεξεργάσιμος). Η εικόνα του (boy.png/girl.png ανάλογα με το
+# φύλο, κομμένη στο περιεχόμενο) έρχεται κεντρικά από GameData.get_hero_texture —
+# το παλιό avatar.png ΔΕΝ χρησιμοποιείται πλέον. Ο εξοπλισμός αλλάζει από τις
+# κάρτες πιο κάτω και ενημερώνει τα στατιστικά· ΔΕΝ επικαλύπτεται πάνω στη φιγούρα
+# (τα PNG του εξοπλισμού είναι σε άλλο στυλ/αναλογίες από τη φιγούρα του ήρωα).
 
 # ── Παλέτα (ίδιο ύφος με CharacterSelect.gd) ────────────────────────────────
 const C0       := Color(0, 0, 0, 0)
@@ -53,35 +39,16 @@ var _stat_labels: Dictionary = {}    # stat name -> value Label
 var _slot_name_labels: Dictionary = {} # slot -> equipped-name Label
 var _slot_stat_labels: Dictionary = {} # slot -> equipped stat-bonus Label ("Άμυνα +12")
 var _slot_icons: Dictionary = {}     # slot -> item-image TextureRect (κάτω από το όνομα στην κάρτα)
-var _avatar_layers: Dictionary = {}  # slot -> overlay TextureRect
 # Αγγλικές ετικέτες κατηγορίας ΜΟΝΟ για την κορυφή της κάρτας εξοπλισμού
 # (ζητήθηκε ρητά "Helmet"/"Chest Armor"/"Pants"/"Boots"/"Weapon") — δεν
 # αντικαθιστά το Inventory.SLOT_LABELS (Ελληνικά), που εξακολουθεί να
 # χρησιμοποιείται όπου αλλού χρειάζεται. Γεμίζεται στο _ready() (όχι const)
-## για τον ίδιο λόγο που γεμίζει εκεί και το _avatar_layer_targets.
+# ώστε να διαβάζει με ασφάλεια τα SLOT_* από το Inventory autoload.
 var _slot_display_label: Dictionary = {}
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	visible = false
-	_avatar_layer_order = [
-		Inventory.SLOT_LEGS,
-		Inventory.SLOT_BOOTS,
-		Inventory.SLOT_CHEST,
-		Inventory.SLOT_HELMET,
-		Inventory.SLOT_WEAPON,
-	]
-	# Θέση/μέγεθος κάθε layer μέσα στο 348×428 πλαίσιο avatar, ώστε να
-	# προσγειώνεται πάνω στο αντίστοιχο κομμάτι του σώματος (κεφάλι/κορμός/
-	# πόδια) αντί να καλύπτει ολόκληρο το avatar. Το όπλο ξεχωρίζει καθώς
-	# κρατιέται δίπλα στο σώμα, όχι πάνω του.
-	_avatar_layer_targets = {
-		Inventory.SLOT_HELMET: Rect2(100, 0,  30, 73),
-		Inventory.SLOT_CHEST:  Rect2(100,  60, 159, 141),
-		Inventory.SLOT_LEGS:   Rect2(112, 193, 124, 116),
-		Inventory.SLOT_BOOTS:  Rect2(86,  291, 177, 137),
-		Inventory.SLOT_WEAPON: Rect2(150, 30, 198, 358),
-	}
 	_slot_display_label = {
 		Inventory.SLOT_HELMET: "Helmet",
 		Inventory.SLOT_CHEST:  "Chest Armor",
@@ -92,7 +59,6 @@ func _ready() -> void:
 	_build()
 	var _do_refresh := func():
 		_refresh_slots()
-		_refresh_avatar()
 		_refresh_stats()
 	Inventory.equipment_changed.connect(func(_slot, _id): _do_refresh.call())
 	# ΚΑΙ σε upgrade/sell (WeaponInventory/ArmorInventory.changed) — ένα
@@ -113,7 +79,6 @@ func open_character(char_data: Dictionary) -> void:
 	_refresh_header()
 	_refresh_stats()
 	_refresh_slots()
-	_refresh_avatar()
 	visible = true
 	modulate.a = 0.0
 	var tw := create_tween()
@@ -183,40 +148,19 @@ func _build_portrait_and_stats() -> void:
 	var art_pos  := Vector2(16, 16)
 	var art_size := Vector2(380 - 32, SEC_H - 32)
 
-	var base_atlas := AtlasTexture.new()
-	base_atlas.atlas  = AVATAR_BASE
-	base_atlas.region = AVATAR_CROP
-
+	# Η φιγούρα του βασικού ήρωα (boy.png/girl.png ανάλογα με το φύλο, κομμένη),
+	# από την κοινή πηγή GameData.get_hero_texture — ίδια εικόνα με τους
+	# Χαρακτήρες και τη μάχη με τη Morgana. EXPAND_IGNORE_SIZE ώστε το .size να
+	# μην αγνοηθεί (αλλιώς το Godot θέτει minimum_size = φυσικό μέγεθος υφής και
+	# το TextureRect ξεχειλίζει πέρα από το πλαίσιό του).
 	var base := TextureRect.new()
-	base.texture      = base_atlas
+	base.texture      = GameData.get_hero_texture()
 	base.position     = art_pos
 	base.size         = art_size
 	base.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	# EXPAND_IGNORE_SIZE: χωρίς αυτό, το Godot θέτει το minimum_size ίσο με
-	# το ΦΥΣΙΚΟ pixel μέγεθος της υφής — και επειδή Control.size ποτέ δεν
-	# πέφτει κάτω από το minimum_size, το .size παραπάνω αγνοείται σιωπηλά
-	# και το TextureRect μεγαλώνει όσο η ίδια η εικόνα (π.χ. 364×1005 για
-	# ένα σπαθί), ξεχειλίζοντας πολύ πέρα από το πλαίσιό του — αυτή ήταν η
-	# πραγματική αιτία του "outside its frame" bug, πολύ πιο έντονη στο
-	# όπλο (ψηλές εικόνες) παρά στην πανοπλία.
 	base.expand_mode  = TextureRect.EXPAND_IGNORE_SIZE
 	base.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	pframe.add_child(base)
-
-	# Ένα layer ανά equip slot, τοποθετημένο στη σωστή περιοχή του σώματος
-	# (_avatar_layer_targets) αντί να γεμίζει όλο το πλαίσιο. Η τιμή του
-	# texture (με το σωστό crop) ανανεώνεται στο _refresh_avatar() ανάλογα
-	# με το τι είναι εξοπλισμένο (Inventory.get_equipped(slot)).
-	for slot in _avatar_layer_order:
-		var target: Rect2 = _avatar_layer_targets[slot]
-		var layer := TextureRect.new()
-		layer.position     = art_pos + target.position
-		layer.size         = target.size
-		layer.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		layer.expand_mode  = TextureRect.EXPAND_IGNORE_SIZE
-		layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		pframe.add_child(layer)
-		_avatar_layers[slot] = layer
 
 	# Πλαίσιο στατιστικών
 	var sframe := _add_panel(self, Vector2(440, TOP_Y), Vector2(600, SEC_H), C_DARK, C_GOLD_D, 4, 12)
@@ -249,15 +193,6 @@ func _refresh_stats() -> void:
 		var bonus: int = Inventory.get_equipped_stat_bonus(stat_name) + GameData.get_stat_bonus(stat_name)
 		var total: int = clampi(base + bonus, 0, 20)
 		(_stat_labels[stat_name] as Label).text = str(total)
-
-## Ενημερώνει κάθε equip-layer του avatar με βάση το τι είναι εξοπλισμένο
-## αυτή τη στιγμή στο αντίστοιχο slot. Αν το εξοπλισμένο item δεν έχει δικό
-## του "avatar_overlay" (δεν έχει ετοιμαστεί ακόμα art γι' αυτό), το layer
-## μένει κενό — φαίνεται απλά το βασικό σώμα από κάτω.
-func _refresh_avatar() -> void:
-	for slot in _avatar_layers:
-		var layer: TextureRect = _avatar_layers[slot]
-		layer.texture = Inventory.get_item_texture(Inventory.get_equipped(slot))
 
 # ── Κάτω μέρος: 4 θέσεις εξοπλισμού ─────────────────────────────────────────
 func _build_equipment() -> void:
@@ -368,8 +303,8 @@ func _on_slot_tapped(slot: String) -> void:
 
 ## Καλείται από το InventoryPopup (μέσω close_popup -> _return_target) όταν
 ## ο χρήστης πατήσει Χ εκεί — γυρνάει ΑΚΡΙΒΩΣ στο Character Editor. Καμία
-## χειροκίνητη ανανέωση δεν χρειάζεται εδώ: το _refresh_slots/_refresh_avatar/
-## _refresh_stats τρέχουν ήδη ΣΥΝΕΧΕΙΑ στο παρασκήνιο σε κάθε
+## χειροκίνητη ανανέωση δεν χρειάζεται εδώ: το _refresh_slots/_refresh_stats
+## τρέχουν ήδη ΣΥΝΕΧΕΙΑ στο παρασκήνιο σε κάθε
 ## Inventory.equipment_changed (βλ. _ready), ό,τι κι αν έγινε (equip/
 ## unequip/sell/upgrade) όσο ήταν κρυμμένο το Character Editor.
 func _resume_after_inventory() -> void:

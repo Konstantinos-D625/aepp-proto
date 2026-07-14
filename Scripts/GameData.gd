@@ -22,11 +22,18 @@ extends Node
 
 const SAVE_PATH := "user://game_data.cfg"
 
-# ΠΡΟΣΩΡΙΝΟ διακόπτης δοκιμών: όταν false, το _load()/_save() δεν αγγίζουν
-# καθόλου το δίσκο — κάθε εκκίνηση ξεκινάει πάντα από τα αρχικά (streak,
-# daily quest, ΚΑΙ όπλα, αφού όλα περνάνε από το ίδιο save file). Γύρνα το σε
-# true για να ξαναενεργοποιηθεί η μόνιμη αποθήκευση.
-const SAVE_ENABLED := false
+# Εικόνες του βασικού ήρωα ανά φύλο — η ΜΟΝΑΔΙΚΗ πηγή για όλες τις οθόνες που
+# δείχνουν τον ήρωα (Χαρακτήρες, Character Edit, μάχη με Morgana). Το παλιό
+# avatar.png ΔΕΝ χρησιμοποιείται πλέον πουθενά.
+const HERO_BOY_PATH  := "res://Εικόνες/boy.png"
+const HERO_GIRL_PATH := "res://Εικόνες/girl.png"
+
+# Διακόπτης μόνιμης αποθήκευσης: όταν true, το _load()/_save() διαβάζουν/
+# γράφουν στο δίσκο, ώστε ΟΛΑ (φύλο ήρωα, χρήματα/υλικά, κλειδιά, όπλα,
+# πανοπλίες, streak, daily quest, stat bonus, boss gate, εξοπλισμός) να
+# επιβιώνουν μετά το κλείσιμο του παιχνιδιού. Γύρνα το σε false ΜΟΝΟ για
+# δοκιμές όπου θέλεις κάθε εκκίνηση να ξεκινάει από τα αρχικά.
+const SAVE_ENABLED := true
 
 # ── Streak ────────────────────────────────────────────────────────────────
 var streak: int = 0
@@ -62,6 +69,24 @@ var stat_bonus: Dictionary = {}
 # από τα 5 stats πρέπει να ανέβει τουλάχιστον +1 πάνω από αυτή την τιμή πριν
 # επιτραπεί ξανά προσπάθεια — βλ. can_attempt_boss().
 var boss_loss_stats: Dictionary = {}
+
+# ── Φύλο βασικού ήρωα (GenderSelect, βλ. Scripts/gender_select.gd) ───────────
+# "" = δεν έχει επιλεγεί ακόμα (πρώτη εκκίνηση -> εμφανίζεται η οθόνη επιλογής
+# φύλου). "boy" ή "girl" -> ο αντίστοιχος χαρακτήρας εμφανίζεται στην οθόνη
+# Χαρακτήρων (βλ. Scripts/CharacterSelect.gd, boy.png/girl.png).
+var hero_gender: String = ""
+
+# ── Νομίσματα/υλικά (Currency autoload, βλ. Scripts/currency_manager.gd) ─────
+# currency_name -> ποσό. Το GameData είναι ΜΟΝΟ ο persistence layer· η λογική
+# (κατάλογος, χρώματα, spend/add) ζει στο currency_manager.gd, ίδιο μοτίβο με
+# τα όπλα (weapons παραπάνω).
+var currencies: Dictionary = {}
+
+# ── Κλειδιά παζλ κάστρου (KeyInventory autoload, βλ. Scripts/key_inventory.gd) ─
+# category -> Array τιμών. Αποθηκεύεται ξεχωριστά από τα currencies ώστε να
+# επιβιώνει και η πραγματική λίστα τιμών (όχι μόνο το πλήθος που φαίνεται στην
+# Αποθήκη) — τα δύο μένουν συνεπή γιατί σώζονται μαζί σε κάθε add/remove κλειδιού.
+var keys: Dictionary = {}
 
 
 func _ready() -> void:
@@ -196,6 +221,107 @@ func record_boss_win() -> void:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
+# ΔΗΜΟΣΙΟ API — ΦΥΛΟ ΒΑΣΙΚΟΥ ΗΡΩΑ (επιλέγεται μία φορά στην αρχή του παιχνιδιού)
+# ═══════════════════════════════════════════════════════════════════════════
+
+## True αν ο παίκτης έχει ήδη επιλέξει φύλο ήρωα — τότε η οθόνη επιλογής φύλου
+## παρακάμπτεται και μπαίνει κατευθείαν στην πρώτη περιοχή (βλ. gender_select.gd).
+func has_hero_gender() -> bool:
+	return hero_gender != ""
+
+## "boy" ή "girl" (ή "" αν δεν έχει επιλεγεί ακόμα).
+func get_hero_gender() -> String:
+	return hero_gender
+
+func set_hero_gender(gender: String) -> void:
+	hero_gender = gender
+	_save()
+
+# ── Εικόνα ήρωα (κοινή για ΟΛΕΣ τις οθόνες) ─────────────────────────────────
+# Cache ώστε το ακριβό crop να γίνεται μία φορά ανά εικόνα.
+var _cropped_tex_cache: Dictionary = {}
+
+## Η εικόνα του βασικού ήρωα (boy.png/girl.png ανάλογα με το φύλο), κομμένη στο
+## πραγματικό της περιεχόμενο. Προεπιλογή "girl" όσο δεν έχει επιλεγεί φύλο.
+## Επιστρέφει null αν λείπει η εικόνα (ο caller βάζει fallback).
+func get_hero_texture() -> Texture2D:
+	var path := HERO_BOY_PATH if hero_gender == "boy" else HERO_GIRL_PATH
+	return get_cropped_texture(path)
+
+## Φορτώνει μια εικόνα και την κόβει στο πραγματικό (ορατό) περιεχόμενό της με
+## κατώφλι alpha (>0.25). ΔΕΝ χρησιμοποιείται το Image.get_used_rect() γιατί
+## μερικές εικόνες (π.χ. boy.png) έχουν αχνά, σχεδόν-διάφανα pixel στα άκρα που
+## το ξεγελούν και επιστρέφει ολόκληρο τον καμβά — τότε ο χαρακτήρας μένει μια
+## μικροσκοπική λωρίδα. Το αποτέλεσμα (AtlasTexture) αποθηκεύεται σε cache.
+func get_cropped_texture(path: String) -> Texture2D:
+	if _cropped_tex_cache.has(path):
+		return _cropped_tex_cache[path]
+	var result: Texture2D = null
+	if ResourceLoader.exists(path):
+		var tex: Texture2D = load(path)
+		if tex != null:
+			result = _crop_to_content(tex)
+	_cropped_tex_cache[path] = result
+	return result
+
+func _crop_to_content(tex: Texture2D) -> Texture2D:
+	var img := tex.get_image()
+	if img == null:
+		return tex
+	var w := img.get_width()
+	var h := img.get_height()
+	var minx := w
+	var miny := h
+	var maxx := -1
+	var maxy := -1
+	var y := 0
+	while y < h:
+		var x := 0
+		while x < w:
+			if img.get_pixel(x, y).a > 0.25:
+				if x < minx: minx = x
+				if y < miny: miny = y
+				if x > maxx: maxx = x
+				if y > maxy: maxy = y
+			x += 2
+		y += 2
+	if maxx < minx or maxy < miny:
+		return tex
+	minx = maxi(minx - 2, 0)
+	miny = maxi(miny - 2, 0)
+	maxx = mini(maxx + 2, w - 1)
+	maxy = mini(maxy + 2, h - 1)
+	var atlas := AtlasTexture.new()
+	atlas.atlas = tex
+	atlas.region = Rect2(minx, miny, maxx - minx + 1, maxy - miny + 1)
+	return atlas
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# ΔΗΜΟΣΙΟ API — ΝΟΜΙΣΜΑΤΑ (persistence μόνο· λογική στο Currency)
+# ═══════════════════════════════════════════════════════════════════════════
+
+func get_saved_currencies() -> Dictionary:
+	return currencies
+
+func save_currencies(amounts: Dictionary) -> void:
+	currencies = amounts.duplicate()
+	_save()
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# ΔΗΜΟΣΙΟ API — ΚΛΕΙΔΙΑ (persistence μόνο· λογική στο KeyInventory)
+# ═══════════════════════════════════════════════════════════════════════════
+
+func get_saved_keys() -> Dictionary:
+	return keys
+
+func save_keys(all_keys: Dictionary) -> void:
+	keys = all_keys.duplicate(true)
+	_save()
+
+
+# ═══════════════════════════════════════════════════════════════════════════
 # SAVE SYSTEM (ConfigFile — ίδιο μοτίβο με OptionsMenu.gd)
 # ═══════════════════════════════════════════════════════════════════════════
 
@@ -215,6 +341,9 @@ func _load() -> void:
 	weapons                     = config.get_value("weapons", "state", {})
 	stat_bonus                  = config.get_value("stats", "bonus", {})
 	boss_loss_stats             = config.get_value("boss", "loss_stats", {})
+	hero_gender                 = config.get_value("hero", "gender", "")
+	currencies                  = config.get_value("currencies", "amounts", {})
+	keys                        = config.get_value("keys", "state", {})
 
 func _save() -> void:
 	if not SAVE_ENABLED:
@@ -227,4 +356,7 @@ func _save() -> void:
 	config.set_value("weapons", "state", weapons)
 	config.set_value("stats", "bonus", stat_bonus)
 	config.set_value("boss", "loss_stats", boss_loss_stats)
+	config.set_value("hero", "gender", hero_gender)
+	config.set_value("currencies", "amounts", currencies)
+	config.set_value("keys", "state", keys)
 	config.save(SAVE_PATH)
