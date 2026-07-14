@@ -1,11 +1,16 @@
 extends Control
 
-# Popup "Boss Fight": η μάγισσα προκαλεί τον παίκτη σε μάχη.
-# Κατάσταση 1: η μάγισσα μιλάει μπροστά από το εσωτερικό του μαγαζιού της.
-# Κατάσταση 2: η μάγισσα φεύγει, το background παραμένει, και πάνω στο
-# board.png εμφανίζεται είτε "δεν είσαι έτοιμος ακόμα" (loss gate, βλ.
-# παρακάτω) είτε τα ΟΡΑΤΑ odds νίκης + κουμπί επίθεσης· μόνο όταν πατηθεί
-# γίνεται το roll και δείχνεται ΝΙΚΗ/ΗΤΤΑ.
+# Popup "Boss Fight": η μάγισσα προκαλεί τον παίκτη σε μάχη. Είναι το ΠΡΩΤΟ
+# popup που ανοίγει πατώντας το σπίτι της μάγισσας (witch_map_popup.gd).
+# Κατάσταση 1: η μάγισσα μιλάει μπροστά από το εσωτερικό του μαγαζιού της
+# (εισαγωγικός διάλογος «Τολμηρέ ταξιδιώτη...»).
+# Κατάσταση 2: με ένα κλικ, η μάγισσα φεύγει, το background παραμένει, και πάνω
+# στο board.png εμφανίζεται είτε "δεν είσαι έτοιμος ακόμα" (loss gate, βλ.
+# παρακάτω) είτε τα ΟΡΑΤΑ odds νίκης + κουμπί «Επίθεση».
+# Το κουμπί «Επίθεση» ΔΕΝ κάνει πλέον roll εδώ — ΞΕΚΙΝΑΕΙ το animated BossFight
+# (_launch_fight). Το roll νίκης/ήττας + το GameData recording + το αποτέλεσμα
+# έχουν μεταφερθεί ΕΚΕΙ (boss_fight.gd), ώστε η ζωντανή μάχη να «παίζει» για
+# λίγα δευτερόλεπτα πριν κριθεί το αποτέλεσμα με βάση την παρακάτω πιθανότητα.
 #
 # ── ΛΟΓΙΚΗ ΜΑΧΗΣ ────────────────────────────────────────────────────────────
 # Πιθανότητα νίκης = συνάρτηση του ΜΕΣΟΥ ΟΡΟΥ των 5 stats (Επίθεση, Άμυνα,
@@ -59,14 +64,8 @@ var _bubble : Control
 var _board  : Control
 var _hint   : Label
 
-# Δικός του RNG για το roll της μάχης (αντί για το global randf()) —
-# randomize() στο _ready ώστε κάθε εκτέλεση να έχει πραγματικά τυχαίο seed,
-# ανεξάρτητα από το τι κάνει οποιοσδήποτε άλλος κώδικας στο global RNG.
-var _rng := RandomNumberGenerator.new()
-
 # ═══════════════════════════════════════════════════════════════════════════
 func _ready() -> void:
-	_rng.randomize()
 	mouse_filter = MOUSE_FILTER_STOP
 	visible = false
 	_build()
@@ -287,7 +286,16 @@ func _build_board() -> Control:
 	var brd_tex : Texture2D = load(BOARD_PATH)
 	var brd := TextureRect.new()
 	if brd_tex:
-		brd.texture = brd_tex
+		# Το board.png (441×565) έχει διάφανα περιθώρια — το ξύλο ζει στο
+		# x 16-424, y 84-512 (opaque bbox από το alpha, ίδια μέτρηση με το
+		# board του miner_popup.gd). Χωρίς crop, το ορατό ξύλο ξεκινούσε στο
+		# y≈416 της οθόνης ενώ το ResultBox στο y=340 — το πλαίσιο ξεχείλωνε
+		# πάνω από το board. Με το crop, το ξύλο γεμίζει ΟΛΟ το BRD_W×BRD_H
+		# και το ResultBox (με τα +80/+120 εσωτερικά περιθώρια) χωράει μέσα.
+		var atlas := AtlasTexture.new()
+		atlas.atlas  = brd_tex
+		atlas.region = Rect2(16, 84, 409, 429)
+		brd.texture = atlas
 	brd.position     = Vector2(BRD_X, BRD_Y)
 	brd.size         = Vector2(BRD_W, BRD_H)
 	brd.expand_mode  = TextureRect.EXPAND_IGNORE_SIZE
@@ -404,74 +412,27 @@ func _show_odds(stats: Dictionary) -> void:
 	box.add_child(pct_label)
 
 	var attack_btn := Button.new()
-	attack_btn.text = "⚔  ΕΠΙΤΕΘΕΣΕ"
+	attack_btn.text = "⚔  Επίθεση"
 	attack_btn.position = Vector2(box.size.x / 2.0 - 160, 280)
 	attack_btn.size     = Vector2(320, 100)
 	attack_btn.add_theme_font_size_override("font_size", 30)
 	_style_attack_btn(attack_btn)
 	box.add_child(attack_btn)
 	attack_btn.pressed.connect(func():
-		attack_btn.queue_free()
-		_do_attack(stats, probability)
+		_launch_fight(stats, probability)
 	)
 
-func _do_attack(stats: Dictionary, probability: float) -> void:
-	# Ένα roll στο [0,1): νίκη αν πέσει ΚΑΤΩ από την πιθανότητα που είδε ο
-	# παίκτης (π.χ. 44% -> νίκη όταν roll < 0.44). Τυπώνεται στο Output για
-	# να μπορεί να επαληθευτεί ότι το roll αντιστοιχεί στα εμφανιζόμενα odds.
-	var roll := _rng.randf()
-	var won: bool = roll < probability
-	print("BossFight: roll %.4f vs πιθανότητα %.4f (%d%%) -> %s"
-		% [roll, probability, int(round(probability * 100.0)), "ΝΙΚΗ" if won else "ΗΤΤΑ"])
-	if won:
-		GameData.record_boss_win()
-	else:
-		GameData.record_boss_loss(stats)
-	_show_result(won)
-
-func _show_result(won: bool) -> void:
-	var box := _clear_result_box()
-
-	var s := StyleBoxFlat.new()
-	s.bg_color     = Color(0.06, 0.18, 0.08, 0.85) if won else Color(0.18, 0.04, 0.04, 0.85)
-	s.border_color = C_GOLD if won else C_CRIMSON
-	s.set_border_width_all(3)
-	s.set_corner_radius_all(8)
-	box.add_theme_stylebox_override("panel", s)
-
-	var icon := Label.new()
-	icon.text = "🏆" if won else "💀"
-	icon.position = Vector2(0, 60)
-	icon.size     = Vector2(box.size.x, 140)
-	icon.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	icon.add_theme_font_size_override("font_size", 96)
-	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	box.add_child(icon)
-
-	var title := Label.new()
-	title.text = "ΝΙΚΗ!" if won else "ΗΤΤΑ..."
-	title.position = Vector2(0, 210)
-	title.size     = Vector2(box.size.x, 70)
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 52)
-	title.add_theme_color_override("font_color", C_GOLD if won else C_CRIMSON.lightened(0.25))
-	title.add_theme_color_override("font_shadow_color", Color(0,0,0,0.9))
-	title.add_theme_constant_override("shadow_offset_x", 2)
-	title.add_theme_constant_override("shadow_offset_y", 3)
-	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	box.add_child(title)
-
-	var sub := Label.new()
-	sub.text = ("Νίκησες τη Μόργκανα!\nΞεκλειδώθηκε η επόμενη περιοχή." if won
-		else "Η Μόργκανα ήταν πολύ δυνατή...\nΑνέβασε ΟΛΑ τα στατιστικά σου (τουλάχιστον +1 το καθένα) για να ξαναδοκιμάσεις!")
-	sub.position = Vector2(40, 300)
-	sub.size     = Vector2(box.size.x - 80, 140)
-	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	sub.add_theme_font_size_override("font_size", 26)
-	sub.add_theme_color_override("font_color", C_PARCH_D)
-	sub.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	box.add_child(sub)
+## Ξεκινάει το animated BossFight (sibling στο Area1). Περνάει την πιθανότητα
+## νίκης + τα stats της στιγμής: η ζωντανή μάχη «παίζει» για λίγα δευτερόλεπτα
+## και ΜΕΤΑ κρίνει νίκη/ήττα με βάση την πιθανότητα — το roll, το GameData
+## recording (record_boss_win/loss) και το αποτέλεσμα γίνονται ΕΚΕΙ
+## (boss_fight.gd). Το BossPopup κλείνει καθώς ανοίγει η μάχη.
+func _launch_fight(stats: Dictionary, probability: float) -> void:
+	var fight := get_parent().get_node_or_null("BossFight")
+	if fight:
+		fight.show_popup(probability, stats)
+		fight.move_to_front()
+	_close()
 
 func _style_attack_btn(btn: Button) -> void:
 	var n := StyleBoxFlat.new()

@@ -7,6 +7,7 @@
 [ext_resource type="AudioStream" uid="uid://b4b6wbhi3jy4p" path="res://Music/Bäring.mp3" id="19_87y4o"]
 [ext_resource type="Texture2D" uid="uid://dyudc04ugy6ka" path="res://Εικόνες/bg1.png" id="bg"]
 [ext_resource type="PackedScene" uid="uid://blacksmith001" path="res://Scenes/BlacksmithPopup.tscn" id="blacksmith_scene"]
+[ext_resource type="PackedScene" uid="uid://b7c08r38qo3h7" path="res://Scenes/BossFight.tscn" id="boss_fight_scene"]
 [ext_resource type="PackedScene" uid="uid://ftwod68gmpix" path="res://Scenes/BossPopup.tscn" id="boss_scene"]
 [ext_resource type="PackedScene" path="res://Scenes/CastlePopup.tscn" id="castle_popup_scene"]
 [ext_resource type="Texture2D" uid="uid://bfxx88hsb0mcd" path="res://Εικόνες/char.png" id="char"]
@@ -31,9 +32,25 @@
 [ext_resource type="Texture2D" uid="uid://dric4kdeffx15" path="res://Εικόνες/sideq.png" id="sideq"]
 [ext_resource type="PackedScene" uid="uid://witchmap001" path="res://Scenes/WitchMapPopup.tscn" id="witch_map_popup_scene"]
 
-[sub_resource type="AtlasTexture" id="board"]
-atlas = ExtResource("sidebar")
-region = Rect2(144, 26, 120, 547)
+[sub_resource type="AtlasTexture" id="icon_char"]
+atlas = ExtResource("char")
+region = Rect2(21, 80, 899, 943)
+
+[sub_resource type="AtlasTexture" id="icon_inv"]
+atlas = ExtResource("inv")
+region = Rect2(53, 80, 396, 407)
+
+[sub_resource type="AtlasTexture" id="icon_map"]
+atlas = ExtResource("map")
+region = Rect2(369, 40, 655, 682)
+
+[sub_resource type="AtlasTexture" id="icon_dq"]
+atlas = ExtResource("dq")
+region = Rect2(399, 77, 621, 594)
+
+[sub_resource type="AtlasTexture" id="icon_friends"]
+atlas = ExtResource("friends")
+region = Rect2(407, 54, 588, 654)
 
 [node name="Area1" type="Control" unique_id=1095226882]
 layout_mode = 3
@@ -130,10 +147,11 @@ mouse_filter = 2
 
 [node name="Loot" type="TextureButton" parent="HUD" unique_id=1618197088]
 layout_mode = 1
-offset_left = 726.0
-offset_top = 16.0
-offset_right = 1064.0
-offset_bottom = 241.0
+offset_left = 761.6
+offset_top = 14.0
+offset_right = 1047.6
+offset_bottom = 205.0
+scale = Vector2(1.0188805, 0.96313596)
 texture_normal = ExtResource("loot")
 ignore_texture_size = true
 stretch_mode = 5
@@ -163,32 +181,34 @@ mouse_filter = 2
 
 [node name="Board" type="TextureRect" parent="HUD/Sidebar" unique_id=1228165139]
 layout_mode = 1
-offset_left = 420.0
-offset_top = 1288.0
-offset_right = 660.0
-offset_bottom = 2288.0
+offset_left = 443.0
+offset_top = 1307.0
+offset_right = 710.6815
+offset_bottom = 2273.2925
 rotation = -1.5707963
-scale = Vector2(0.92881244, 1.4376389)
+scale = Vector2(2.0957875, 1.1959586)
 pivot_offset = Vector2(120, 500)
 mouse_filter = 2
-texture = SubResource("board")
+texture = ExtResource("sidebar")
 expand_mode = 1
 
 [node name="Buttons" type="HBoxContainer" parent="HUD/Sidebar" unique_id=1148631600]
 layout_mode = 1
-offset_top = 1630.0
-offset_right = 771.0
-offset_bottom = 1830.0
-scale = Vector2(1.4, 1.4)
+offset_left = 131.0
+offset_top = 1686.0
+offset_right = 976.0
+offset_bottom = 1886.0
+scale = Vector2(0.9712883, 0.90689105)
 mouse_filter = 2
-theme_override_constants/separation = 20
+theme_override_constants/separation = 62
 alignment = 1
 
 [node name="Characters" type="TextureButton" parent="HUD/Sidebar/Buttons" unique_id=1618537846]
+custom_minimum_size = Vector2(119, 125)
 layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-texture_normal = ExtResource("char")
+size_flags_horizontal = 4
+size_flags_vertical = 4
+texture_normal = SubResource("icon_char")
 ignore_texture_size = true
 stretch_mode = 5
 
@@ -198,34 +218,38 @@ bus = &"SFX"
 script = ExtResource("13_87y4o")
 
 [node name="Inventory" type="TextureButton" parent="HUD/Sidebar/Buttons" unique_id=760664732]
+custom_minimum_size = Vector2(122, 125)
 layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-texture_normal = ExtResource("inv")
+size_flags_horizontal = 4
+size_flags_vertical = 4
+texture_normal = SubResource("icon_inv")
 ignore_texture_size = true
 stretch_mode = 5
 
 [node name="Map" type="TextureButton" parent="HUD/Sidebar/Buttons" unique_id=842044376]
+custom_minimum_size = Vector2(120, 125)
 layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-texture_normal = ExtResource("map")
+size_flags_horizontal = 4
+size_flags_vertical = 4
+texture_normal = SubResource("icon_map")
 ignore_texture_size = true
 stretch_mode = 5
 
 [node name="DailyQuest" type="TextureButton" parent="HUD/Sidebar/Buttons" unique_id=1148631502]
+custom_minimum_size = Vector2(131, 125)
 layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-texture_normal = ExtResource("dq")
+size_flags_horizontal = 4
+size_flags_vertical = 4
+texture_normal = SubResource("icon_dq")
 ignore_texture_size = true
 stretch_mode = 5
 
 [node name="Friends" type="TextureButton" parent="HUD/Sidebar/Buttons" unique_id=1650180062]
+custom_minimum_size = Vector2(112, 125)
 layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-texture_normal = ExtResource("friends")
+size_flags_horizontal = 4
+size_flags_vertical = 4
+texture_normal = SubResource("icon_friends")
 ignore_texture_size = true
 stretch_mode = 5
 
@@ -275,6 +299,9 @@ visible = false
 layout_mode = 1
 
 [node name="BossPopup" parent="." unique_id=987654327 instance=ExtResource("boss_scene")]
+layout_mode = 1
+
+[node name="BossFight" parent="." unique_id=987654333 instance=ExtResource("boss_fight_scene")]
 layout_mode = 1
 
 [node name="FairyPopup" parent="." unique_id=987654331 instance=ExtResource("fairy_popup_scene")]

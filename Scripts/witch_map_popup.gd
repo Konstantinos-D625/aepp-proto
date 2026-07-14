@@ -31,6 +31,11 @@ func _ready() -> void:
 	%WitchHouseButton.pressed.connect(_on_witch_house_pressed)
 	%FairyButton.pressed.connect(_on_fairy_button_pressed)
 
+## ΡΟΗ: πατώντας το σπίτι ανοίγει ΠΡΩΤΑ το BossPopup με τον εισαγωγικό διάλογο
+## (η μάγισσα μέσα στο σπίτι της προκαλεί τον ταξιδιώτη). Από εκεί, με ένα κλικ
+## εμφανίζεται η πιθανότητα νίκης + κουμπί «Επίθεση», που τελικά ξεκινάει το
+## animated BossFight (βλ. boss_popup.gd -> _launch_fight). Έτσι η ζαριά/odds
+## προηγείται της ζωντανής μάχης.
 ## Ο γονιός (Area1) έχει το BossPopup ως άμεσο sibling — βλ. σχόλιο πιο πάνω
 ## για το γιατί η σύνδεση γίνεται εδώ αντί για connection στο Area1.tscn.
 func _on_witch_house_pressed() -> void:

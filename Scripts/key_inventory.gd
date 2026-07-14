@@ -24,6 +24,18 @@ var _keys: Dictionary = {
 	CATEGORY_CHARACTER: [],
 }
 
+# Το KeyInventory είναι μετά το GameData στη λίστα autoload, οπότε το save έχει
+# ήδη φορτωθεί εδώ. Φορτώνουμε τις αποθηκευμένες λίστες κλειδιών ΑΠΕΥΘΕΙΑΣ, ΧΩΡΙΣ
+# να καλέσουμε Currency.add — το πλήθος στην Αποθήκη επαναφέρεται ξεχωριστά από
+# το ίδιο το Currency (GameData.currencies), ώστε να μη διπλομετρηθεί.
+func _ready() -> void:
+	var saved: Dictionary = GameData.get_saved_keys()
+	if not saved.is_empty():
+		_keys = saved.duplicate(true)
+
+func _persist() -> void:
+	GameData.save_keys(_keys)
+
 ## Μόνο οι κατηγορίες από τις οποίες ο παίκτης κατέχει τουλάχιστον ένα κλειδί.
 func get_categories() -> Array:
 	var result: Array = []
@@ -40,6 +52,7 @@ func add_key(value, category: String = CATEGORY_NUMERIC) -> void:
 		_keys[category] = []
 	(_keys[category] as Array).append(value)
 	Currency.add(category, 1)
+	_persist()
 	changed.emit()
 
 ## Αφαιρεί ΜΙΑ εμφάνιση της τιμής από την κατηγορία (κλειδί καταναλώθηκε ή έσπασε).
@@ -48,4 +61,5 @@ func remove_key(category: String, value) -> void:
 		return
 	(_keys[category] as Array).erase(value)
 	Currency.spend({category: 1})
+	_persist()
 	changed.emit()

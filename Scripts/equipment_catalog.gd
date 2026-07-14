@@ -10,16 +10,22 @@ class_name EquipmentCatalog
 ## κοινή και ζει ΜΙΑ φορά εδώ — καμία υποκλάση δεν την ξαναγράφει.
 ##
 ## Οι υποκλάσεις μπορούν προαιρετικά να υπερφορτώσουν το get_base_stat()/
-## get_total_stat() αν χρειάζονται δική τους φόρμουλα στατιστικού (βλ.
-## weapon_inventory.gd, που τη χρειάζεται στην κλίμακα 1-20 για να ταιριάζει
-## με το Character stat panel) — η προεπιλογή (old_level × 10) καλύπτει ήδη
-## το armor_inventory.gd χωρίς καμία υπερφόρτωση.
+## get_total_stat() αν χρειάζονται δική τους φόρμουλα στατιστικού — βλ.
+## weapon_inventory.gd (κλίμακα 1-20 για να ταιριάζει με το Character stat
+## panel) και armor_inventory.gd (χειροκίνητη Άμυνα 1-5 ανά κομμάτι, βλ.
+## εκεί για λεπτομέρειες).
 ##
 ## Για να προστεθεί νέο όπλο/πανοπλία στο μέλλον: αντέγραψε την εικόνα μέσα
 ## στον φάκελο της κατηγορίας της και πρόσθεσε ένα {file, name} entry στο
 ## items[category] της αντίστοιχης υποκλάσης — καμία άλλη αλλαγή λογικής.
 
 signal changed
+## Εκπέμπεται ΜΟΝΟ σε επιτυχή αγορά (όχι upgrade/sell) — το Inventory
+## autoload (Scripts/inventory_data.gd) το ακούει για να εξοπλίζει αυτόματα
+## την πρώτη αγορά που γεμίζει μια άδεια θέση (όπλο ή συγκεκριμένη κατηγορία
+## πανοπλίας). Ξεχωριστό από το "changed" γιατί εκείνο δεν κουβαλάει ποιο id
+## άλλαξε, οπότε δεν αρκεί για να αποφασιστεί αν πρέπει να γίνει auto-equip.
+signal item_bought(id: String)
 
 var item_dir: String = ""
 var categories: Array[String] = []
@@ -173,6 +179,7 @@ func buy(id: String) -> bool:
 	_state[id] = {"owned": true, "tier": 1}
 	_persist(id)
 	changed.emit()
+	item_bought.emit(id)
 	return true
 
 ## Αναβάθμιση επιπέδου (1→2→3) — καλείται ΜΟΝΟ από το Inventory.
