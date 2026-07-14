@@ -262,10 +262,22 @@ func _build_board() -> Control:
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(root)
 
-	const BRD_X := 60.0
-	const BRD_Y := 220.0
-	const BRD_W := 960.0
-	const BRD_H := 1320.0
+	# Το ξύλινο board μεγάλωσε ώστε οι νέες, πολύ ψηλότερες γραμμές
+	# αντιστοίχισης να χωράνε ΠΑΝΤΑ μέσα στο ορατό ξύλινο πλαίσιο — ακόμα και
+	# στους γύρους με τα μεγαλύτερα κείμενα του miner_quiz.json (π.χ. οι
+	# ορισμοί ΚΑΙ/Ή/ΟΧΙ, που τυλίγονται σε 2 γραμμές). Το προηγούμενο μέγεθος
+	# (1040×1430, ίδιες αναλογίες με το αρχικό board) χωρούσε τις γραμμές ΜΟΝΟ
+	# όταν το κείμενο ήταν κοντό — με μεγαλύτερο κείμενο το περιεχόμενο
+	# ξεπερνούσε το κάτω άκρο της εικόνας κατά ~54px. Το ύψος μεγάλωσε αρκετά
+	# παραπάνω (με ανάλογο extra περιθώριο ασφαλείας) για να καλύπτει αυτή τη
+	# χειρότερη περίπτωση, και το board ανέβηκε πιο ψηλά στην οθόνη (μικρότερο
+	# BRD_Y) ώστε να μη φτάνει κοντά στο κουμπί "Πίσω". Το πλάτος μεγάλωσε
+	# ελαφρώς μαζί του (σχεδόν σε όλο το πλάτος της οθόνης) — το μέγεθος ΤΩΝ
+	# ΓΡΑΜΜΩΝ/κουτιών (row height, badge, padding, font) ΔΕΝ άλλαξε καθόλου.
+	const BRD_W := 1060.0
+	const BRD_H := 1610.0
+	const BRD_X := (1080.0 - BRD_W) / 2.0   # οριζόντια κεντραρισμένο
+	const BRD_Y := 70.0
 
 	var brd_tex : Texture2D = load(BOARD_PATH)
 	var brd := TextureRect.new()
@@ -281,14 +293,16 @@ func _build_board() -> Control:
 	var pad := MarginContainer.new()
 	pad.position = Vector2(BRD_X, BRD_Y)
 	pad.size     = Vector2(BRD_W, BRD_H)
-	pad.add_theme_constant_override("margin_left",   90)
-	pad.add_theme_constant_override("margin_right",  90)
+	pad.add_theme_constant_override("margin_left",   100)
+	pad.add_theme_constant_override("margin_right",  100)
 	# Το board.png έχει ~15% διάφανο περιθώριο στην κορυφή πριν καν ξεκινήσει
 	# το ξύλινο πλαίσιο (bounding box της εικόνας, όχι του BRD_H) — 150 δεν
-	# έφτανε. 340 (~25.8% του BRD_H=1320) το κατεβάζει ακόμα πιο καθαρά μέσα
-	# στο ορατό ξύλο (μετά από feedback ότι το 260 ήταν ακόμα λίγο ψηλά).
-	pad.add_theme_constant_override("margin_top",    340)
-	pad.add_theme_constant_override("margin_bottom", 130)
+	# έφτανε. 415 (~25.76% του νέου BRD_H=1610, ΙΔΙΟ ποσοστό με το αρχικό
+	# 340/1320) το κατεβάζει καθαρά μέσα στο ορατό ξύλο, ανεξάρτητα από το
+	# πόσο μεγάλωσε το board — η stretched εικόνα διατηρεί το ίδιο ποσοστό
+	# διάφανου περιθωρίου σε οποιοδήποτε ύψος τη βάλουμε.
+	pad.add_theme_constant_override("margin_top",    415)
+	pad.add_theme_constant_override("margin_bottom", 159)
 	pad.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(pad)
 
@@ -326,7 +340,7 @@ func _build_board() -> Control:
 	col.add_child(grid_row)
 
 	_left_col = VBoxContainer.new()
-	_left_col.add_theme_constant_override("separation", 12)
+	_left_col.add_theme_constant_override("separation", 16)
 	_left_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_left_col.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	grid_row.add_child(_left_col)
@@ -336,7 +350,7 @@ func _build_board() -> Control:
 	grid_row.add_child(sep)
 
 	_right_col = VBoxContainer.new()
-	_right_col.add_theme_constant_override("separation", 12)
+	_right_col.add_theme_constant_override("separation", 16)
 	_right_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_right_col.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	grid_row.add_child(_right_col)
@@ -406,9 +420,15 @@ func _make_left_row(index: int, text: String) -> MatchDragItem:
 	row.payload = index
 	row.preview_text = "%d.  %s" % [index + 1, text]
 	row.mouse_filter = Control.MOUSE_FILTER_STOP
+	# Ελάχιστο ύψος γραμμής σημαντικά μεγαλύτερο ώστε το κουτί να είναι πολύ
+	# εύκολο να το «πιάσεις» και να το σύρεις — προηγουμένως το ύψος
+	# καθοριζόταν μόνο από το περιεχόμενο (~50-56px), πολύ μικρό σαν στόχος
+	# αφής/ποντικιού. Το ξύλινο board μεγάλωσε αναλογικά (βλ. _build_board)
+	# ακριβώς για να χωράει άνετα αυτό το ύψος.
+	row.custom_minimum_size = Vector2(0, 138)
 	row.add_theme_stylebox_override("panel", _row_style(C_STONE))
 	var hbox := HBoxContainer.new()
-	hbox.add_theme_constant_override("separation", 12)
+	hbox.add_theme_constant_override("separation", 16)
 	hbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(hbox)
 
@@ -418,8 +438,9 @@ func _make_left_row(index: int, text: String) -> MatchDragItem:
 	lbl.text = text
 	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	lbl.add_theme_font_size_override("font_size", 22)
+	lbl.add_theme_font_size_override("font_size", 26)
 	lbl.add_theme_color_override("font_color", C_PARCH)
 	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hbox.add_child(lbl)
@@ -433,9 +454,10 @@ func _make_right_row(index: int, text: String) -> MatchDragItem:
 	var row := MatchDragItem.new()
 	row.is_target = true
 	row.mouse_filter = Control.MOUSE_FILTER_STOP
+	row.custom_minimum_size = Vector2(0, 138)
 	row.add_theme_stylebox_override("panel", _row_style(C_STONE))
 	var hbox := HBoxContainer.new()
-	hbox.add_theme_constant_override("separation", 12)
+	hbox.add_theme_constant_override("separation", 16)
 	hbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(hbox)
 
@@ -443,9 +465,10 @@ func _make_right_row(index: int, text: String) -> MatchDragItem:
 
 	var assigned := Label.new()
 	assigned.text = "—"
-	assigned.custom_minimum_size = Vector2(34, 0)
+	assigned.custom_minimum_size = Vector2(40, 0)
 	assigned.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	assigned.add_theme_font_size_override("font_size", 22)
+	assigned.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	assigned.add_theme_font_size_override("font_size", 26)
 	assigned.add_theme_color_override("font_color", C_AMBER)
 	assigned.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hbox.add_child(assigned)
@@ -454,8 +477,9 @@ func _make_right_row(index: int, text: String) -> MatchDragItem:
 	lbl.text = text
 	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	lbl.add_theme_font_size_override("font_size", 22)
+	lbl.add_theme_font_size_override("font_size", 26)
 	lbl.add_theme_color_override("font_color", C_PARCH)
 	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hbox.add_child(lbl)
@@ -468,20 +492,21 @@ func _make_right_row(index: int, text: String) -> MatchDragItem:
 
 func _row_badge(text: String, color: Color) -> Control:
 	var badge := PanelContainer.new()
-	badge.custom_minimum_size = Vector2(40, 40)
+	badge.custom_minimum_size = Vector2(54, 54)
+	badge.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var sb := StyleBoxFlat.new()
 	sb.bg_color     = color.darkened(0.30)
 	sb.border_color = color
 	sb.set_border_width_all(2)
-	sb.set_corner_radius_all(20)
+	sb.set_corner_radius_all(27)
 	badge.add_theme_stylebox_override("panel", sb)
 
 	var lbl := Label.new()
 	lbl.text = text
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl.vertical_alignment   = VERTICAL_ALIGNMENT_CENTER
-	lbl.add_theme_font_size_override("font_size", 20)
+	lbl.add_theme_font_size_override("font_size", 23)
 	lbl.add_theme_color_override("font_color", Color(1, 1, 1))
 	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	badge.add_child(lbl)
@@ -492,11 +517,13 @@ func _row_style(bg: Color) -> StyleBoxFlat:
 	s.bg_color = Color(bg.r, bg.g, bg.b, 0.65)
 	s.border_color = C_GOLD_D
 	s.set_border_width_all(1)
-	s.set_corner_radius_all(8)
-	s.content_margin_left   = 10
-	s.content_margin_right  = 10
-	s.content_margin_top    = 8
-	s.content_margin_bottom = 8
+	s.set_corner_radius_all(12)
+	# Μεγαλύτερο εσωτερικό padding ώστε το κείμενο να "ανασαίνει" μέσα στο
+	# πολύ ψηλότερο πλέον πλαίσιο αντί να κολλάει στα άκρα.
+	s.content_margin_left   = 17
+	s.content_margin_right  = 17
+	s.content_margin_top    = 17
+	s.content_margin_bottom = 17
 	return s
 
 ## Καλείται όταν ο παίκτης αφήνει ένα αριστερό στοιχείο (payload = index του)

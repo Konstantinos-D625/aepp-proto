@@ -20,6 +20,12 @@ class_name EquipmentCatalog
 ## items[category] της αντίστοιχης υποκλάσης — καμία άλλη αλλαγή λογικής.
 
 signal changed
+## Εκπέμπεται ΜΟΝΟ σε επιτυχή αγορά (όχι upgrade/sell) — το Inventory
+## autoload (Scripts/inventory_data.gd) το ακούει για να εξοπλίζει αυτόματα
+## την πρώτη αγορά που γεμίζει μια άδεια θέση (όπλο ή συγκεκριμένη κατηγορία
+## πανοπλίας). Ξεχωριστό από το "changed" γιατί εκείνο δεν κουβαλάει ποιο id
+## άλλαξε, οπότε δεν αρκεί για να αποφασιστεί αν πρέπει να γίνει auto-equip.
+signal item_bought(id: String)
 
 var item_dir: String = ""
 var categories: Array[String] = []
@@ -169,6 +175,7 @@ func buy(id: String) -> bool:
 	_state[id] = {"owned": true, "tier": 1}
 	_persist(id)
 	changed.emit()
+	item_bought.emit(id)
 	return true
 
 ## Αναβάθμιση επιπέδου (1→2→3) — καλείται ΜΟΝΟ από το Inventory.

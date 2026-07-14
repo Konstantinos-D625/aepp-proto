@@ -156,18 +156,31 @@ func _header() -> void:
 	add_child(back)
 	back.pressed.connect(_on_back_pressed)
 
-	# Title banner (sunken stone look)
-	_add_panel(self, Vector2(264 + 4, 36 + 4), Vector2(552, 116), Color(0,0,0,0.65), C0, 0, 6, 0)
-	_add_panel(self, Vector2(264, 36), Vector2(552, 116), Color(0.065, 0.044, 0.020), C_GOLD, 4, 6, 0)
+	# Title banner (sunken stone look) — BW/BX μετρήθηκαν ώστε να χωράει
+	# άνετα το "ΕΠΙΛΟΓΗ ΧΑΡΑΚΤΗΡΑ" (704px στα παλιά 68pt· 580px στα νέα 56pt,
+	# βλ. TITLE_FONT_SIZE) μέσα στο πλαίσιο, χωρίς να κόβεται/ξεχειλίζει, ΚΑΙ
+	# χωρίς να ακουμπάει το κουμπί "◄ ΠΙΣΩ" (x 38-246) αριστερά ή τη δεξιά
+	# πλαϊνή διακοσμητική λωρίδα (x 1052+) — γι' αυτό το κέντρο του banner
+	# είναι ελαφρώς δεξιότερα του πλήρους κέντρου της οθόνης (540) αντί να
+	# είναι απόλυτα συμμετρικό στα 1080px, χωρίς να μετακινείται τίποτα άλλο.
+	const TITLE_BX := 266.0
+	const TITLE_BW := 680.0
+	const TITLE_BY := 36.0
+	const TITLE_BH := 116.0
+	const TITLE_FONT_SIZE := 56
+	_add_panel(self, Vector2(TITLE_BX + 4, TITLE_BY + 4), Vector2(TITLE_BW, TITLE_BH), Color(0,0,0,0.65), C0, 0, 6, 0)
+	_add_panel(self, Vector2(TITLE_BX, TITLE_BY), Vector2(TITLE_BW, TITLE_BH), Color(0.065, 0.044, 0.020), C_GOLD, 4, 6, 0)
 	# Inner hairline
-	_add_panel(self, Vector2(270, 42), Vector2(540, 104), C0, C_GOLD_D, 1, 3, 0)
+	_add_panel(self, Vector2(TITLE_BX + 6, TITLE_BY + 6), Vector2(TITLE_BW - 12, TITLE_BH - 12), C0, C_GOLD_D, 1, 3, 0)
 	# Bevel
-	_cr(Vector2(264, 36), Vector2(552, 2), Color(1, 1, 1, 0.06))
-	_cr(Vector2(264, 150), Vector2(552, 2), Color(0, 0, 0, 0.75))
+	_cr(Vector2(TITLE_BX, TITLE_BY), Vector2(TITLE_BW, 2), Color(1, 1, 1, 0.06))
+	_cr(Vector2(TITLE_BX, TITLE_BY + TITLE_BH - 2), Vector2(TITLE_BW, 2), Color(0, 0, 0, 0.75))
 
-	# Title
-	_lbl(self, "ΕΠΙΛΟΓΗ ΧΑΡΑΚΤΗΡΑ", Vector2(0, 46), Vector2(1080, 106),
-		 68, C_BONE, HORIZONTAL_ALIGNMENT_CENTER, Color(0,0,0,0.95), 3, 4)
+	# Title — το πλαίσιο του Label ταιριάζει ΑΚΡΙΒΩΣ με το banner (όχι πια
+	# ολόκληρο το πλάτος της οθόνης) ώστε το CENTER alignment να κεντράρει το
+	# κείμενο μέσα στο ΙΔΙΟ κουτί που βλέπει ο παίκτης, όχι στην οθόνη.
+	_lbl(self, "ΕΠΙΛΟΓΗ ΧΑΡΑΚΤΗΡΑ", Vector2(TITLE_BX, TITLE_BY), Vector2(TITLE_BW, TITLE_BH),
+		 TITLE_FONT_SIZE, C_BONE, HORIZONTAL_ALIGNMENT_CENTER, Color(0,0,0,0.95), 3, 4)
 
 	# Subtitle
 	_lbl(self, "Επίλεξε τον ήρωά σου", Vector2(0, 183), Vector2(1080, 50),

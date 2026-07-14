@@ -61,7 +61,7 @@ func _refresh_state() -> void:
 		_go_button.text       = "ΟΛΟΚΛΗΡΩΘΗΚΕ"
 		_go_button.disabled   = true
 	else:
-		_desc_label.text      = "Λύσε 3 σωστές ασκήσεις!"
+		_desc_label.text      = "3 επίπεδα ασκήσεων — δοκίμασε όσες φορές θέλεις μέχρι να τα καταφέρεις!"
 		_status_label.visible = false
 		_go_button.text       = "ΠΑΜΕ"
 		_go_button.disabled   = false
