@@ -116,10 +116,17 @@ func _build_header() -> void:
 
 	_build_currency_strip(hdr)
 
-# Μόνο τα υλικά που αφορούν το Shop (η αγορά γίνεται αποκλειστικά σε Χαλκό —
-# βλ. EquipmentCatalog.buy) — όχι Σφαίρες/Κλειδιά, που δεν χρησιμοποιούνται
-# πουθενά εδώ. Ίδια σχετική σειρά με το Currency.ORDER.
-const STRIP_CURRENCIES: Array[String] = ["Χαλκός", "Δέρμα", "Σίδερο"]
+# Τα υλικά που αφορούν το Shop (η αγορά γίνεται αποκλειστικά σε Χαλκό — βλ.
+# EquipmentCatalog.buy) ΚΑΙ το Κέρμα: δεν ξοδεύεται εδώ (μόνο σε boss retries,
+# βλ. boss_popup.gd/mini_boss_popup.gd), αλλά φαίνεται ώστε ο παίκτης να ξέρει
+# πόσο έχει μαζέψει χωρίς να ανοίξει την Αποθήκη. Όχι Κλειδιά — δεν αφορούν
+# καθόλου το Shop. Ίδια σχετική σειρά με το Currency.ORDER.
+const STRIP_CURRENCIES: Array[String] = ["Χαλκός", "Δέρμα", "Σίδερο", "Κέρμα"]
+
+# Το νόμισμα ΚΑΘΕ τιμής του Shop (όπλα, πανοπλίες, ήρωες) — βλ.
+# EquipmentCatalog.buy / Heroes.HERO_PRICE_CURRENCY. Μία σταθερά ώστε να μη
+# σκορπίζεται το literal "Χαλκός" στις κάρτες.
+const PRICE_CURRENCY := "Χαλκός"
 
 func _build_currency_strip(hdr: Control) -> void:
 	_currency_strip = Control.new()
@@ -174,6 +181,55 @@ func _build_currency_strip(hdr: Control) -> void:
 func _update_currency_labels() -> void:
 	for currency in _currency_labels:
 		(_currency_labels[currency] as Label).text = str(Currency.get_amount(currency))
+
+## Τιμή κάρτας: αριθμός + η ΠΡΑΓΜΑΤΙΚΗ εικόνα του Χαλκού (copper.png), αντί για
+## το παλιό emoji "🪙" — που είναι ΧΡΥΣΟ νόμισμα, ενώ χρυσός δεν υπάρχει πια στο
+## παιχνίδι (τα πάντα τιμολογούνται σε Χαλκό). Ίδιος αγωγός εικόνας με το
+## currency strip παραπάνω (Currency.get_icon_texture), ώστε το εικονίδιο της
+## τιμής και το εικονίδιο του αποθέματος να είναι πάντα η ΙΔΙΑ εικόνα.
+## Το emoji μένει ως fallback μόνο αν λείψει το PNG.
+func _price_row(parent: Control, amount: int, pos: Vector2, sz: Vector2, font_sz: int, col: Color) -> void:
+	var box := HBoxContainer.new()
+	box.position  = pos
+	box.size      = sz
+	box.alignment = BoxContainer.ALIGNMENT_CENTER
+	box.add_theme_constant_override("separation", 8)
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(box)
+
+	var amount_lbl := Label.new()
+	amount_lbl.text = str(amount)
+	amount_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	amount_lbl.add_theme_font_size_override("font_size", font_sz)
+	amount_lbl.add_theme_color_override("font_color", col)
+	amount_lbl.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.85))
+	amount_lbl.add_theme_constant_override("shadow_offset_x", 1)
+	amount_lbl.add_theme_constant_override("shadow_offset_y", 1)
+	amount_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(amount_lbl)
+
+	var icon_tex := Currency.get_icon_texture(PRICE_CURRENCY)
+	if icon_tex == null:
+		var fallback := Label.new()
+		fallback.text = str(Currency.ICONS.get(PRICE_CURRENCY, "•"))
+		fallback.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		fallback.add_theme_font_size_override("font_size", font_sz)
+		fallback.add_theme_color_override("font_color", col)
+		fallback.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		box.add_child(fallback)
+		return
+
+	var icon := TextureRect.new()
+	icon.texture = icon_tex
+	# EXPAND_IGNORE_SIZE ΠΡΙΝ το custom_minimum_size: το copper.png είναι
+	# 1008×1055, οπότε χωρίς αυτό το minimum size της υφής «κλειδώνει» το
+	# πλαίσιο στο φυσικό μέγεθος και το εικονίδιο ζωγραφίζεται τεράστιο πάνω
+	# από την κάρτα (ίδια νάρκη με το currency strip παραπάνω).
+	icon.expand_mode  = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.custom_minimum_size = Vector2(font_sz + 6, font_sz + 6)
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(icon)
 
 func _build_tabs() -> void:
 	var bar := Panel.new()
@@ -300,8 +356,7 @@ func _make_equipment_card(catalog: EquipmentCatalog, id: String) -> Control:
 		_lbl(card, "Κατοχή — Επίπεδο %d/%d" % [catalog.get_tier(id), catalog.UPGRADE_MAX_TIER],
 			 Vector2(20, 356), Vector2(CARD_W - 40, 44), 26, C_GOLD, HORIZONTAL_ALIGNMENT_CENTER)
 	else:
-		_lbl(card, "%d %s" % [catalog.get_base_price(id), Currency.ICONS.get("Χαλκός", "🪙")],
-			 Vector2(20, 356), Vector2(CARD_W - 40, 44), 34, C_GOLD, HORIZONTAL_ALIGNMENT_CENTER)
+		_price_row(card, catalog.get_base_price(id), Vector2(20, 356), Vector2(CARD_W - 40, 44), 34, C_GOLD)
 
 	var buy := Button.new()
 	buy.position = Vector2(20, CARD_H - BTN_H - 20)
@@ -364,8 +419,7 @@ func _make_hero_card(def: Dictionary) -> Control:
 		_lbl(card, "Στο ρόστερ σου", Vector2(20, 358), Vector2(CARD_W - 40, 44),
 			 30, C_SILVER, HORIZONTAL_ALIGNMENT_CENTER)
 	else:
-		_lbl(card, "%d %s" % [int(def["price"]), Currency.ICONS.get("Χαλκός", "🪙")],
-			 Vector2(20, 358), Vector2(CARD_W - 40, 44), 34, C_GOLD, HORIZONTAL_ALIGNMENT_CENTER)
+		_price_row(card, int(def["price"]), Vector2(20, 358), Vector2(CARD_W - 40, 44), 34, C_GOLD)
 
 	var buy := Button.new()
 	buy.position = Vector2(20, CARD_H - BTN_H - 20)

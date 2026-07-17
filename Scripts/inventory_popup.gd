@@ -8,6 +8,11 @@ const C_EMPTY := Color(0, 0, 0, 0.35)
 var _confirm_overlay: Control
 
 const CATEGORY_CHARACTERS := "characters"
+
+# Το νόμισμα κάθε τιμής της Αποθήκης (αναβάθμιση/πώληση) — βλ.
+# EquipmentCatalog.upgrade/sell. Ίδια σταθερά με το shop_popup.gd.
+const PRICE_CURRENCY := "Χαλκός"
+
 var _current_category := Inventory.CATEGORY_WEAPON
 
 func _ready() -> void:
@@ -238,9 +243,10 @@ func _make_upgrade_row(catalog: EquipmentCatalog, id: String) -> Control:
 		row.add_child(max_label)
 	else:
 		var upgrade_btn := Button.new()
-		upgrade_btn.text = "Αναβάθμιση  %d %s" % [catalog.get_upgrade_cost(tier), Currency.ICONS.get("Χαλκός", "🪙")]
+		upgrade_btn.text = "Αναβάθμιση  %d" % catalog.get_upgrade_cost(tier)
 		upgrade_btn.add_theme_font_size_override("font_size", 22)
 		upgrade_btn.custom_minimum_size = Vector2(220, 48)
+		_set_price_icon(upgrade_btn)
 		row.add_child(upgrade_btn)
 		upgrade_btn.pressed.connect(func(): catalog.upgrade(id))
 
@@ -256,14 +262,29 @@ func _make_sell_row(catalog: EquipmentCatalog, id: String) -> Control:
 	row.add_theme_constant_override("v_separation", 8)
 
 	var sell_btn := Button.new()
-	sell_btn.text = "Πούλησε  (+%d %s)" % [catalog.get_sell_price(id), Currency.ICONS.get("Χαλκός", "🪙")]
+	sell_btn.text = "Πούλησε  +%d" % catalog.get_sell_price(id)
 	sell_btn.add_theme_font_size_override("font_size", 20)
 	sell_btn.add_theme_color_override("font_color", Color("e2a5a5"))
 	sell_btn.custom_minimum_size = Vector2(220, 44)
+	_set_price_icon(sell_btn)
 	row.add_child(sell_btn)
 	sell_btn.pressed.connect(func(): catalog.sell(id))
 
 	return row
+
+## Βάζει την ΠΡΑΓΜΑΤΙΚΗ εικόνα του Χαλκού (copper.png) δίπλα στο κείμενο του
+## κουμπιού, αντί για το παλιό emoji "🪙" — που είναι ΧΡΥΣΟ νόμισμα, ενώ χρυσός
+## δεν υπάρχει πια στο παιχνίδι (αγορά/αναβάθμιση/πώληση γίνονται όλα σε Χαλκό).
+## Ίδια πηγή εικόνας με το Shop/Αποθήκη (Currency.get_icon_texture).
+## expand_icon: το copper.png είναι 1008×1055 — χωρίς αυτό το κουμπί θα «φούσκωνε»
+## στο φυσικό μέγεθος της υφής. Αν λείψει το PNG, το κουμπί μένει σκέτο κείμενο.
+func _set_price_icon(btn: Button) -> void:
+	var tex := Currency.get_icon_texture(PRICE_CURRENCY)
+	if tex == null:
+		btn.text += " %s" % Currency.ICONS.get(PRICE_CURRENCY, "")
+		return
+	btn.icon = tex
+	btn.expand_icon = true
 
 func _close_confirm() -> void:
 	if is_instance_valid(_confirm_overlay):
