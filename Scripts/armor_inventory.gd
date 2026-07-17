@@ -4,10 +4,13 @@ extends "res://Scripts/equipment_catalog.gd"
 ## Υποκλάση του Scripts/equipment_catalog.gd — ακριβώς η ίδια αρχιτεκτονική
 ## και λογική με το Scripts/weapon_inventory.gd (κατάλογος, τιμολόγηση,
 ## αγορά/αναβάθμιση/πώληση, persistence, starter grant), γενικευμένη πλέον
-## εκεί ώστε να μην ξαναγράφεται. Εδώ ορίζονται ΜΟΝΟ τα δεδομένα της
-## πανοπλίας (_configure) — καμία δική της φόρμουλα στατιστικού δεν
-## χρειάζεται, οπότε χρησιμοποιεί την προεπιλογή της βάσης (old_level × 10),
-## χωρίς clamp.
+## εκεί ώστε να μην ξαναγράφεται. Εδώ ορίζονται τα δεδομένα της πανοπλίας
+## (_configure) και η δική της φόρμουλα στατιστικού: κάθε κομμάτι έχει
+## ΧΕΙΡΟΚΙΝΗΤΗ Άμυνα 1-5 (πεδίο "stat" στο items παρακάτω, κρίθηκε ένα-ένα
+## από το ύφος/υλικό του ονόματός του) αντί για την προεπιλογή old_level×10
+## της βάσης. Έτσι 4 slots × μέγιστο 5 = 20 — ακριβώς το ταβάνι 0-20 του
+## Character stat panel (βλ. CharacterEditPopup._refresh_stats), όπως και η
+## Επίθεση των όπλων (1-20).
 ##
 ## ΑΡΧΙΤΕΚΤΟΝΙΚΗ: κάθε εικόνα μέσα σε κάθε φάκελο κατηγορίας πανοπλίας είναι
 ## ένα ξεχωριστό, μοναδικά ονομασμένο, αγοράσιμο κομμάτι πανοπλίας. Σε
@@ -18,10 +21,11 @@ extends "res://Scripts/equipment_catalog.gd"
 ## Σιδερένιο(2) < Κρυσταλικό(3) < Αγγελικό(4) < Παγωμένο(5) < Δαιμονικό(6).
 ## Το Βασιλικό/Βασιλικές tier (παλιό old_level 7 σε Κράνος/Μπότες) αφαιρέθηκε
 ## μαζί με τον ενημερωμένο φάκελο Πανοπλία — οι εικόνες του δεν υπάρχουν πια.
-## Ο κανόνας "old_level × 10" εφαρμόζεται στη ΘΕΣΗ αυτή, άρα η τιμή αγοράς
-## και το βασικό στατιστικό αυξάνουν αυτόματα κατά μήκος της νέας ιεραρχίας
-## (π.χ. Σιδερένιο = old_level 2 -> Άμυνα +20, Δαιμονικό = old_level 6 ->
-## Άμυνα +60) — το ίδιο σύστημα οικονομίας με τα όπλα.
+## Ο κανόνας "old_level × 10" εφαρμόζεται στη ΘΕΣΗ αυτή ΜΟΝΟ για την ΤΙΜΗ
+## ΑΓΟΡΑΣ (EquipmentCatalog.get_base_price), που αυξάνει αυτόματα κατά μήκος
+## της ιεραρχίας — το ίδιο σύστημα οικονομίας με τα όπλα. Η Άμυνα ΔΕΝ
+## ακολουθεί πια αυτόν τον κανόνα — είναι το χειροκίνητο "stat" (1-5) κάθε
+## κομματιού, βλ. get_base_stat παρακάτω.
 ##
 ## Για να προστεθεί νέα πανοπλία στο μέλλον: αντέγραψε την εικόνα μέσα στον
 ## φάκελο της κατηγορίας της (Πανοπλία/<category>/<αρχείο>.png) και πρόσθεσε
@@ -37,6 +41,10 @@ func _configure() -> void:
 	stat_label = "Άμυνα"
 	stat_icon = "🛡"
 	starter_ids = [STARTER_CHEST_ID, STARTER_HELMET_ID, STARTER_LEGS_ID, STARTER_BOOTS_ID]
+	# Οι πανοπλίες ΔΕΝ αναβαθμίζονται (μόνο αγορά/πώληση) — η Άμυνα κάθε
+	# κομματιού είναι το σταθερό "stat" (1-5) του items παρακάτω, οριστική
+	# από την αγορά. Μόνο τα όπλα έχουν tiers.
+	upgradable = false
 
 	# Σειρά όπως ζητήθηκε: Chest, Helmet, Pants, Boots.
 	categories = ["Θώρακας", "Κράνος", "Παντελόνι", "Μπότες"]
@@ -57,38 +65,27 @@ func _configure() -> void:
 	# όνομα αρχείου (χωρίς επέκταση) μέσα στον φάκελο της κατηγορίας.
 	# Σειρά = επίσημη ιεραρχία: Γήινο < Σιδερένιο < Κρυσταλικό < Αγγελικό <
 	# Παγωμένο < Δαιμονικό (old_level 1-6, ίδια σε όλες τις κατηγορίες).
+	#
+	# "stat" = Άμυνα (1-5), κρίθηκε ανά κομμάτι από το όνομά του: ξύλο/φύση=1,
+	# σίδερο=2, κρύσταλλος/αιθέρας=3, αγγελικά/παγωμένα=3-4 (τα πιο «ελαφριά»
+	# στο όνομα — δάφνες, striders, cloak — μένουν χαμηλότερα από τα «βαριά» —
+	# glacier plate, ward, horned), δαιμονικά/hellforged=5. Επειδή 6 βαθμίδες
+	# υλικού μοιράζονται 5 τιμές, κάποιες γειτονικές βαθμίδες ισοβαθμούν.
+	# Κρατιέται ΕΝΑ κομμάτι (το Γήινο, stat 1) ανά κατηγορία — για να προστεθούν
+	# κι άλλα αργότερα, ξαναβάλε επιπλέον {file,name,stat} entries εδώ και τις
+	# αντίστοιχες εικόνες στον φάκελο της κατηγορίας.
 	items = {
 		"Θώρακας": [
-			{"file": "Γήινος",     "name": "Wildroot Bark Plate"},
-			{"file": "σιδερενιος", "name": "Ironclad Cuirass"},
-			{"file": "Κρυσταλικός","name": "Runeforged Aegis"},
-			{"file": "Αγγελικός",  "name": "Seraphic Radiance Plate"},
-			{"file": "Παγωμένος",  "name": "Frostfang Glacier Plate"},
-			{"file": "Δαιμονικός", "name": "Hellforged Cuirass"},
+			{"file": "Γήινος",     "name": "Wildroot Bark Plate",      "stat": 1},
 		],
 		"Κράνος": [
-			{"file": "Γήινο",      "name": "Antlerwood Wildhelm"},
-			{"file": "Σιδερένιο",  "name": "Ironvow Crusader Helm"},
-			{"file": "Κρυσταλικό", "name": "Aethercrest Helm"},
-			{"file": "Αγγελικό",   "name": "Seraph Laurel Helm"},
-			{"file": "Παγωμένο",   "name": "Frostmane Horned Helm"},
-			{"file": "Δαιμονικό",  "name": "Doomhorn Warhelm"},
+			{"file": "Γήινο",      "name": "Antlerwood Wildhelm",      "stat": 1},
 		],
 		"Παντελόνι": [
-			{"file": "Γήινο",      "name": "Bramblewood Legguards"},
-			{"file": "Σιδερένιο",  "name": "Ironclad Legplates"},
-			{"file": "Κρυσταλικό", "name": "Duskcloak Legplates"},
-			{"file": "Αγγελικό",   "name": "Radiant Halo Greaves"},
-			{"file": "Παγωμένο",   "name": "Glacial Ward Greaves"},
-			{"file": "Δαιμονικό",  "name": "Infernal Chainguard"},
+			{"file": "Γήινο",      "name": "Bramblewood Legguards",    "stat": 1},
 		],
 		"Μπότες": [
-			{"file": "Γήινες",     "name": "Rootbound Treads"},
-			{"file": "Σιδερένιες", "name": "Ironstep Sabatons"},
-			{"file": "Κρυσταλικές","name": "Aetherstride Boots"},
-			{"file": "Αγγελικές",  "name": "Seraphic Striders"},
-			{"file": "Παγωμένες",  "name": "Frostpaw Greaves"},
-			{"file": "Δαιμονικές", "name": "Infernal Chainboots"},
+			{"file": "Γήινες",     "name": "Rootbound Treads",         "stat": 1},
 		],
 	}
 
@@ -98,3 +95,13 @@ func _configure() -> void:
 		"Παντελόνι": "Παντελόνια",
 		"Μπότες": "Μπότες",
 	}
+
+
+## Άμυνα κομματιού: το χειροκίνητο "stat" (1-5) από το items παραπάνω — ΟΧΙ
+## η προεπιλογή old_level×10 της βάσης, ώστε τα 4 slots μαζί να χωράνε στο
+## ταβάνι 0-20 του Character stat panel. Χωρίς αναβαθμίσεις (upgradable =
+## false, tier πάντα 1), το get_total_stat της βάσης καταλήγει ΠΑΝΤΑ σε αυτή
+## την τιμή — δεν χρειάζεται δικό του override εδώ.
+func get_base_stat(id: String) -> int:
+	var entry: Dictionary = items[get_category(id)][get_old_level(id) - 1]
+	return int(entry.get("stat", 1))

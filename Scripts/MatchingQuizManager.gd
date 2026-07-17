@@ -9,9 +9,17 @@ extends RefCounted
 ## το QuizManager τραβάει ένα τυχαίο υποσύνολο ερωτήσεων ανά επίσκεψη.
 ##
 ## Μορφή JSON:
-##   [ { "left": [5 στοιχεία], "right": [5 στοιχεία], "difficulty": 1-3 }, ... ]
+##   [ { "left": [Ν στοιχεία], "right": [Ν στοιχεία], "difficulty": 1-3 }, ... ]
 ## Το right[i] είναι η ΣΩΣΤΗ αντιστοίχιση του left[i] (ίδιος δείκτης στο
 ## αρχείο). Ο manager ανακατεύει τη δεξιά στήλη πριν την εμφανίσει.
+##
+## Ο αριθμός ζευγαριών ΑΝΑ ΓΥΡΟ (pair_count σε start_session, βλ. παρακάτω)
+## είναι ρυθμιζόμενος, όχι σταθερός στα 5 — κάθε entry του pool μπορεί να
+## έχει ΠΕΡΙΣΣΟΤΕΡΑ στοιχεία απ' όσα χρειάζεται ένας γύρος (π.χ. Daily Quest
+## ζητάει pair_count=3 από το ΙΔΙΟ miner_quiz.json που έχει entries των 5),
+## οπότε επιλέγεται τυχαίο υποσύνολο pair_count ζευγαριών ανά γύρο,
+## διατηρώντας τη σχετική τους σειρά. Ο Miner (pair_count=5, όσα ακριβώς
+## έχουν τα δικά του entries) συνεχίζει να δουλεύει ΑΚΡΙΒΩΣ όπως πριν.
 
 signal round_ready(round_index: int, total_rounds: int, left: Array, right_shuffled: Array)
 signal round_completed(round_index: int, total_rounds: int, correct_count: int, pair_total: int, earned_difficulty: int, correct_flags: Array)
@@ -22,6 +30,7 @@ const LETTERS := ["α", "β", "γ", "δ", "ε"]
 var _pool: Array = []
 var _rounds: Array = []           # επιλεγμένες ασκήσεις για αυτή τη συνεδρία
 var _round_index := -1
+var _pair_count := 5              # ζευγάρια ανά γύρο για ΑΥΤΗ τη συνεδρία (βλ. start_session)
 
 # ── Κατάσταση τρέχοντος γύρου ───────────────────────────────────────────────
 var _left: Array = []
@@ -55,7 +64,7 @@ func load_from_file(path: String) -> bool:
 			continue
 		var left: Array = item["left"]
 		var right: Array = item["right"]
-		if left.size() != 5 or right.size() != 5:
+		if left.size() != right.size() or left.is_empty():
 			continue
 		var diff := 1
 		if item.has("difficulty"):
@@ -66,8 +75,12 @@ func load_from_file(path: String) -> bool:
 ## Ξεκινά μια νέα συνεδρία: διαλέγει τυχαία `rounds_count` διαφορετικές
 ## ασκήσεις από το pool (λιγότερες αν το pool είναι μικρότερο) και ξεκινά
 ## τον πρώτο γύρο (εκπέμπει round_ready).
-func start_session(rounds_count: int = 3) -> void:
-	_rounds = _pool.duplicate()
+## `pair_count`: πόσα ζευγάρια θα δείχνει ΚΑΘΕ γύρος (βλ. σχόλιο στην
+## κορυφή του αρχείου) — μόνο entries με ΤΟΥΛΑΧΙΣΤΟΝ τόσα στοιχεία μπαίνουν
+## στη συνεδρία.
+func start_session(rounds_count: int = 3, pair_count: int = 5) -> void:
+	_pair_count = max(1, pair_count)
+	_rounds = _pool.filter(func(e): return (e["left"] as Array).size() >= _pair_count)
 	_rounds.shuffle()
 	if rounds_count > 0 and rounds_count < _rounds.size():
 		_rounds = _rounds.slice(0, rounds_count)
@@ -126,11 +139,30 @@ func _advance_round() -> void:
 		return
 
 	var entry: Dictionary = _rounds[_round_index]
-	_left = (entry["left"] as Array).duplicate()
+	var full_left: Array = entry["left"]
+	var full_right: Array = entry["right"]
 	_difficulty = int(entry["difficulty"])
 
-	var right_original: Array = (entry["right"] as Array).duplicate()
-	var order: Array = range(right_original.size())
+	# Αν το entry έχει ΠΕΡΙΣΣΟΤΕΡΑ ζευγάρια απ' όσα χρειάζεται ο γύρος
+	# (_pair_count), διάλεξε τυχαίο υποσύνολο — κρατώντας τη ΣΧΕΤΙΚΗ σειρά
+	# τους (γι' αυτό το sort() μετά το shuffle) ώστε η αριστερή στήλη να μη
+	# δείχνει τυχαία ανακατεμένη σε σχέση με το πρωτότυπο αρχείο. Αν το
+	# entry έχει ΑΚΡΙΒΩΣ _pair_count στοιχεία (π.χ. ο Miner, πάντα 5=5),
+	# το υποσύνολο είναι όλα τα στοιχεία, ίδια σειρά — καμία αλλαγή
+	# συμπεριφοράς σε σχέση με πριν.
+	var indices: Array = range(full_left.size())
+	if _pair_count < indices.size():
+		indices.shuffle()
+		indices = indices.slice(0, _pair_count)
+		indices.sort()
+
+	_left = []
+	var right_correct: Array = []   # right_correct[i] = σωστό ταίρι του _left[i]
+	for i in indices:
+		_left.append(full_left[i])
+		right_correct.append(full_right[i])
+
+	var order: Array = range(right_correct.size())
 	order.shuffle()
 
 	_right_shuffled = []
@@ -142,7 +174,7 @@ func _advance_round() -> void:
 
 	for shuffled_pos in order.size():
 		var original_index: int = order[shuffled_pos]
-		_right_shuffled.append(right_original[original_index])
+		_right_shuffled.append(right_correct[original_index])
 		_correct_letter_for_left[original_index] = LETTERS[shuffled_pos]
 
 	round_ready.emit(_round_index, _rounds.size(), _left, _right_shuffled)

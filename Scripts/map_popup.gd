@@ -21,13 +21,22 @@ const REGION_SCENES := {
 	"ΕΚ": AREA1_SCENE,   # Έλεγχος/Εκσφαλμ.  -> TODO Area6
 }
 
-# Νοητό πλέγμα 3 στηλών x 2 γραμμών πάνω στον χάρτη (κανονικοποιημένες θέσεις 0..1).
-# Πάνω σειρά:  ΔΑ | ΔΕ | ΕΠ
-# Κάτω σειρά:  ΠΙΝ | ΥΠ | ΕΚ
-const REGION_GRID := [["ΔΑ", "ΔΕ", "ΕΠ"], ["ΠΙΝ", "ΥΠ", "ΕΚ"]]
-const COL_SPLIT_1 := 0.40   # όριο 1ης/2ης στήλης
-const COL_SPLIT_2 := 0.66   # όριο 2ης/3ης στήλης
-const ROW_SPLIT := 0.50     # όριο πάνω/κάτω σειράς
+# Κάθε περιοχή έχει ένα "άγκυρα" σημείο (κανονικοποιημένες συντεταγμένες 0..1
+# πάνω στην εικόνα χάρτη, x=δεξιά, y=κάτω) τοποθετημένο εκεί που βρίσκεται ο
+# δικός της οικισμός/τίτλος στο art. Το κλικ πηγαίνει στην περιοχή με το
+# πλησιέστερο άγκυρα σημείο. Αυτό αντικατέστησε ένα παλιότερο άκαμπτο πλέγμα
+# 3 στηλών x 2 γραμμών (με σταθερά όρια στηλών/γραμμής) που υπέθετε ότι οι 6
+# περιοχές κάθονται σε ορθογώνιο πλέγμα — δεν ισχύει πια με τον νέο χάρτη
+# (π.χ. η ΕΚ κάθεται πιο αριστερά από τη ΔΕ, παρότι είναι σε άλλη "στήλη"),
+# οπότε ένα απλό όριο x δεν μπορεί να τις ξεχωρίσει σωστά και τις δύο.
+const REGION_ANCHORS := {
+	"ΔΑ":  Vector2(0.335, 0.195),
+	"ΔΕ":  Vector2(0.650, 0.267),
+	"ΕΠ":  Vector2(0.930, 0.449),
+	"ΠΙΝ": Vector2(0.257, 0.781),
+	"ΥΠ":  Vector2(0.494, 0.534),
+	"ΕΚ":  Vector2(0.619, 0.697),
+}
 
 func _ready() -> void:
 	hide()
@@ -55,13 +64,15 @@ func _on_map_input(event: InputEvent) -> void:
 		_go_to_region(_region_at(u, v))
 
 func _region_at(u: float, v: float) -> String:
-	var col := 0
-	if u >= COL_SPLIT_2:
-		col = 2
-	elif u >= COL_SPLIT_1:
-		col = 1
-	var row := 0 if v < ROW_SPLIT else 1
-	return REGION_GRID[row][col]
+	var click := Vector2(u, v)
+	var best_region := ""
+	var best_dist := INF
+	for region in REGION_ANCHORS:
+		var d: float = click.distance_squared_to(REGION_ANCHORS[region])
+		if d < best_dist:
+			best_dist = d
+			best_region = region
+	return best_region
 
 func _go_to_region(region: String) -> void:
 	var scene_path: String = REGION_SCENES.get(region, AREA1_SCENE)

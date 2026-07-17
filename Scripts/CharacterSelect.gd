@@ -1,67 +1,63 @@
 extends Panel
 
-const CHAR_TEX := preload("res://Εικόνες/char.png")
-
-# Κάθε χαρακτήρας ξεκινάει με ΟΛΑ τα στατιστικά στο 0 (κλίμακα 0-20 για το
-# καθένα) — δεν χρειάζεται να δηλωθεί "stats" εδώ, το CharacterEditPopup το
-# διαβάζει με προεπιλογή 0 όταν λείπει. Η πραγματική τιμή προκύπτει
-# αποκλειστικά από τον εξοπλισμό (βλ. CharacterEditPopup._refresh_stats):
-# τα όπλα ανεβάζουν μόνο Επίθεση, κάθε κομμάτι πανοπλίας ανεβάζει Άμυνα.
-const CHAR_DATA: Array[Dictionary] = [
-	{"name": "Lyra Shadowveil", "class": "Μάγισσα Σκιών",    "color": Color(0.28, 0.08, 0.40), "locked": false},
-	{"name": "Aelindra",        "class": "Τοξότης Ξωτικών",  "color": Color(0.08, 0.20, 0.12), "locked": true},
-	{"name": "Elder Bromwick",  "class": "Αρχαίος Δρυΐδης",  "color": Color(0.10, 0.16, 0.26), "locked": true},
-	{"name": "Thordin",         "class": "Νάνος Πολεμιστής", "color": Color(0.26, 0.14, 0.04), "locked": true},
-	{"name": "Sir Gareth",      "class": "Σιδηρούς Ιππότης", "color": Color(0.16, 0.17, 0.20), "locked": true},
-	{"name": "Lady Seraphina",  "class": "Ευγενής Μάγισσα",  "color": Color(0.28, 0.05, 0.08), "locked": true},
-]
+# ═══════════════════════════════════════════════════════════════════════════
+# CharacterSelect — η οθόνη «Η Ομάδα σου» (party slots)
+# ═══════════════════════════════════════════════════════════════════════════
+# Grid 6 party slots (2×3). Τα 2 πρώτα ξεκλείδωτα, τα 4 κλειδωμένα (μελλοντικό
+# unlock). Κάθε ξεκλείδωτο slot: ή κρατά έναν ήρωα (avatar+όνομα+mini stats),
+# ή είναι κενό (＋). Πατώντας ξεκλείδωτο slot ανοίγει το HeroSlotPopup όπου
+# διαλέγεις ήρωα + items. ΟΛΑ τα δεδομένα ζουν στο Heroes autoload· εδώ μόνο UI.
+# Το grid ξαναχτίζεται σε κάθε Heroes.changed (ανάθεση/αγορά/εξοπλισμός).
 
 # ── Palette ───────────────────────────────────────────────────────
-const C0  := Color(0, 0, 0, 0)                    # transparent
-const C_BG   := Color(0.032, 0.022, 0.010, 0.82)  # warm semi-transparent overlay
-const C_DARK := Color(0.055, 0.038, 0.018)         # darkest panels
-const C_MID  := Color(0.095, 0.068, 0.035)         # mid panels
-const C_IRON := Color(0.185, 0.168, 0.140)         # iron buttons
-const C_IRON_L := Color(0.265, 0.242, 0.208)       # lighter iron hover
-const C_SILVER := Color(0.572, 0.548, 0.510)       # silver trim
-const C_BRONZE := Color(0.435, 0.308, 0.072)       # bronze accent
-const C_GOLD   := Color(0.820, 0.645, 0.118)       # active gold
-const C_GOLD_D := Color(0.268, 0.192, 0.032)       # locked/dim gold
-const C_CRIMSON:= Color(0.455, 0.030, 0.030)       # red accent
-const C_BONE   := Color(0.868, 0.830, 0.685)       # primary text
-const C_BONE_D := Color(0.415, 0.378, 0.290)       # secondary/locked text
-const C_MAGIC  := Color(0.375, 0.130, 0.618)       # unlocked magic aura
+const C0  := Color(0, 0, 0, 0)
+const C_BG   := Color(0.032, 0.022, 0.010, 0.82)
+const C_DARK := Color(0.055, 0.038, 0.018)
+const C_MID  := Color(0.095, 0.068, 0.035)
+const C_IRON := Color(0.185, 0.168, 0.140)
+const C_IRON_L := Color(0.265, 0.242, 0.208)
+const C_SILVER := Color(0.572, 0.548, 0.510)
+const C_BRONZE := Color(0.435, 0.308, 0.072)
+const C_GOLD   := Color(0.820, 0.645, 0.118)
+const C_GOLD_D := Color(0.268, 0.192, 0.032)
+const C_CRIMSON:= Color(0.455, 0.030, 0.030)
+const C_BONE   := Color(0.868, 0.830, 0.685)
+const C_BONE_D := Color(0.415, 0.378, 0.290)
+const C_MAGIC  := Color(0.375, 0.130, 0.618)
+const C_BUFF   := Color(0.46, 0.80, 0.46)
 
 # ── Fixed layout (1080 × 1920) ───────────────────────────────────
 const HDR_H  := 278.0
-const BAR_H  := 218.0
-const MX     := 40.0   # horizontal margin
-const GX     := 20.0   # horizontal gap between columns
-const GY     := 18.0   # vertical gap between rows
-const PW     := (1080.0 - MX * 2.0 - GX) / 2.0     # portrait width  ≈ 490
-const PH     := ((1920.0 - HDR_H - BAR_H - 50.0) - GY * 2.0) / 3.0  # ≈ 438
+const BAR_H  := 60.0
+const MX     := 40.0
+const GX     := 20.0
+const GY     := 18.0
+const PW     := (1080.0 - MX * 2.0 - GX) / 2.0     # ≈ 490
+const PH     := ((1920.0 - HDR_H - BAR_H - 50.0) - GY * 2.0) / 3.0
 const GRID_Y := HDR_H + 18.0
-const AI     := 10.0   # art inset
-const PLH    := 76.0   # name-plate height
+const AI     := 10.0
+const PLH    := 92.0   # name-plate height (λίγο ψηλότερο για τη γραμμή stats)
 
-var _bar: Panel
-var _selected_idx := -1
-var _edit_popup: CharacterEditPopup
+var _grid_root: Control            # όλα τα cards — καθαρίζεται/ξαναχτίζεται
+var _hero_popup: HeroSlotPopup
 
 func _ready() -> void:
 	_overlay()
 	_header()
-	_grid()
-	_action_bar()
-	_edit_popup = preload("res://Scenes/CharacterEditPopup.tscn").instantiate()
-	add_child(_edit_popup)
-	# Fade-in entrance
+	_grid_root = Control.new()
+	_grid_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_grid_root)
+	_hero_popup = preload("res://Scenes/HeroSlotPopup.tscn").instantiate()
+	add_child(_hero_popup)
+	Heroes.changed.connect(_rebuild_grid)
+	_rebuild_grid()
 	modulate.a = 0.0
 	var tw := create_tween()
 	tw.tween_property(self, "modulate:a", 1.0, 0.30)
 
 func show_screen() -> void:
 	visible = true
+	_rebuild_grid()
 	modulate.a = 0.0
 	var tw := create_tween()
 	tw.tween_property(self, "modulate:a", 1.0, 0.30)
@@ -69,24 +65,17 @@ func show_screen() -> void:
 # ═══════════════════════════════════════════════════════════════
 # BACKGROUND OVERLAY
 # ═══════════════════════════════════════════════════════════════
-
 func _overlay() -> void:
-	# Warm dark veil — game BG visible through the panel
 	var ov := ColorRect.new()
 	ov.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	ov.color = C_BG
 	ov.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(ov)
-	# Heavy bottom vignette
 	_cr(Vector2(0, 1540), Vector2(1080, 380), Color(0, 0, 0, 0.72))
-	# Soft top vignette
 	_cr(Vector2(0, 0), Vector2(1080, 200), Color(0, 0, 0, 0.40))
-	# Side vignettes
 	_cr(Vector2(0, 0), Vector2(80, 1920), Color(0, 0, 0, 0.28))
 	_cr(Vector2(1000, 0), Vector2(80, 1920), Color(0, 0, 0, 0.28))
-	# Warm atmospheric centre-top glow (simulates torchlight from above)
 	_circle_glow(Vector2(540, 0), 420, Color(0.65, 0.35, 0.08), 0.045)
-	# Floating dust
 	_dust()
 
 func _circle_glow(center: Vector2, radius: float, col: Color, alpha: float) -> void:
@@ -127,26 +116,13 @@ func _dust() -> void:
 # ═══════════════════════════════════════════════════════════════
 # HEADER
 # ═══════════════════════════════════════════════════════════════
-
 func _header() -> void:
-	# Stone slab
 	_add_panel(self, Vector2(0, 0), Vector2(1080, HDR_H), Color(0.048, 0.032, 0.015, 0.96), C_BRONZE, 0, 4, 0)
-	# Gold bottom rule
 	_cr(Vector2(0, HDR_H - 4), Vector2(1080, 4), C_GOLD)
 	_cr(Vector2(0, HDR_H),     Vector2(1080, 2), C_CRIMSON)
-
-	# Side column accents
 	for xv: float in [0.0, 1052.0]:
 		_add_panel(self, Vector2(xv, 0), Vector2(28, HDR_H), Color(0.065, 0.044, 0.020, 0.92), C_BRONZE, 0, 0, 0)
-		var side_brd_s := StyleBoxFlat.new()
-		side_brd_s.bg_color = C0
-		side_brd_s.border_color = C_BRONZE
-		side_brd_s.border_width_right = 2 if xv == 0 else 0
-		side_brd_s.border_width_left  = 0 if xv == 0 else 2
-		var side_p := get_child(get_child_count() - 1) as Panel
-		side_p.add_theme_stylebox_override("panel", side_brd_s)
 
-	# Back button
 	var back := Button.new()
 	back.text     = "◄  ΠΙΣΩ"
 	back.position = Vector2(38, 84)
@@ -156,374 +132,220 @@ func _header() -> void:
 	add_child(back)
 	back.pressed.connect(_on_back_pressed)
 
-	# Title banner (sunken stone look)
-	_add_panel(self, Vector2(264 + 4, 36 + 4), Vector2(552, 116), Color(0,0,0,0.65), C0, 0, 6, 0)
-	_add_panel(self, Vector2(264, 36), Vector2(552, 116), Color(0.065, 0.044, 0.020), C_GOLD, 4, 6, 0)
-	# Inner hairline
-	_add_panel(self, Vector2(270, 42), Vector2(540, 104), C0, C_GOLD_D, 1, 3, 0)
-	# Bevel
-	_cr(Vector2(264, 36), Vector2(552, 2), Color(1, 1, 1, 0.06))
-	_cr(Vector2(264, 150), Vector2(552, 2), Color(0, 0, 0, 0.75))
-
-	# Title
-	_lbl(self, "ΕΠΙΛΟΓΗ ΧΑΡΑΚΤΗΡΑ", Vector2(0, 46), Vector2(1080, 106),
-		 68, C_BONE, HORIZONTAL_ALIGNMENT_CENTER, Color(0,0,0,0.95), 3, 4)
-
-	# Subtitle
-	_lbl(self, "Επίλεξε τον ήρωά σου", Vector2(0, 183), Vector2(1080, 50),
+	const TITLE_BX := 266.0
+	const TITLE_BW := 680.0
+	const TITLE_BY := 36.0
+	const TITLE_BH := 116.0
+	_add_panel(self, Vector2(TITLE_BX + 4, TITLE_BY + 4), Vector2(TITLE_BW, TITLE_BH), Color(0,0,0,0.65), C0, 0, 6, 0)
+	_add_panel(self, Vector2(TITLE_BX, TITLE_BY), Vector2(TITLE_BW, TITLE_BH), Color(0.065, 0.044, 0.020), C_GOLD, 4, 6, 0)
+	_add_panel(self, Vector2(TITLE_BX + 6, TITLE_BY + 6), Vector2(TITLE_BW - 12, TITLE_BH - 12), C0, C_GOLD_D, 1, 3, 0)
+	_lbl(self, "Η ΟΜΑΔΑ ΣΟΥ", Vector2(TITLE_BX, TITLE_BY), Vector2(TITLE_BW, TITLE_BH),
+		 56, C_BONE, HORIZONTAL_ALIGNMENT_CENTER, Color(0,0,0,0.95), 3, 4)
+	_lbl(self, "Πάτα μια θέση για να βάλεις ήρωα", Vector2(0, 183), Vector2(1080, 50),
 		 28, Color(0.50, 0.40, 0.22), HORIZONTAL_ALIGNMENT_CENTER)
-
-	# Ornament separator
 	_ornament(56, 244, 968)
 
 # ═══════════════════════════════════════════════════════════════
-# PORTRAIT GRID
+# SLOTS GRID
 # ═══════════════════════════════════════════════════════════════
-
-func _grid() -> void:
-	for i in range(6):
+func _rebuild_grid() -> void:
+	if _grid_root == null:
+		return
+	for c in _grid_root.get_children():
+		c.queue_free()
+	for i in range(Heroes.NUM_SLOTS):
 		var row := int(i / 2.0)
 		var col := i % 2
-		_portrait(i, MX + col * (PW + GX), GRID_Y + row * (PH + GY))
+		_slot_card(i, MX + col * (PW + GX), GRID_Y + row * (PH + GY))
 
-func _portrait(idx: int, x: float, y: float) -> void:
-	var d: Dictionary = CHAR_DATA[idx]
-	var locked: bool  = bool(d["locked"])
-	var pcol: Color   = d["color"] as Color
-	var art_h: float  = PH - PLH - AI
+func _slot_card(idx: int, x: float, y: float) -> void:
+	var unlocked: bool = Heroes.is_slot_unlocked(idx)
+	var hero: Dictionary = Heroes.get_slot_hero(idx)
+	var has_hero: bool = not hero.is_empty()
+	var art_h: float = PH - PLH - AI
 
-	# ── Shadow ───────────────────────────────────
-	_add_panel(self, Vector2(x + 7, y + 9), Vector2(PW, PH),
-			   Color(0,0,0,0.78), C0, 0, 5, 0)
+	# Shadow
+	_add_panel(_grid_root, Vector2(x + 7, y + 9), Vector2(PW, PH), Color(0,0,0,0.78), C0, 0, 5, 0)
 
-	# ── Magic aura (unlocked) ────────────────────
-	if not locked:
+	# Aura for occupied unlocked slots
+	if unlocked and has_hero:
 		var glow := Panel.new()
 		glow.position = Vector2(x - 8, y - 8)
 		glow.size     = Vector2(PW + 16, PH + 16)
 		glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		var gs := StyleBoxFlat.new()
-		gs.bg_color     = C0
+		gs.bg_color = C0
 		gs.border_color = Color(C_MAGIC.r, C_MAGIC.g, C_MAGIC.b, 0.72)
-		gs.set_border_width_all(3)
-		gs.corner_radius_top_left     = 8
-		gs.corner_radius_top_right    = 8
-		gs.corner_radius_bottom_right = 8
-		gs.corner_radius_bottom_left  = 8
-		gs.shadow_color = Color(C_MAGIC.r, C_MAGIC.g, C_MAGIC.b, 0.88)
-		gs.shadow_size  = 22
+		gs.set_border_width_all(3); gs.set_corner_radius_all(8)
+		gs.shadow_color = Color(C_MAGIC.r, C_MAGIC.g, C_MAGIC.b, 0.88); gs.shadow_size = 22
 		glow.add_theme_stylebox_override("panel", gs)
-		add_child(glow)
-		var tw := create_tween()
+		_grid_root.add_child(glow)
+		# ΠΡΟΣΟΧΗ: glow.create_tween() (ΟΧΙ create_tween()) — το tween δένεται
+		# στον ΙΔΙΟ τον glow, οπότε πεθαίνει μαζί του στο _rebuild_grid(). Με
+		# create_tween() δενόταν σε ΕΜΑΣ (CharacterSelect) και επιβίωνε μετά το
+		# queue_free() του στόχου: η διάρκειά του κατέρρεε στο 0 και με το
+		# set_loops() ο Godot πετούσε "Infinite loop detected" σε κάθε rebuild.
+		var tw := glow.create_tween()
 		tw.set_loops()
 		tw.tween_property(glow, "modulate:a", 0.18, 2.2)
 		tw.tween_property(glow, "modulate:a", 1.00, 2.2)
 
-	# ── Main frame ───────────────────────────────
-	var border_col := C_GOLD if not locked else C_GOLD_D
-	_add_panel(self, Vector2(x, y), Vector2(PW, PH), C_DARK, border_col, 9, 5, 0)
-	# Bevel top-highlight / bottom-shadow
-	_cr(Vector2(x, y), Vector2(PW, 3), Color(1, 1, 1, 0.055))
-	_cr(Vector2(x, y + PH - 3), Vector2(PW, 3), Color(0, 0, 0, 0.78))
-	# Inner hair-line border
-	_add_panel(self, Vector2(x + 9, y + 9), Vector2(PW - 18, PH - 18),
-			   C0, border_col.darkened(0.38), 1, 3, 0)
-
-	# ── Corner L-brackets ────────────────────────
+	var border_col := C_GOLD if unlocked else C_GOLD_D
+	_add_panel(_grid_root, Vector2(x, y), Vector2(PW, PH), C_DARK, border_col, 9, 5, 0)
+	_cr_child(_grid_root, Vector2(x, y), Vector2(PW, 3), Color(1, 1, 1, 0.055))
+	_cr_child(_grid_root, Vector2(x, y + PH - 3), Vector2(PW, 3), Color(0, 0, 0, 0.78))
+	_add_panel(_grid_root, Vector2(x + 9, y + 9), Vector2(PW - 18, PH - 18), C0, border_col.darkened(0.38), 1, 3, 0)
 	_brackets(x, y, PW, PH, border_col)
 
-	# ── Art background ───────────────────────────
-	_add_panel(self, Vector2(x + AI, y + AI), Vector2(PW - AI*2, art_h),
-			   pcol.darkened(0.48 if locked else 0.12), C0, 0, 0, 0)
+	# Art background
+	var art_col := C_MAGIC if (unlocked and has_hero) else Color(0.10, 0.10, 0.12)
+	_add_panel(_grid_root, Vector2(x + AI, y + AI), Vector2(PW - AI*2, art_h),
+			   art_col.darkened(0.55 if not unlocked else 0.30), C0, 0, 0, 0)
 
-	# ── Portrait image / locked placeholder ──────
-	if not locked:
-		var char_tr := TextureRect.new()
-		char_tr.texture      = CHAR_TEX
-		char_tr.position     = Vector2(x + AI, y + AI)
-		char_tr.size         = Vector2(PW - AI*2, art_h)
-		char_tr.expand_mode  = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
-		char_tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		char_tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		add_child(char_tr)
-		# Star badge
-		_lbl(self, "★", Vector2(x + PW - 50, y + AI + 4), Vector2(40, 40),
+	if unlocked and has_hero:
+		var tex := Heroes.hero_texture(hero)
+		if tex != null:
+			# ΟΝΟΜΑ: «art», ΟΧΙ «tr» — το tr() είναι ήδη μέθοδος του Object
+			# (μετάφραση), οπότε μια τοπική «tr» το σκιάζει και ο Godot βγάζει
+			# warning σε κάθε reload.
+			var art := TextureRect.new()
+			# EXPAND_IGNORE_SIZE + ΣΕΙΡΑ: το expand_mode μπαίνει ΠΡΙΝ το size,
+			# αλλιώς το Godot κλειδώνει το size στο φυσικό μέγεθος της υφής και
+			# ψηλές φιγούρες ξεχειλίζουν. Με IGNORE_SIZE (πρώτα) το .size (το
+			# κουτί) γίνεται σεβαστό και η εικόνα χωράει ΟΛΟΚΛΗΡΗ (contain-fit).
+			art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			art.texture = tex
+			art.position = Vector2(x + AI, y + AI)
+			art.size = Vector2(PW - AI*2, art_h)
+			art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			_grid_root.add_child(art)
+		_lbl(_grid_root, "★", Vector2(x + PW - 50, y + AI + 4), Vector2(40, 40),
 			 36, C_GOLD, HORIZONTAL_ALIGNMENT_CENTER, Color(0,0,0,0.95), 2, 2)
-	else:
-		# Faint colour hint of the hidden character
-		_cr(Vector2(x + AI, y + AI), Vector2(PW - AI*2, art_h * 0.45), pcol.darkened(0.75))
+	elif unlocked:
+		# Empty unlocked slot — big plus
+		_lbl(_grid_root, "＋", Vector2(x + AI, y + AI), Vector2(PW - AI*2, art_h),
+			 120, C_BONE_D, HORIZONTAL_ALIGNMENT_CENTER)
 
-	# Vignette border over art
+	# Vignette
 	var vig := Panel.new()
 	vig.position = Vector2(x + AI, y + AI)
 	vig.size     = Vector2(PW - AI*2, art_h)
 	vig.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var vs := StyleBoxFlat.new()
-	vs.bg_color     = C0
-	vs.border_color = Color(0, 0, 0, 0.70 if locked else 0.50)
+	vs.bg_color = C0
+	vs.border_color = Color(0, 0, 0, 0.70 if not unlocked else 0.50)
 	vs.set_border_width_all(18)
 	vig.add_theme_stylebox_override("panel", vs)
-	add_child(vig)
+	_grid_root.add_child(vig)
 
-	# Slot number badge
-	_badge(str(idx + 1), x + AI + 2, y + AI + 2, not locked)
+	_badge(str(idx + 1), x + AI + 2, y + AI + 2, unlocked)
 
-	# ── Name plate ───────────────────────────────
-	_name_plate(d, locked, x, y)
+	# Name plate
+	_slot_plate(idx, unlocked, hero, x, y)
 
-	# ── Lock overlay + shield padlock ────────────
-	if locked:
-		_cr(Vector2(x + AI, y + AI), Vector2(PW - AI*2, art_h), Color(0.03, 0.02, 0.05, 0.70))
+	# Locked overlay
+	if not unlocked:
+		_cr_child(_grid_root, Vector2(x + AI, y + AI), Vector2(PW - AI*2, art_h), Color(0.03, 0.02, 0.05, 0.70))
 		_shield_lock(x + PW / 2.0, y + AI + art_h * 0.42)
 
-	# ── Transparent clickable button (always on top) ──
+	# Clickable button (unlocked only)
 	var btn := Button.new()
 	btn.position = Vector2(x, y)
 	btn.size     = Vector2(PW, PH)
-	var ts := _sb(C0, C0, 0, 5)
-	var hs := _sb(Color(0.48, 0.03, 0.03, 0.12) if locked else Color(0.36, 0.12, 0.60, 0.14), C0, 0, 5)
-	btn.add_theme_stylebox_override("normal",  ts)
-	btn.add_theme_stylebox_override("hover",   hs)
-	btn.add_theme_stylebox_override("pressed", ts)
-	btn.add_theme_stylebox_override("focus",   ts)
-	add_child(btn)
-	if not locked:
-		btn.pressed.connect(func(): _on_char_selected(idx))
+	btn.add_theme_stylebox_override("normal",  _sb(C0, C0, 0, 5))
+	btn.add_theme_stylebox_override("hover",   _sb(Color(0.36, 0.12, 0.60, 0.14) if unlocked else Color(0.48,0.03,0.03,0.10), C0, 0, 5))
+	btn.add_theme_stylebox_override("pressed", _sb(C0, C0, 0, 5))
+	btn.add_theme_stylebox_override("focus",   _sb(C0, C0, 0, 5))
+	_grid_root.add_child(btn)
+	if unlocked:
+		btn.pressed.connect(func(): _hero_popup.open(idx))
 
-# ─── Portrait helpers ──────────────────────────────────────────
+func _slot_plate(idx: int, unlocked: bool, hero: Dictionary, x: float, y: float) -> void:
+	var py := y + PH - PLH
+	_cr_child(_grid_root, Vector2(x + 3, py + 4), Vector2(PW, PLH), Color(0,0,0,0.70))
+	_add_panel(_grid_root, Vector2(x, py), Vector2(PW, PLH), C_DARK,
+			   C_BRONZE if unlocked else C_BRONZE.darkened(0.42), 0, 5, 0)
+	_cr_child(_grid_root, Vector2(x, py), Vector2(PW, 4), C_GOLD if unlocked else C_GOLD_D)
 
+	if not unlocked:
+		_lbl(_grid_root, "Θέση %d" % (idx + 1), Vector2(x, py + 6), Vector2(PW, 42),
+			 30, C_BONE_D, HORIZONTAL_ALIGNMENT_CENTER, Color(0,0,0,0.9), 2, 3)
+		_lbl(_grid_root, "— Κλειδωμένο —", Vector2(x, py + 50), Vector2(PW, 30), 20,
+			 Color(0.28, 0.20, 0.08, 0.68), HORIZONTAL_ALIGNMENT_CENTER)
+		return
+	if hero.is_empty():
+		_lbl(_grid_root, "Κενή Θέση", Vector2(x, py + 6), Vector2(PW, 42),
+			 30, C_BONE, HORIZONTAL_ALIGNMENT_CENTER, Color(0,0,0,0.9), 2, 3)
+		_lbl(_grid_root, "— Πάτα για ήρωα —", Vector2(x, py + 50), Vector2(PW, 30), 20,
+			 C_BRONZE, HORIZONTAL_ALIGNMENT_CENTER)
+		return
+	_lbl(_grid_root, str(hero["name"]), Vector2(x, py + 6), Vector2(PW, 40),
+		 28, C_BONE, HORIZONTAL_ALIGNMENT_CENTER, Color(0,0,0,0.95), 2, 3)
+	var fin := Heroes.get_final_stats(hero)
+	var stats_line := "%s%d  %s%d  %s%d  %s%d" % [
+		Heroes.STAT_ICONS["HP"], fin["HP"],
+		Heroes.STAT_ICONS["Damage"], fin["Damage"],
+		Heroes.STAT_ICONS["Shield"], fin["Shield"],
+		Heroes.STAT_ICONS["AttackSpeed"], fin["AttackSpeed"]]
+	_lbl(_grid_root, stats_line, Vector2(x, py + 48), Vector2(PW, 34), 22,
+		 C_GOLD, HORIZONTAL_ALIGNMENT_CENTER)
+
+# ─── card helpers (draw into _grid_root) ───────────────────────
 func _brackets(x: float, y: float, w: float, h: float, col: Color) -> void:
-	const L := 28.0   # bracket arm length
-	const T := 5.0    # bracket arm thickness
-	const O := 8.0    # offset from frame edge (inside border)
-	var bot_y: float = y + h - PLH - O - T  # bottom bracket stops above name plate
-	# arm pairs: [horizontal rect, vertical rect]
+	const L := 28.0
+	const T := 5.0
+	const O := 8.0
+	var bot_y: float = y + h - PLH - O - T
 	var arms: Array[Rect2] = [
-		# top-left
 		Rect2(x + O, y + O, L, T), Rect2(x + O, y + O, T, L),
-		# top-right
 		Rect2(x + w - O - L, y + O, L, T), Rect2(x + w - O - T, y + O, T, L),
-		# bottom-left
 		Rect2(x + O, bot_y, L, T), Rect2(x + O, bot_y - L + T, T, L),
-		# bottom-right
 		Rect2(x + w - O - L, bot_y, L, T), Rect2(x + w - O - T, bot_y - L + T, T, L),
 	]
 	for r in arms:
 		var p := Panel.new()
-		p.position = r.position
-		p.size     = r.size
+		p.position = r.position; p.size = r.size
 		p.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		var s := StyleBoxFlat.new()
-		s.bg_color     = col
-		s.border_color = col.lightened(0.25)
-		s.set_border_width_all(1)
+		s.bg_color = col; s.border_color = col.lightened(0.25); s.set_border_width_all(1)
 		p.add_theme_stylebox_override("panel", s)
-		add_child(p)
+		_grid_root.add_child(p)
 
 func _badge(text: String, x: float, y: float, bright: bool) -> void:
-	_add_panel(self, Vector2(x + 2, y + 2), Vector2(40, 40), Color(0,0,0,0.68), C0, 0, 3, 0)
-	_add_panel(self, Vector2(x, y), Vector2(40, 40), C_MID,
+	_add_panel(_grid_root, Vector2(x + 2, y + 2), Vector2(40, 40), Color(0,0,0,0.68), C0, 0, 3, 0)
+	_add_panel(_grid_root, Vector2(x, y), Vector2(40, 40), C_MID,
 			   C_BRONZE if bright else C_BRONZE.darkened(0.4), 2, 3, 0)
-	_lbl(self, text, Vector2(x, y), Vector2(40, 40), 22,
-		 C_GOLD if bright else C_GOLD_D, HORIZONTAL_ALIGNMENT_CENTER,
-		 Color(0,0,0,0.92), 1, 2)
-
-func _name_plate(d: Dictionary, locked: bool, x: float, y: float) -> void:
-	var py := y + PH - PLH
-	# Shadow
-	_cr(Vector2(x + 3, py + 4), Vector2(PW, PLH), Color(0,0,0,0.70))
-	# Plate
-	_add_panel(self, Vector2(x, py), Vector2(PW, PLH), C_DARK,
-			   C_BRONZE if not locked else C_BRONZE.darkened(0.42), 0, 5, 0)
-	# Top border line (matches frame colour)
-	_cr(Vector2(x, py), Vector2(PW, 4), C_GOLD if not locked else C_GOLD_D)
-	# Bevel bottom
-	_cr(Vector2(x, py + PLH - 2), Vector2(PW, 2), Color(0,0,0,0.80))
-	# Inner subtle divider
-	_cr(Vector2(x + 18, py + PLH - 14), Vector2(PW - 36, 1), C_BRONZE.darkened(0.50))
-
-	_lbl(self, str(d["name"]), Vector2(x, py + 5), Vector2(PW, 42),
-		 30, C_BONE if not locked else C_BONE_D, HORIZONTAL_ALIGNMENT_CENTER,
-		 Color(0,0,0,0.95), 2, 3)
-	_lbl(self, str(d["class"]) if not locked else "— Κλειδωμένο —",
-		 Vector2(x, py + 44), Vector2(PW, 28), 20,
-		 C_BRONZE if not locked else Color(0.28, 0.20, 0.08, 0.68),
-		 HORIZONTAL_ALIGNMENT_CENTER)
+	_lbl(_grid_root, text, Vector2(x, y), Vector2(40, 40), 22,
+		 C_GOLD if bright else C_GOLD_D, HORIZONTAL_ALIGNMENT_CENTER, Color(0,0,0,0.92), 1, 2)
 
 func _shield_lock(cx: float, cy: float) -> void:
 	const SW := 100.0
 	const SH := 118.0
 	var sx := cx - SW / 2.0
 	var sy := cy - SH * 0.44
-
-	# Shackle
 	for bx: float in [cx - 26.0, cx + 6.0]:
 		var bar := Panel.new()
-		bar.position = Vector2(bx, sy - 52)
-		bar.size     = Vector2(20, 56)
+		bar.position = Vector2(bx, sy - 52); bar.size = Vector2(20, 56)
 		bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		var bs := _sb(Color(0.40, 0.28, 0.05), Color(0.60, 0.44, 0.08), 3, 10)
-		bs.corner_radius_top_left  = 10
-		bs.corner_radius_top_right = 10
 		bar.add_theme_stylebox_override("panel", bs)
-		add_child(bar)
+		_grid_root.add_child(bar)
 	var top := Panel.new()
-	top.position = Vector2(cx - 26, sy - 52)
-	top.size     = Vector2(52, 20)
+	top.position = Vector2(cx - 26, sy - 52); top.size = Vector2(52, 20)
 	top.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var ts := _sb(Color(0.40, 0.28, 0.05), Color(0.60, 0.44, 0.08), 3, 10)
-	ts.corner_radius_top_left  = 10
-	ts.corner_radius_top_right = 10
-	top.add_theme_stylebox_override("panel", ts)
-	add_child(top)
-
-	# Shield shadow
-	_add_panel(self, Vector2(sx + 5, sy + 6), Vector2(SW, SH), Color(0,0,0,0.80), C0, 0, 0, 50)
-
-	# Shield body
-	_add_panel(self, Vector2(sx, sy), Vector2(SW, SH),
-			   Color(0.28, 0.19, 0.04), C_BRONZE, 5, 6, 50)
-	# Shield face (inner darker)
-	_add_panel(self, Vector2(sx + 5, sy + 5), Vector2(SW - 10, SH - 10),
-			   Color(0.18, 0.12, 0.02), C0, 0, 4, 48)
-	# Inner gold inlay ring
-	_add_panel(self, Vector2(sx + 5, sy + 5), Vector2(SW - 10, SH - 10),
-			   C0, C_GOLD_D, 1, 4, 48)
-	# Bevel
-	_cr(Vector2(sx, sy), Vector2(SW, 3), Color(1, 1, 1, 0.07))
-
-	# Boss rivets
-	for rv: Vector2 in [Vector2(sx+12,sy+12), Vector2(sx+SW-22,sy+12),
-						 Vector2(sx+12,sy+SH-42), Vector2(sx+SW-22,sy+SH-42)]:
-		_add_panel(self, rv, Vector2(10, 10), C_BRONZE, C_GOLD_D, 1, 0, 5)
-
-	# Keyhole — oval
-	_add_panel(self, Vector2(cx-12, sy + SH*0.38), Vector2(24, 24),
-			   Color(0.05, 0.03, 0.01), C_BRONZE.darkened(0.30), 1, 0, 12)
-	# Keyhole — slot
-	_cr(Vector2(cx - 6, sy + SH*0.38 + 19), Vector2(12, 20), Color(0.05, 0.03, 0.01))
-
-# ═══════════════════════════════════════════════════════════════
-# ACTION BAR
-# ═══════════════════════════════════════════════════════════════
-
-func _action_bar() -> void:
-	const BY := 1920.0 - BAR_H
-
-	# Shadow strip
-	_cr(Vector2(0, BY - 12), Vector2(1080, 14), Color(0,0,0,0.88))
-
-	_bar          = Panel.new()
-	_bar.name     = "ActionBar"
-	_bar.position = Vector2(0, BY)
-	_bar.size     = Vector2(1080, BAR_H)
-	_bar.visible  = false
-	var bs := _sb(Color(0.038, 0.026, 0.012, 0.97), C_BRONZE, 0, 0)
-	bs.border_width_top = 4
-	_bar.add_theme_stylebox_override("panel", bs)
-	add_child(_bar)
-
-	# Top rules
-	_cr_child(_bar, Vector2(0, 0), Vector2(1080, 4), C_GOLD)
-	_cr_child(_bar, Vector2(0, 4), Vector2(1080, 2), C_CRIMSON)
-	_cr_child(_bar, Vector2(0, 6), Vector2(1080, 1), Color(1,1,1,0.04))
-	# Bottom ornament
-	_ornament_child(_bar, 44, BAR_H - 22, 992)
-
-	# EDIT
-	var e := _bar_btn("EDIT", 44, 44, 264, 132)
-	_bar.add_child(e)
-	e.pressed.connect(_on_action_edit)
-	_gem_child(_bar, Vector2(14, 109), C_CRIMSON.lightened(0.20))
-
-	# Divider
-	_vdiv_child(_bar, 316)
-
-	# BACK
-	var b := _bar_btn("BACK", 326, 44, 264, 132)
-	_bar.add_child(b)
-	b.pressed.connect(_on_action_back)
-
-	# Centre deco
-	var fl := Label.new()
-	fl.text     = "⚜"
-	fl.position = Vector2(606, 64)
-	fl.size     = Vector2(58, 88)
-	fl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	fl.add_theme_font_size_override("font_size", 52)
-	fl.add_theme_color_override("font_color",        C_BRONZE.darkened(0.12))
-	fl.add_theme_color_override("font_shadow_color", Color(0,0,0,0.90))
-	fl.add_theme_constant_override("shadow_offset_x", 2)
-	fl.add_theme_constant_override("shadow_offset_y", 2)
-	fl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_bar.add_child(fl)
-
-	# CONFIRM
-	var c := _bar_btn("CONFIRM", 674, 44, 360, 132, true)
-	_bar.add_child(c)
-	c.pressed.connect(_on_action_confirm)
-	_gem_child(_bar, Vector2(1066, 109), C_GOLD)
-
-func _bar_btn(txt: String, bx: float, by: float, bw: float, bh: float, gold: bool = false) -> Button:
-	var btn := Button.new()
-	btn.text     = txt
-	btn.position = Vector2(bx, by)
-	btn.size     = Vector2(bw, bh)
-	_style_iron(btn, gold)
-	btn.add_theme_font_size_override("font_size", 50 if txt == "CONFIRM" else 54)
-	return btn
-
-func _gem_child(parent: Control, pos: Vector2, col: Color) -> void:
-	# Outer ring
-	var ring := Panel.new()
-	ring.position = Vector2(pos.x - 14, pos.y - 14)
-	ring.size     = Vector2(28, 28)
-	ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var rs := _sb(C_MID, C_BRONZE, 2, 14)
-	ring.add_theme_stylebox_override("panel", rs)
-	parent.add_child(ring)
-	# Gem
-	var gem := Panel.new()
-	gem.position = Vector2(pos.x - 9, pos.y - 9)
-	gem.size     = Vector2(18, 18)
-	gem.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var gs := _sb(col, col.lightened(0.38), 1, 9)
-	gem.add_theme_stylebox_override("panel", gs)
-	parent.add_child(gem)
-	# Highlight
-	var hi := ColorRect.new()
-	hi.position = Vector2(pos.x - 5, pos.y - 7)
-	hi.size     = Vector2(5, 4)
-	hi.color    = Color(1, 1, 1, 0.55)
-	hi.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	parent.add_child(hi)
-
-func _vdiv_child(parent: Control, xp: float) -> void:
-	for d: Array in [[Color(1,1,1,0.06), xp-1], [C_BRONZE, xp], [Color(0,0,0,0.60), xp+2]]:
-		var r := ColorRect.new()
-		r.color    = d[0]
-		r.position = Vector2(d[1], 34)
-		r.size     = Vector2(2, 152)
-		r.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		parent.add_child(r)
+	top.add_theme_stylebox_override("panel", _sb(Color(0.40, 0.28, 0.05), Color(0.60, 0.44, 0.08), 3, 10))
+	_grid_root.add_child(top)
+	_add_panel(_grid_root, Vector2(sx + 5, sy + 6), Vector2(SW, SH), Color(0,0,0,0.80), C0, 0, 0, 50)
+	_add_panel(_grid_root, Vector2(sx, sy), Vector2(SW, SH), Color(0.28, 0.19, 0.04), C_BRONZE, 5, 6, 50)
+	_add_panel(_grid_root, Vector2(sx + 5, sy + 5), Vector2(SW - 10, SH - 10), Color(0.18, 0.12, 0.02), C0, 0, 4, 48)
+	_add_panel(_grid_root, Vector2(cx-12, sy + SH*0.38), Vector2(24, 24), Color(0.05, 0.03, 0.01), C_BRONZE.darkened(0.30), 1, 0, 12)
+	_cr_child(_grid_root, Vector2(cx - 6, sy + SH*0.38 + 19), Vector2(12, 20), Color(0.05, 0.03, 0.01))
 
 # ═══════════════════════════════════════════════════════════════
 # SIGNAL HANDLERS
 # ═══════════════════════════════════════════════════════════════
-
-func _on_char_selected(idx: int) -> void:
-	_selected_idx = idx
-	_bar.visible = true
-
-func _on_action_edit() -> void:
-	_bar.visible = false
-	if _selected_idx >= 0 and _selected_idx < CHAR_DATA.size():
-		_edit_popup.open_character(CHAR_DATA[_selected_idx])
-
-func _on_action_back() -> void:    _bar.visible = false
-func _on_action_confirm() -> void: _bar.visible = false
 func _on_back_pressed() -> void:
-	_bar.visible = false
 	var tw := create_tween()
 	tw.tween_property(self, "modulate:a", 0.0, 0.22)
 	tw.tween_callback(func(): visible = false)
@@ -531,30 +353,22 @@ func _on_back_pressed() -> void:
 # ═══════════════════════════════════════════════════════════════
 # PRIMITIVES
 # ═══════════════════════════════════════════════════════════════
-
 func _sb(bg: Color, border: Color, bw: int, cr: int = 0) -> StyleBoxFlat:
 	var s := StyleBoxFlat.new()
-	s.bg_color     = bg
-	s.border_color = border
-	s.set_border_width_all(bw)
-	s.corner_radius_top_left     = cr
-	s.corner_radius_top_right    = cr
-	s.corner_radius_bottom_right = cr
-	s.corner_radius_bottom_left  = cr
+	s.bg_color = bg; s.border_color = border
+	s.set_border_width_all(bw); s.set_corner_radius_all(cr)
 	return s
 
 func _add_panel(parent: Control, pos: Vector2, sz: Vector2, bg: Color,
 				border: Color, bw: int, cr: int, cr_bottom: int) -> Panel:
 	var p := Panel.new()
-	p.position = pos
-	p.size     = sz
+	p.position = pos; p.size = sz
 	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var s := StyleBoxFlat.new()
-	s.bg_color     = bg
-	s.border_color = border
+	s.bg_color = bg; s.border_color = border
 	s.set_border_width_all(bw)
-	s.corner_radius_top_left     = cr
-	s.corner_radius_top_right    = cr
+	s.corner_radius_top_left = cr
+	s.corner_radius_top_right = cr
 	s.corner_radius_bottom_right = cr_bottom if cr_bottom > 0 else cr
 	s.corner_radius_bottom_left  = cr_bottom if cr_bottom > 0 else cr
 	p.add_theme_stylebox_override("panel", s)
@@ -563,17 +377,13 @@ func _add_panel(parent: Control, pos: Vector2, sz: Vector2, bg: Color,
 
 func _cr(pos: Vector2, sz: Vector2, col: Color) -> void:
 	var r := ColorRect.new()
-	r.position = pos
-	r.size     = sz
-	r.color    = col
+	r.position = pos; r.size = sz; r.color = col
 	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(r)
 
 func _cr_child(parent: Control, pos: Vector2, sz: Vector2, col: Color) -> void:
 	var r := ColorRect.new()
-	r.position = pos
-	r.size     = sz
-	r.color    = col
+	r.position = pos; r.size = sz; r.color = col
 	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	parent.add_child(r)
 
@@ -581,9 +391,7 @@ func _lbl(parent: Control, text: String, pos: Vector2, sz: Vector2, font_sz: int
 		  col: Color, align: HorizontalAlignment = HORIZONTAL_ALIGNMENT_LEFT,
 		  shadow: Color = Color(0,0,0,0), sx: int = 0, sy: int = 0) -> void:
 	var l := Label.new()
-	l.text     = text
-	l.position = pos
-	l.size     = sz
+	l.text = text; l.position = pos; l.size = sz
 	l.horizontal_alignment = align
 	l.vertical_alignment   = VERTICAL_ALIGNMENT_CENTER
 	l.add_theme_font_size_override("font_size", font_sz)
@@ -596,55 +404,37 @@ func _lbl(parent: Control, text: String, pos: Vector2, sz: Vector2, font_sz: int
 	parent.add_child(l)
 
 func _ornament(x: float, y: float, w: float) -> void:
-	_ornament_child(self, x, y, w)
-
-func _ornament_child(parent: Control, x: float, y: float, w: float) -> void:
-	# Main line
 	var r := ColorRect.new()
-	r.position = Vector2(x + 16, y + 1)
-	r.size     = Vector2(w - 32, 2)
-	r.color    = C_BRONZE.darkened(0.30)
-	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	parent.add_child(r)
-	# Left/right diamonds
+	r.position = Vector2(x + 16, y + 1); r.size = Vector2(w - 32, 2)
+	r.color = C_BRONZE.darkened(0.30); r.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(r)
 	for lp: Vector2 in [Vector2(x, y - 6), Vector2(x + w - 16, y - 6)]:
 		var d := Label.new()
-		d.text     = "◆"
-		d.position = lp
-		d.size     = Vector2(18, 18)
+		d.text = "◆"; d.position = lp; d.size = Vector2(18, 18)
 		d.add_theme_font_size_override("font_size", 14)
 		d.add_theme_color_override("font_color", C_CRIMSON)
 		d.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		parent.add_child(d)
-	# Centre ⚜
+		add_child(d)
 	var fl := Label.new()
-	fl.text     = "⚜"
-	fl.position = Vector2(x + w / 2.0 - 12, y - 8)
-	fl.size     = Vector2(24, 18)
+	fl.text = "⚜"; fl.position = Vector2(x + w / 2.0 - 12, y - 8); fl.size = Vector2(24, 18)
 	fl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	fl.add_theme_font_size_override("font_size", 16)
 	fl.add_theme_color_override("font_color", C_BRONZE.darkened(0.18))
 	fl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	parent.add_child(fl)
+	add_child(fl)
 
 func _style_iron(btn: Button, golden: bool = false) -> void:
 	var trim  := C_GOLD  if golden else C_SILVER
 	var fcol  := C_GOLD  if golden else C_BONE
 	var fcolh := C_GOLD  if golden else C_SILVER.lightened(0.18)
-
 	var n := _sb(C_IRON, trim.darkened(0.22), 4, 4)
-	n.shadow_color = Color(0,0,0,0.72)
-	n.shadow_size  = 7
+	n.shadow_color = Color(0,0,0,0.72); n.shadow_size = 7
 	btn.add_theme_stylebox_override("normal", n)
-
 	var h := _sb(C_IRON_L, trim, 5, 4)
-	h.shadow_color = trim.lightened(0.08)
-	h.shadow_size  = 14
+	h.shadow_color = trim.lightened(0.08); h.shadow_size = 14
 	btn.add_theme_stylebox_override("hover", h)
-
 	btn.add_theme_stylebox_override("pressed", _sb(Color(0.06, 0.04, 0.02), trim.darkened(0.28), 3, 4))
 	btn.add_theme_stylebox_override("focus",   _sb(C0, C0, 0, 0))
-
 	btn.add_theme_color_override("font_color",         fcol)
 	btn.add_theme_color_override("font_hover_color",   fcolh)
 	btn.add_theme_color_override("font_pressed_color", fcol.darkened(0.32))

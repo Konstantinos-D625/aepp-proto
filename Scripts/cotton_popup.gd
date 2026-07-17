@@ -1,8 +1,16 @@
 extends Control
 
 # ── Μονοπάτια εικόνων ─────────────────────────────────────────────────────
-const BG_PATH     := "res://Εικόνες/bamb_bg.png"
-const CHAR_PATH   := "res://Εικόνες/cottonman.png"
+# Ο NPC εδώ είναι πλέον η ΔΕΡΜΑΤΟΥ (πρώην Βαμβακάς — μόνο χαρακτήρας/εικόνες/
+# κείμενο άλλαξαν, η λογική quiz/loot έμεινε ίδια). ΙΔΙΑΙΤΕΡΟΤΗΤΑ: το
+# leather-woman.png είναι ΟΛΟΚΛΗΡΗ σκηνή (η γυναίκα ΜΑΖΙ με το εργαστήρι),
+# όχι cut-out χαρακτήρας — και το leather-woman-bg.png είναι η ΙΔΙΑ ακριβώς
+# σκηνή χωρίς τη γυναίκα. Γι' αυτό το _build_character δεν τοποθετεί μικρό
+# TextureRect, αλλά ΔΕΥΤΕΡΟ full-screen layer πάνω από το BG_PATH: όταν στην
+# Κατάσταση 2 το _char κάνει fade out, «αποκαλύπτεται» το άδειο εργαστήρι
+# από κάτω — η γυναίκα μοιάζει να φεύγει, το δωμάτιο μένει.
+const BG_PATH     := "res://Εικόνες/leather-woman-bg.png"
+const CHAR_PATH   := "res://Εικόνες/leather-woman.png"
 const BOARD_PATH  := "res://Εικόνες/board.png"
 
 # ── Σύστημα ασκήσεων ──────────────────────────────────────────────────────
@@ -12,10 +20,17 @@ const QUIZ_PATH := "res://cotton_quiz.json"
 # Πόσες ερωτήσεις ανά επίσκεψη (τυχαίες κάθε φορά). 0 = όλες.
 const QUESTIONS_PER_ROUND := 5
 
-# Loot: μόνο βαμβάκι. Η ποσότητα εξαρτάται από τη ΔΥΣΚΟΛΙΑ των ερωτήσεων που
-# απαντήθηκαν σωστά (εύκολη=1, μεσαία=2, δύσκολη=3 βαμβάκι). Πάντα δίνεται
-# τουλάχιστον COTTON_BASE. Δίνεται όταν φεύγεις, αρκεί να απάντησες ≥1 ερώτηση.
-const COTTON_BASE := 2
+# Loot: μόνο δέρμα. Η ποσότητα εξαρτάται από τη ΔΥΣΚΟΛΙΑ των ερωτήσεων που
+# απαντήθηκαν σωστά (εύκολη=1, μεσαία=2, δύσκολη=3 δέρμα). Πάντα δίνεται
+# τουλάχιστον LEATHER_BASE. Δίνεται όταν φεύγεις, αρκεί να απάντησες ≥1 ερώτηση.
+const LEATHER_BASE := 2
+
+# ΠΑΛΙΑ (αφαιρέθηκε): εδώ έδινε ΚΑΙ πάντα 1 Αριθμητικό Κλειδί τιμής 8 — το
+# "bootstrap" κλειδί του side quest του κάστρου (Armory, "k <= 8"). Ήταν
+# απεριόριστα farmable σε κάθε επίσκεψη, ενώ η Armory χρειάζεται μόνο ΕΝΑ
+# ποτέ. Το ίδιο κλειδί (ίδια τιμή 8, ίδια κατηγορία) δίνεται τώρα ΜΙΑ φορά,
+# ως ανταμοιβή της πρώτης νίκης πάνω στον καλικάντζαρο — βλ.
+# Scripts/mini_boss_popup.gd (BOSS_DEFS["goblin"]["key_reward"]).
 
 # ── Παλέτα (βαμβακάδικο — ζεστό, κρεμ, χρυσό φως) ───────────────────────
 const C0       := Color(0, 0, 0, 0)
@@ -101,7 +116,7 @@ func _on_gui_input(event: InputEvent) -> void:
 	accept_event()
 
 # ═══════════════════════════════════════════════════════════════════════════
-# ΚΑΤΑΣΤΑΣΗ 2 — cottonman φεύγει, board εμφανίζεται
+# ΚΑΤΑΣΤΑΣΗ 2 — η Δερματού φεύγει (fade στο άδειο εργαστήρι), board εμφανίζεται
 # ═══════════════════════════════════════════════════════════════════════════
 func _go_to_state2() -> void:
 	_state = 2
@@ -149,19 +164,28 @@ func _build_background() -> void:
 	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(dim)
 
-# ── Χαρακτήρας cottonman ──────────────────────────────────────────────────
+# ── Χαρακτήρας Δερματού — full-screen layer «σκηνή με τη γυναίκα» ──────────
+# ΙΔΙΟ expand/stretch με το _build_background ώστε οι δύο εικόνες (με/χωρίς
+# τη γυναίκα) να κάθονται pixel-πάνω-σε-pixel — αλλιώς το fade της
+# Κατάστασης 2 θα «κουνούσε» το δωμάτιο. Κουβαλάει και δικό της dim overlay
+# (ίδιο με του background) ως ΠΑΙΔΙ, ώστε η φωτεινότητα να είναι ίδια πριν
+# και μετά το fade — τα παιδιά κληρονομούν το modulate του γονιού, οπότε
+# σβήνουν όλα μαζί στο tween του _go_to_state2.
 func _build_character() -> TextureRect:
 	var tex : Texture2D = load(CHAR_PATH)
 	var char_rect := TextureRect.new()
 	if tex:
 		char_rect.texture = tex
-	# Δεξί μέρος οθόνης
-	char_rect.position     = Vector2(510, 520)
-	char_rect.size         = Vector2(540, 1020)
+	char_rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	char_rect.expand_mode  = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
-	char_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	char_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	char_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(char_rect)
+	var dim := ColorRect.new()
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	dim.color = Color(0, 0, 0, 0.25)
+	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	char_rect.add_child(dim)
 	return char_rect
 
 # ── Φούσκα ομιλίας ────────────────────────────────────────────────────────
@@ -170,10 +194,12 @@ func _build_bubble() -> Control:
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(root)
 
-	const BX := 32.0
-	const BY := 145.0
-	const BW := 565.0
-	const BH := 500.0
+	# Δεξιά πλευρά: η Δερματού στέκεται ΑΡΙΣΤΕΡΑ μέσα στη σκηνή (αντίθετα από
+	# τον παλιό cottonman), οπότε η φούσκα πάει δεξιά, με ουρά κάτω-αριστερά.
+	const BX := 460.0
+	const BY := 130.0
+	const BW := 588.0
+	const BH := 560.0
 
 	# Σκιά
 	_shadow(root, Vector2(BX+8, BY+8), Vector2(BW, BH), 18)
@@ -184,13 +210,13 @@ func _build_bubble() -> Control:
 	_styled_panel(root, Vector2(BX+10, BY+10), Vector2(BW-20, BH-20),
 		C0, C_GOLD_D, 2, 14)
 
-	# Ουρά φούσκας (προς τον cottonman — κάτω-δεξιά)
-	_bubble_tail(root, BX + BW - 48, BY + BH - 2)
+	# Ουρά φούσκας (προς τη Δερματού — κάτω-αριστερά)
+	_bubble_tail(root, BX + 48, BY + BH - 2)
 
 	# Τίτλος NPC
 	_styled_panel(root, Vector2(BX+22, BY+22), Vector2(BW-44, 58),
 		C_WOOD_D, C_GOLD_D, 2, 8)
-	_label(root, "🪡  Νίκος ο Βαμβακάς",
+	_label(root, "🧵  Η Δερματού",
 		Vector2(BX+22, BY+22), Vector2(BW-44, 58),
 		22, C_GOLD, HORIZONTAL_ALIGNMENT_CENTER,
 		Color(0,0,0,0.80), 1, 2)
@@ -200,7 +226,7 @@ func _build_bubble() -> Control:
 
 	# Κείμενο ομιλίας
 	var msg := Label.new()
-	msg.text = "Καλημέρα, φίλε μου!\n\nΈχω το καλύτερο βαμβάκι\nόλης της περιοχής — 100% φυσικό\nκαι παραδοσιακό!\n\nΑλλά για να σου δώσω κάποια\nδέματα, θα πρέπει να λύσεις\nμερικές ασκήσεις για μένα!\n\nΤι λες, τα καταφέρνεις;"
+	msg.text = "Καλημέρα, καλέ μου!\n\nΡάβω τα πιο γερά δέρματα\nόλης της περιοχής — ρώτα όποιον\nθες στο χωριό!\n\nΑλλά για να σου δώσω μερικά,\nθα πρέπει να λύσεις\nμερικές ασκήσεις για μένα!\n\nΤι λες, τα καταφέρνεις;"
 	msg.position         = Vector2(BX+28, BY+96)
 	msg.size             = Vector2(BW-56, BH-130)
 	msg.autowrap_mode    = TextServer.AUTOWRAP_WORD_SMART
@@ -218,12 +244,14 @@ func _build_bubble() -> Control:
 
 	return root
 
+# Καθρεφτισμένη εκδοχή της παλιάς δεξιάς ουράς — τα σκαλοπάτια κατεβαίνουν
+# προς τα ΑΡΙΣΤΕΡΑ (εκεί στέκεται η Δερματού μέσα στη σκηνή).
 func _bubble_tail(parent: Control, tx: float, ty: float) -> void:
 	_cr_on(parent, Vector2(tx,    ty),    Vector2(32, 14), C_PARCH)
-	_cr_on(parent, Vector2(tx+8,  ty+12), Vector2(22, 14), C_PARCH)
-	_cr_on(parent, Vector2(tx+16, ty+24), Vector2(14, 14), C_PARCH)
+	_cr_on(parent, Vector2(tx-8,  ty+12), Vector2(22, 14), C_PARCH)
+	_cr_on(parent, Vector2(tx-14, ty+24), Vector2(14, 14), C_PARCH)
 	_cr_on(parent, Vector2(tx-1,  ty-1),  Vector2(34,  5), C_GOLD)
-	_cr_on(parent, Vector2(tx+31, ty+2),  Vector2(5,  14), C_GOLD)
+	_cr_on(parent, Vector2(tx-4,  ty+2),  Vector2(5,  14), C_GOLD)
 
 func _cotton_sparkles(parent: Control, bx: float, by: float, bw: float, bh: float) -> void:
 	var rng := RandomNumberGenerator.new()
@@ -412,14 +440,14 @@ func _finish(completed: bool) -> void:
 	_input_locked = true
 	_set_answer_buttons_enabled(false)
 
-	# Χωρίς έστω μία σωστή απάντηση δεν δίνεται καθόλου βαμβάκι.
+	# Χωρίς έστω μία σωστή απάντηση δεν δίνεται καθόλου δέρμα.
 	var score := _quiz.get_score() if _quiz else 0
 	if _answered <= 0 or score <= 0:
 		_close()
 		return
 
 	var results := _generate_and_apply_loot()
-	var title := "Ο πωλητής σου έδωσε το βαμβάκι!" if completed else "Ευχαριστώ για τη βοήθεια!"
+	var title := "Η Δερματού σου έδωσε το δέρμα!" if completed else "Ευχαριστώ για τη βοήθεια!"
 	_show_completion(title, score, results)
 
 func _on_back_pressed() -> void:
@@ -430,15 +458,15 @@ func _on_back_pressed() -> void:
 		_close()
 
 # ── Παραγωγή loot → γράφεται στο Currency (ίδιο autoload που χρησιμοποιεί
-# το ShopPopup/LootPopup), ώστε το βαμβάκι να φαίνεται αμέσως στην Αποθήκη
+# το ShopPopup/LootPopup), ώστε το δέρμα να φαίνεται αμέσως στην Αποθήκη
 # και να μπορεί να ξοδευτεί στο κατάστημα ──────────────────────────────────
-# Μόνο βαμβάκι· η ποσότητα εξαρτάται από τη δυσκολία των σωστών απαντήσεων.
+# Μόνο δέρμα· η ποσότητα εξαρτάται από τη δυσκολία των σωστών απαντήσεων.
 func _generate_and_apply_loot() -> Array:
 	var results: Array = []
 	var earned := _quiz.get_earned_difficulty() if _quiz else 0
-	var cotton := COTTON_BASE + earned
-	Currency.add("Βαμβάκι", cotton)
-	results.append({ "name": "Βαμβάκι", "amount": cotton })
+	var leather := LEATHER_BASE + earned
+	Currency.add("Δέρμα", leather)
+	results.append({ "name": "Δέρμα", "amount": leather })
 	return results
 
 # ── Οθόνη ολοκλήρωσης → μετά κλείνει το κατάστημα (επιστροφή στον χάρτη) ─────
@@ -456,7 +484,7 @@ func _show_completion(title_text: String, score: int, results: Array) -> void:
 	overlay.add_child(dim)
 
 	const PW := 820.0
-	const PH := 540.0
+	const PH := 700.0
 	var px := (W - PW) / 2.0
 	var py := (H - PH) / 2.0
 	_shadow(overlay, Vector2(px + 8, py + 10), Vector2(PW, PH), 20)
@@ -475,25 +503,69 @@ func _show_completion(title_text: String, score: int, results: Array) -> void:
 	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	overlay.add_child(title)
 
-	var lines := "Σωστές απαντήσεις: %d\n\nΚέρδισες:" % score
-	for item in results:
-		lines += "\n•  +%d %s" % [item["amount"], item["name"]]
-	var loot := Label.new()
-	loot.text = lines
-	loot.position = Vector2(px + 40, py + 240)
-	loot.size     = Vector2(PW - 80, PH - 280)
-	loot.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	loot.vertical_alignment   = VERTICAL_ALIGNMENT_TOP
-	loot.add_theme_font_size_override("font_size", 30)
-	loot.add_theme_color_override("font_color", C_GOLD_D)
-	loot.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	overlay.add_child(loot)
+	var header := Label.new()
+	header.text = "Σωστές απαντήσεις: %d\n\nΚέρδισες:" % score
+	header.position = Vector2(px + 40, py + 240)
+	header.size     = Vector2(PW - 80, 130)
+	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	header.vertical_alignment   = VERTICAL_ALIGNMENT_TOP
+	header.add_theme_font_size_override("font_size", 30)
+	header.add_theme_color_override("font_color", C_GOLD_D)
+	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	overlay.add_child(header)
+
+	_build_loot_rows(overlay, results, Vector2(px + 40, py + 370), PW - 80)
 
 	overlay.modulate.a = 0.0
 	var tw := create_tween()
 	tw.tween_property(overlay, "modulate:a", 1.0, 0.40)
 	tw.tween_interval(1.9)
 	tw.tween_callback(_close)
+
+## Μία γραμμή ανά ανταμοιβή· αν έχει "icon" δείχνει την εικόνα δίπλα στο
+## κείμενο (π.χ. οι νέες Σφαίρες), αλλιώς μένει στο απλό bullet-κείμενο
+## (υλικά όπως Δέρμα/Χαλκός/Σίδερο, που δεν έχουν ακόμα δικό τους εικονίδιο
+## εδώ). Κοινό μοτίβο με blacksmith_popup.gd/miner_popup.gd.
+func _build_loot_rows(parent: Control, results: Array, pos: Vector2, width: float) -> void:
+	var col := VBoxContainer.new()
+	col.position = pos
+	col.size     = Vector2(width, 0)
+	col.add_theme_constant_override("separation", 10)
+	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(col)
+	for item in results:
+		col.add_child(_make_loot_row(item))
+
+func _make_loot_row(item: Dictionary) -> Control:
+	var col := VBoxContainer.new()
+	col.alignment = BoxContainer.ALIGNMENT_CENTER
+	col.add_theme_constant_override("separation", 8)
+	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	var icon_path: String = str(item.get("icon", ""))
+	var lbl := Label.new()
+	lbl.text = "+%d %s" % [item["amount"], item["name"]]
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.add_theme_font_size_override("font_size", 30)
+	lbl.add_theme_color_override("font_color", C_GOLD_D)
+	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	col.add_child(lbl)
+
+	# Το εικονίδιο μπαίνει ΚΑΤΩ από το κείμενο, κεντραρισμένο, σε αρκετά
+	# μεγάλο μέγεθος ώστε να φαίνεται καθαρά το σχέδιο της σφαίρας (όχι σαν
+	# μικρό bullet-εικονίδιο δίπλα στο κείμενο όπως πριν).
+	if icon_path != "" and ResourceLoader.exists(icon_path):
+		var icon := TextureRect.new()
+		icon.texture = load(icon_path)
+		icon.custom_minimum_size = Vector2(110, 110)
+		icon.expand_mode  = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		col.add_child(icon)
+
+	return col
 
 # ── Ενεργοποίηση/απενεργοποίηση κουμπιών απάντησης ─────────────────────────
 func _set_answer_buttons_enabled(enabled: bool) -> void:

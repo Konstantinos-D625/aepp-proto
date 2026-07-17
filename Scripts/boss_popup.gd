@@ -1,16 +1,57 @@
 extends Control
 
-# Popup "Boss Fight": η μάγισσα προκαλεί τον παίκτη σε μάχη.
-# Κατάσταση 1: η μάγισσα μιλάει μπροστά από το εσωτερικό του μαγαζιού της.
-# Κατάσταση 2: η μάγισσα φεύγει, το background παραμένει, και πάνω στο
-# board.png εμφανίζεται το αποτέλεσμα της μάχης.
+# Popup "Boss Fight": η μάγισσα προκαλεί τον παίκτη σε μάχη. Είναι το ΠΡΩΤΟ
+# popup που ανοίγει πατώντας το σπίτι της μάγισσας (witch_map_popup.gd).
+# Κατάσταση 1: η μάγισσα μιλάει μπροστά από το εσωτερικό του μαγαζιού της
+# (εισαγωγικός διάλογος «Τολμηρέ ταξιδιώτη...»).
+# Κατάσταση 2: με ένα κλικ, η μάγισσα φεύγει, το background παραμένει, και πάνω
+# στο board.png εμφανίζεται είτε "δεν είσαι έτοιμος ακόμα" (loss gate, βλ.
+# παρακάτω) είτε τα ΟΡΑΤΑ odds νίκης + κουμπί «Επίθεση».
+# Το κουμπί «Επίθεση» ΔΕΝ κάνει πλέον roll εδώ — ΞΕΚΙΝΑΕΙ το animated BossFight
+# (_launch_fight). Το roll νίκης/ήττας + το GameData recording + το αποτέλεσμα
+# έχουν μεταφερθεί ΕΚΕΙ (boss_fight.gd), ώστε η ζωντανή μάχη να «παίζει» για
+# λίγα δευτερόλεπτα πριν κριθεί το αποτέλεσμα με βάση την παρακάτω πιθανότητα.
 #
-# Η λογική της μάχης δεν έχει υλοποιηθεί ακόμα — προς το παρόν ο παίκτης
-# χάνει πάντα (βλ. _resolve_battle).
+# ── ΛΟΓΙΚΗ ΜΑΧΗΣ ────────────────────────────────────────────────────────────
+# Πιθανότητα νίκης = συνάρτηση του ΣΥΝΟΛΙΚΟΥ ΜΕΣΟΥ ΟΡΟΥ των stats ΟΛΗΣ της
+# ενεργής ομάδας: αθροίζονται ΟΛΑ τα stats (HP/Damage/Shield/AttackSpeed, βλ.
+# Heroes.STAT_KEYS) ΟΛΩΝ των ηρώων που βρίσκονται σε party θέση και διαιρούνται
+# με (πλήθος ηρώων × πλήθος stats) — ΕΝΑΣ ενιαίος μέσος όρος, όχι ένας ανά
+# ήρωα. Περιλαμβάνει τα προσωρινά buffs των items (Heroes.get_final_stats).
+#
+# Ασύμμετρη καμπύλη σε 2 κομμάτια, με 3 σταθερά σημεία (μέσος όρος 1 -> 0%,
+# 15 -> 50%, 20 -> 100%) — ΑΜΕΤΑΒΛΗΤΗ:
+#   - [1,15]: ΤΕΤΡΑΓΩΝΙΚΗ (αργή στην αρχή) — σκόπιμα «σκληρή» ώστε μέτρια
+#     stats να ΜΗΝ δίνουν αξιοπρεπή πιθανότητα· χρειάζεται πραγματικό grind.
+#   - [15,20]: γραμμική — μετά το «μισό δρόμο» η πρόοδος ανταμείβεται πιο
+#     ομαλά/γρήγορα.
+# Επειδή είναι ΜΕΣΟΣ ΟΡΟΣ όλης της ομάδας, ένας δυνατός ήρωας δίπλα σε αδύναμους
+# ΔΕΝ αρκεί — χρειάζεται συνολικά δυνατή ομάδα.
+#
+# ΠΑΛΙΟ (αφαιρέθηκε): ο μέσος όρος έβγαινε από τα 5 στατιστικά εξοπλισμού
+# (Επίθεση/Άμυνα/Δύναμη/Εξυπνάδα/Ταχύτητα μέσω Inventory.get_equipped_stat_bonus),
+# που δεν ισχύουν πια μετά το party/hero σύστημα (Scripts/heroes.gd).
+#
+# ── ΚΟΣΤΟΣ ΕΠΑΝΑΛΗΨΗΣ ───────────────────────────────────────────────────────
+# Η πρώτη προσπάθεια είναι δωρεάν. Μετά από ήττα (GameData.record_boss_loss),
+# ΚΑΘΕ νέα προσπάθεια κοστίζει RETRY_COST Κέρματα (το νόμισμα του Νάνου, βλ.
+# Scripts/gnome_popup.gd) — αν δεν φτάνουν, το κουμπί επίθεσης απενεργοποιείται
+# και εμφανίζεται μήνυμα. Σε νίκη το κόστος μηδενίζεται (record_boss_win).
+# ΑΝΤΙΚΑΤΕΣΤΗΣΕ το παλιό «loss gate» (+1 σε ΚΑΘΕ ένα από τα 5 παλιά stats).
 
 const BG_PATH    := "res://Εικόνες/witchhouse_inside.png"
 const CHAR_PATH  := "res://Εικόνες/witch.png"
 const BOARD_PATH := "res://Εικόνες/board.png"
+
+# Κόστος επανάληψης μετά από ήττα — χρησιμοποιεί το ΥΠΑΡΧΟΝ σύστημα νομισμάτων
+# (Currency autoload)· καμία νέα υλοποίηση νομίσματος.
+const RETRY_COST := 200
+const RETRY_CURRENCY := "Κέρμα"
+
+# Το στατιστικό της Μόργκανας: ο μέσος όρος της ομάδας που δίνει 50% πιθανότητα
+# (βλ. Heroes.win_probability). Τα mini bosses είναι ευκολότερα με μικρότερο
+# στατιστικό — καλικάντζαρος 5, δέντρο 10 (βλ. mini_boss_popup.gd).
+const MORGANA_STAT := 15
 
 # ── Παλέτα ────────────────────────────────────────────────────────────────
 const C0       := Color(0, 0, 0, 0)
@@ -24,12 +65,13 @@ const C_WOOD_D := Color(0.130, 0.075, 0.028)
 const C_TEXT   := Color(0.110, 0.070, 0.030)
 const C_CRIMSON:= Color(0.580, 0.058, 0.058)
 const C_MAGIC  := Color(0.420, 0.140, 0.640)
+const C_OK     := Color(0.560, 0.900, 0.460)
 
 const W := 1080.0
 const H := 1920.0
 
 # ── Κατάσταση ─────────────────────────────────────────────────────────────
-var _state  := 0   # 1 = μάγισσα μιλάει, 2 = board με αποτέλεσμα
+var _state  := 0   # 1 = μάγισσα μιλάει, 2 = board (πύλη/odds/αποτέλεσμα)
 var _char   : TextureRect
 var _bubble : Control
 var _board  : Control
@@ -71,7 +113,7 @@ func _on_gui_input(event: InputEvent) -> void:
 	accept_event()
 
 # ═══════════════════════════════════════════════════════════════════════════
-# ΚΑΤΑΣΤΑΣΗ 2 — η μάγισσα φεύγει, το board εμφανίζεται με το αποτέλεσμα
+# ΚΑΤΑΣΤΑΣΗ 2 — η μάγισσα φεύγει, το board εμφανίζεται (πύλη ή odds+επίθεση)
 # ═══════════════════════════════════════════════════════════════════════════
 func _go_to_state2() -> void:
 	_state = 2
@@ -84,15 +126,27 @@ func _go_to_state2() -> void:
 		_bubble.visible = false
 		_board.modulate.a = 0.0
 		_board.visible  = true
-		_show_result(_resolve_battle())
+		_show_challenge()
 		var tw2 := create_tween()
 		tw2.tween_property(_board, "modulate:a", 1.0, 0.55)
 	)
 
-# TODO: εδώ θα μπει η πραγματική λογική της μάχης (όπλα, ήρωες, level).
-# Προς το παρόν ο παίκτης χάνει πάντα.
-func _resolve_battle() -> bool:
-	return false
+# ═══════════════════════════════════════════════════════════════════════════
+# ΛΟΓΙΚΗ ΜΑΧΗΣ — βλ. αναλυτικό σχόλιο στην κορυφή του αρχείου
+# ═══════════════════════════════════════════════════════════════════════════
+
+## Ο μέσος όρος της ομάδας και η καμπύλη πιθανότητας ζουν ΚΕΝΤΡΙΚΑ στο Heroes
+## autoload (Heroes.get_party_average_stat / Heroes.win_probability), ώστε να
+## τα μοιράζονται ΟΛΑ τα boss — η Μόργκανα εδώ και τα mini bosses (βλ.
+## Scripts/mini_boss_popup.gd). Το μόνο που ξεχωρίζει κάθε boss είναι το
+## στατιστικό του: με MORGANA_STAT = 15 η καμπύλη είναι ΑΚΡΙΒΩΣ η αρχική
+## (μέσος όρος 15 -> 50%).
+func _show_challenge() -> void:
+	var heroes := Heroes.get_active_party()
+	if heroes.is_empty():
+		_show_no_party()
+		return
+	_show_odds(heroes)
 
 # ═══════════════════════════════════════════════════════════════════════════
 # ΚΑΤΑΣΚΕΥΗ UI
@@ -125,14 +179,25 @@ func _build_background() -> void:
 	add_child(dim)
 
 # ── Χαρακτήρας μάγισσα ────────────────────────────────────────────────────
+# Το (νέο) witch.png είναι 1408×768 landscape καμβάς με τεράστια διάφανα
+# περιθώρια — η μάγισσα καταλαμβάνει μόνο το CHAR_REGION παρακάτω. Χωρίς το
+# crop, το EXPAND_FIT_WIDTH_PROPORTIONAL φούσκωνε το control σε ~1833×1000
+# και η μάγισσα κατέληγε σχεδόν ολόκληρη ΕΚΤΟΣ οθόνης δεξιά (αόρατη). Ίδια
+# λύση με blacksmith_popup.gd/old_man_popup.gd (βλ. CHAR_REGION εκεί).
+# ΠΡΟΣΟΧΗ: το ίδιο witch.png είναι και το idle frame του boss_fight.gd — αν
+# αλλάξει ξανά η εικόνα, ενημέρωσε το region εδώ (μετρημένο από τα
+# μη-διάφανα pixel: x 492-954, y 120-730, με μικρό περιθώριο).
+const CHAR_REGION := Rect2(486, 112, 476, 646)
+
 func _build_character() -> TextureRect:
-	var tex : Texture2D = load(CHAR_PATH)
+	var atlas := AtlasTexture.new()
+	atlas.atlas  = load(CHAR_PATH)
+	atlas.region = CHAR_REGION
 	var char_rect := TextureRect.new()
-	if tex:
-		char_rect.texture = tex
-	char_rect.position     = Vector2(510, 540)
+	char_rect.texture      = atlas
+	char_rect.position     = Vector2(280, 540)
 	char_rect.size         = Vector2(540, 1000)
-	char_rect.expand_mode  = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+	char_rect.expand_mode  = TextureRect.EXPAND_IGNORE_SIZE
 	char_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	char_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(char_rect)
@@ -226,7 +291,16 @@ func _build_board() -> Control:
 	var brd_tex : Texture2D = load(BOARD_PATH)
 	var brd := TextureRect.new()
 	if brd_tex:
-		brd.texture = brd_tex
+		# Το board.png (441×565) έχει διάφανα περιθώρια — το ξύλο ζει στο
+		# x 16-424, y 84-512 (opaque bbox από το alpha, ίδια μέτρηση με το
+		# board του miner_popup.gd). Χωρίς crop, το ορατό ξύλο ξεκινούσε στο
+		# y≈416 της οθόνης ενώ το ResultBox στο y=340 — το πλαίσιο ξεχείλωνε
+		# πάνω από το board. Με το crop, το ξύλο γεμίζει ΟΛΟ το BRD_W×BRD_H
+		# και το ResultBox (με τα +80/+120 εσωτερικά περιθώρια) χωράει μέσα.
+		var atlas := AtlasTexture.new()
+		atlas.atlas  = brd_tex
+		atlas.region = Rect2(16, 84, 409, 429)
+		brd.texture = atlas
 	brd.position     = Vector2(BRD_X, BRD_Y)
 	brd.size         = Vector2(BRD_W, BRD_H)
 	brd.expand_mode  = TextureRect.EXPAND_IGNORE_SIZE
@@ -249,51 +323,177 @@ func _build_board() -> Control:
 
 	return root
 
-func _show_result(won: bool) -> void:
+func _clear_result_box() -> Panel:
 	var box := _board.get_node("ResultBox") as Panel
 	for c in box.get_children():
 		c.queue_free()
+	return box
 
+## Καμία ενεργή ομάδα — χωρίς ήρωες σε θέσεις δεν υπάρχουν stats να μετρήσουν,
+## οπότε δεν επιτρέπεται προσπάθεια.
+func _show_no_party() -> void:
+	var box := _clear_result_box()
 	var s := StyleBoxFlat.new()
-	s.bg_color     = Color(0.06, 0.18, 0.08, 0.85) if won else Color(0.18, 0.04, 0.04, 0.85)
-	s.border_color = C_GOLD if won else C_CRIMSON
+	s.bg_color     = Color(0.16, 0.08, 0.04, 0.85)
+	s.border_color = C_CRIMSON
 	s.set_border_width_all(3)
 	s.set_corner_radius_all(8)
 	box.add_theme_stylebox_override("panel", s)
 
-	var icon := Label.new()
-	icon.text = "🏆" if won else "💀"
-	icon.position = Vector2(0, 60)
-	icon.size     = Vector2(box.size.x, 140)
-	icon.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	icon.add_theme_font_size_override("font_size", 96)
-	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	box.add_child(icon)
-
 	var title := Label.new()
-	title.text = "ΝΙΚΗ!" if won else "ΗΤΤΑ..."
-	title.position = Vector2(0, 210)
-	title.size     = Vector2(box.size.x, 70)
+	title.text = "Η ομάδα σου είναι άδεια!"
+	title.position = Vector2(0, 80)
+	title.size     = Vector2(box.size.x, 60)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 52)
-	title.add_theme_color_override("font_color", C_GOLD if won else C_CRIMSON.lightened(0.25))
-	title.add_theme_color_override("font_shadow_color", Color(0,0,0,0.9))
-	title.add_theme_constant_override("shadow_offset_x", 2)
-	title.add_theme_constant_override("shadow_offset_y", 3)
+	title.add_theme_font_size_override("font_size", 36)
+	title.add_theme_color_override("font_color", C_CRIMSON.lightened(0.3))
 	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.add_child(title)
 
-	var sub := Label.new()
-	sub.text = ("Νίκησες τη Μόργκανα!\nΞεκλειδώθηκε η επόμενη περιοχή." if won
-		else "Η Μόργκανα ήταν πολύ δυνατή...\nΓίνε πιο δυνατός και ξαναδοκίμασε!")
-	sub.position = Vector2(40, 300)
-	sub.size     = Vector2(box.size.x - 80, 140)
-	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	sub.add_theme_font_size_override("font_size", 26)
-	sub.add_theme_color_override("font_color", C_PARCH_D)
-	sub.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	box.add_child(sub)
+	var hint := Label.new()
+	# ΣΕΙΡΑ: autowrap ΠΡΙΝ το size — αλλιώς το Label κλειδώνει το minimum size
+	# στο πλήρες πλάτος του κειμένου (χωρίς αναδίπλωση) και το .size αγνοείται,
+	# οπότε το κείμενο ξεχειλίζει έξω από το πλαίσιο.
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	hint.text = "Πήγαινε στους «Χαρακτήρες» και βάλε τουλάχιστον έναν ήρωα σε μια θέση της ομάδας πριν αντιμετωπίσεις τη Μόργκανα."
+	hint.position = Vector2(50, 170)
+	hint.size     = Vector2(box.size.x - 100, 140)
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	hint.add_theme_font_size_override("font_size", 26)
+	hint.add_theme_color_override("font_color", C_PARCH_D)
+	hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(hint)
+
+## Δείχνει την ΟΡΑΤΗ πιθανότητα νίκης (από τον μέσο όρο της ομάδας) + κουμπί
+## «Επίθεση» — το roll γίνεται ΜΟΝΟ όταν το πατήσει ο παίκτης. Αν ο παίκτης
+## έχει ήδη ηττηθεί, η προσπάθεια χρεώνεται RETRY_COST Κέρματα.
+func _show_odds(heroes: Array) -> void:
+	var box := _clear_result_box()
+	var s := StyleBoxFlat.new()
+	s.bg_color     = Color(0.10, 0.06, 0.14, 0.85)
+	s.border_color = C_MAGIC.lightened(0.2)
+	s.set_border_width_all(3)
+	s.set_corner_radius_all(8)
+	box.add_theme_stylebox_override("panel", s)
+
+	var avg := Heroes.get_party_average_stat()
+	var probability := Heroes.win_probability(avg, MORGANA_STAT)
+	var pct := int(round(probability * 100.0))
+
+	var title := Label.new()
+	title.text = "Πιθανότητα Νίκης"
+	title.position = Vector2(0, 30)
+	title.size     = Vector2(box.size.x, 44)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 28)
+	title.add_theme_color_override("font_color", C_PARCH_D)
+	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(title)
+
+	var pct_label := Label.new()
+	pct_label.text = "%d%%" % pct
+	pct_label.position = Vector2(0, 74)
+	pct_label.size     = Vector2(box.size.x, 100)
+	pct_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	pct_label.add_theme_font_size_override("font_size", 80)
+	pct_label.add_theme_color_override("font_color", C_GOLD)
+	pct_label.add_theme_color_override("font_shadow_color", Color(0,0,0,0.9))
+	pct_label.add_theme_constant_override("shadow_offset_x", 2)
+	pct_label.add_theme_constant_override("shadow_offset_y", 3)
+	pct_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(pct_label)
+
+	# Από πού βγήκε το ποσοστό — αντικαθιστά την παλιά λίστα των 5 stats.
+	var avg_label := Label.new()
+	avg_label.text = "Μέσος όρος ομάδας: %.1f / 20   (%d %s)" % [
+		avg, heroes.size(), "ήρωας" if heroes.size() == 1 else "ήρωες"]
+	avg_label.position = Vector2(0, 182)
+	avg_label.size     = Vector2(box.size.x, 40)
+	avg_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	avg_label.add_theme_font_size_override("font_size", 24)
+	avg_label.add_theme_color_override("font_color", C_PARCH_D)
+	avg_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(avg_label)
+
+	# ── Κόστος επανάληψης (μόνο αν έχει ήδη χάσει) ───────────────────────────
+	var must_pay := GameData.has_lost_to_boss()
+	var coins := Currency.get_amount(RETRY_CURRENCY)
+	var can_pay := coins >= RETRY_COST
+
+	if must_pay:
+		var cost_label := Label.new()
+		cost_label.text = "Η Μόργκανα σε νίκησε ήδη!\nΝέα προσπάθεια: %d %s   —   έχεις %d" % [
+			RETRY_COST, RETRY_CURRENCY, coins]
+		cost_label.position = Vector2(30, 226)
+		cost_label.size     = Vector2(box.size.x - 60, 66)
+		cost_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		cost_label.add_theme_font_size_override("font_size", 23)
+		cost_label.add_theme_color_override("font_color", C_GOLD if can_pay else C_CRIMSON.lightened(0.35))
+		cost_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		box.add_child(cost_label)
+
+	var attack_btn := Button.new()
+	attack_btn.text = "⚔  Επίθεση (%d %s)" % [RETRY_COST, RETRY_CURRENCY] if must_pay else "⚔  Επίθεση"
+	attack_btn.position = Vector2(box.size.x / 2.0 - 190, 300)
+	attack_btn.size     = Vector2(380, 100)
+	attack_btn.add_theme_font_size_override("font_size", 28)
+	_style_attack_btn(attack_btn)
+	attack_btn.disabled = must_pay and not can_pay
+	box.add_child(attack_btn)
+	if not attack_btn.disabled:
+		attack_btn.pressed.connect(func():
+			# Η χρέωση γίνεται ΜΟΝΟ τη στιγμή της επίθεσης, μέσω του υπάρχοντος
+			# Currency — αν αποτύχει (π.χ. ξοδεύτηκαν αλλού στο μεταξύ),
+			# ξαναχτίζεται η οθόνη με το μήνυμα ανεπάρκειας αντί να ξεκινήσει.
+			if must_pay and not Currency.spend({RETRY_CURRENCY: RETRY_COST}):
+				_show_odds(heroes)
+				return
+			_launch_fight(probability))
+
+## Ξεκινάει το animated BossFight (sibling στο Area1). Περνάει ΜΟΝΟ την
+## πιθανότητα νίκης: η ζωντανή μάχη «παίζει» για λίγα δευτερόλεπτα και ΜΕΤΑ
+## κρίνει νίκη/ήττα με βάση αυτήν — το roll, το GameData recording
+## (record_boss_win/loss) και το αποτέλεσμα γίνονται ΕΚΕΙ (boss_fight.gd).
+## Το BossPopup κλείνει καθώς ανοίγει η μάχη.
+func _launch_fight(probability: float) -> void:
+	var fight := get_parent().get_node_or_null("BossFight")
+	if fight:
+		fight.show_popup(probability, "witch")
+		fight.move_to_front()
+	_close()
+
+func _style_attack_btn(btn: Button) -> void:
+	var n := StyleBoxFlat.new()
+	n.bg_color = C_MAGIC.darkened(0.35); n.border_color = C_GOLD.darkened(0.15)
+	n.set_border_width_all(4); n.set_corner_radius_all(12)
+	n.shadow_color = Color(0,0,0,0.65); n.shadow_size = 8
+	btn.add_theme_stylebox_override("normal", n)
+
+	# Απενεργοποιημένο (δεν φτάνουν τα Κέρματα): ΠΡΕΠΕΙ να οριστεί ρητά —
+	# χωρίς αυτό το Godot πέφτει στο προεπιλεγμένο theme, που πάνω στο σκούρο
+	# panel εξαφανίζει τελείως το πλαίσιο και το κουμπί μοιάζει με σκέτο κείμενο.
+	var dis := StyleBoxFlat.new()
+	dis.bg_color = Color(0.16, 0.14, 0.18, 0.85); dis.border_color = C_PARCH_D.darkened(0.45)
+	dis.set_border_width_all(3); dis.set_corner_radius_all(12)
+	btn.add_theme_stylebox_override("disabled", dis)
+	btn.add_theme_color_override("font_disabled_color", C_PARCH_D.darkened(0.25))
+
+	var h := n.duplicate() as StyleBoxFlat
+	h.bg_color = C_MAGIC.darkened(0.1); h.border_color = C_GOLD
+	h.shadow_color = C_GOLD.lightened(0.10); h.shadow_size = 16
+	btn.add_theme_stylebox_override("hover", h)
+
+	var pr := n.duplicate() as StyleBoxFlat
+	pr.bg_color = C_MAGIC.darkened(0.5); pr.border_color = C_GOLD.darkened(0.25)
+	btn.add_theme_stylebox_override("pressed", pr)
+	btn.add_theme_stylebox_override("focus", StyleBoxFlat.new())
+
+	btn.add_theme_color_override("font_color", C_GOLD_S)
+	btn.add_theme_color_override("font_hover_color", C_GOLD)
+	btn.add_theme_color_override("font_pressed_color", C_GOLD.darkened(0.3))
+	btn.add_theme_color_override("font_shadow_color", Color(0,0,0,0.9))
+	btn.add_theme_constant_override("shadow_offset_x", 2)
+	btn.add_theme_constant_override("shadow_offset_y", 3)
 
 # ── Hint "Πάτα για να συνεχίσεις" ─────────────────────────────────────────
 func _build_hint() -> Label:

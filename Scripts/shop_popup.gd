@@ -23,18 +23,18 @@ const C_BONE   := Color(0.868, 0.830, 0.685)
 
 const W := 1080.0
 const H := 1920.0
+# ── Mobile-first μεγέθη (Android, portrait 1080×1920) ───────────────────────
+# Ο καμβάς 1080 πλάτος αντιστοιχεί σε οθόνη ~1080 φυσικών pixel (xxhdpi, 3×),
+# άρα το ελάχιστο άνετο touch target των 48dp = ~144px ΕΔΩ. Κάθε πατήσιμο
+# στοιχείο κρατιέται στα ~116-130px (κοντά στο όριο, χωρίς να τρώει την οθόνη)
+# και τα κείμενα στα 26-34 (τα παλιά 20-27 ήταν δυσανάγνωστα στο κινητό).
 const HDR_H := 240.0
-const TAB_H := 96.0
-const CAT_BAR_H := 68.0
+const TAB_H := 140.0
+const BTN_H := 120.0        # ύψος κουμπιού ΑΓΟΡΑ/ΣΤΡΑΤΟΛΟΓΗΣΗ
+const CARD_W := 490.0       # 2 στήλες: 30 + 490 + 20 + 490 + 30 = 1080
+const CARD_H := 580.0
 
 var _category := "weapons"
-
-# Θυμάται ξεχωριστά ποια υπο-κατηγορία ήταν επιλεγμένη σε κάθε καρτέλα.
-# Γεμίζεται στο _ready() (όχι εδώ ως field initializer) — τα field
-# initializers μπορούν να αξιολογηθούν από το GDScript σε context όπου τα
-# autoloads δεν είναι ακόμα διαθέσιμα, οδηγώντας σε άδειο WeaponInventory
-# .categories/ArmorInventory.categories και "out of bounds" σε [0].
-var _selected_category: Dictionary = {}
 
 var _currency_strip: Control
 var _currency_labels := {}   # currency name -> Label
@@ -42,20 +42,17 @@ var _scroll: ScrollContainer
 var _grid: GridContainer
 var _tab_weapons: Button
 var _tab_armor: Button
-var _cat_bar: ScrollContainer
-var _cat_buttons: Dictionary = {}   # category -> Button
+var _tab_characters: Button
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	visible = false
-	_selected_category = {
-		"weapons": WeaponInventory.categories[0],
-		"armor": ArmorInventory.categories[0],
-	}
 	_build()
 	Currency.changed.connect(_update_currency_labels)
 	WeaponInventory.changed.connect(_on_equipment_changed)
 	ArmorInventory.changed.connect(_on_equipment_changed)
+	# Ανανέωση της καρτέλας Χαρακτήρων όταν αλλάζει το roster (π.χ. μετά από αγορά).
+	Heroes.changed.connect(_on_equipment_changed)
 
 func show_popup() -> void:
 	visible = true
@@ -81,7 +78,6 @@ func _build() -> void:
 	_build_dim()
 	_build_header()
 	_build_tabs()
-	_build_category_bar()
 	_build_grid_area()
 	_layout_grid_area()
 	_refresh_grid()
@@ -108,44 +104,69 @@ func _build_header() -> void:
 	_lbl(hdr, "⚔  ΟΠΛΟΠΩΛΕΙΟ  🛡", Vector2(0, 24), Vector2(W, 70),
 		 48, C_BONE, HORIZONTAL_ALIGNMENT_CENTER, Color(0,0,0,0.92), 3, 4)
 
-	# Κουμπί κλεισίματος
+	# Κουμπί κλεισίματος — 100×100, άνετο μέγεθος δαχτύλου
 	var close_btn := Button.new()
 	close_btn.text     = "✕"
-	close_btn.position = Vector2(24, 26)
-	close_btn.size     = Vector2(64, 64)
+	close_btn.position = Vector2(20, 14)
+	close_btn.size     = Vector2(100, 100)
 	_style_iron(close_btn)
-	close_btn.add_theme_font_size_override("font_size", 32)
+	close_btn.add_theme_font_size_override("font_size", 46)
 	hdr.add_child(close_btn)
 	close_btn.pressed.connect(_close)
 
 	_build_currency_strip(hdr)
 
+# Μόνο τα υλικά που αφορούν το Shop (η αγορά γίνεται αποκλειστικά σε Χαλκό —
+# βλ. EquipmentCatalog.buy) — όχι Σφαίρες/Κλειδιά, που δεν χρησιμοποιούνται
+# πουθενά εδώ. Ίδια σχετική σειρά με το Currency.ORDER.
+const STRIP_CURRENCIES: Array[String] = ["Χαλκός", "Δέρμα", "Σίδερο"]
+
 func _build_currency_strip(hdr: Control) -> void:
 	_currency_strip = Control.new()
-	_currency_strip.position = Vector2(24, 106)
-	_currency_strip.size     = Vector2(W - 48, 108)
+	_currency_strip.position = Vector2(24, 104)
+	_currency_strip.size     = Vector2(W - 48, 122)
 	_currency_strip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hdr.add_child(_currency_strip)
 
-	var count: int = Currency.ORDER.size()
+	var count: int = STRIP_CURRENCIES.size()
 	var gap := 14.0
-	var badge_w: float = (_currency_strip.size.x - gap * (count - 1)) / count
+	# Με λίγα badges το ισομοιρασμένο πλάτος θα έβγαινε υπερβολικά φαρδύ —
+	# περιορίζεται και η ομάδα κεντράρεται στο strip.
+	var badge_w: float = minf((_currency_strip.size.x - gap * (count - 1)) / count, 220.0)
+	var x0: float = (_currency_strip.size.x - (badge_w * count + gap * (count - 1))) / 2.0
 
 	for i in range(count):
-		var currency: String = Currency.ORDER[i]
-		var bx: float = i * (badge_w + gap)
+		var currency: String = STRIP_CURRENCIES[i]
+		var bx: float = x0 + i * (badge_w + gap)
 
 		var badge := Panel.new()
 		badge.position = Vector2(bx, 0)
-		badge.size     = Vector2(badge_w, 108)
+		badge.size     = Vector2(badge_w, 122)
 		badge.add_theme_stylebox_override("panel", _sb(C_DARK, Currency.COLORS.get(currency, C_GOLD_D).darkened(0.2), 3, 10))
 		_currency_strip.add_child(badge)
 
-		_lbl(badge, str(Currency.ICONS.get(currency, "•")), Vector2(0, 8), Vector2(badge_w, 40),
-			 26, Currency.COLORS.get(currency, C_GOLD), HORIZONTAL_ALIGNMENT_CENTER)
+		# Εικόνα-εικονίδιο πόρου αν υπάρχει (Currency.TEXTURE_ICONS), αλλιώς
+		# το παλιό text/emoji εικονίδιο.
+		var icon_tex := Currency.get_icon_texture(currency)
+		if icon_tex:
+			var icon := TextureRect.new()
+			icon.texture  = icon_tex
+			# ΠΡΟΣΟΧΗ στη σειρά: το expand_mode πρέπει να οριστεί ΠΡΙΝ το
+			# size — αλλιώς το minimum size της υφής (~1000px!) «κλειδώνει»
+			# το size στο φυσικό μέγεθος της εικόνας και το εικονίδιο
+			# ζωγραφίζεται τεράστιο πάνω από όλο το UI.
+			icon.expand_mode  = TextureRect.EXPAND_IGNORE_SIZE
+			icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			icon.position = Vector2((badge_w - 56.0) / 2.0, 8)
+			icon.size     = Vector2(56, 56)
+			icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			badge.add_child(icon)
+		else:
+			_lbl(badge, str(Currency.ICONS.get(currency, "•")), Vector2(0, 8), Vector2(badge_w, 52),
+				 34, Currency.COLORS.get(currency, C_GOLD), HORIZONTAL_ALIGNMENT_CENTER)
 
-		var amount_lbl := _lbl(badge, "", Vector2(0, 46), Vector2(badge_w, 34),
-			 26, C_BONE, HORIZONTAL_ALIGNMENT_CENTER, Color(0,0,0,0.85), 1, 1)
+		var amount_lbl := _lbl(badge, "", Vector2(0, 66), Vector2(badge_w, 48),
+			 36, C_BONE, HORIZONTAL_ALIGNMENT_CENTER, Color(0,0,0,0.85), 1, 1)
 		_currency_labels[currency] = amount_lbl
 
 	_update_currency_labels()
@@ -161,46 +182,21 @@ func _build_tabs() -> void:
 	bar.add_theme_stylebox_override("panel", _sb(Color(0.048, 0.032, 0.015, 0.90), C0, 0))
 	add_child(bar)
 
-	_tab_weapons = _tab_button("⚔  ΟΠΛΑ", Vector2(40, 10), Vector2(480, 76))
+	# Τρία tabs στο πλάτος 1080 (~344 το καθένα), ύψος 116 — άνετος στόχος για
+	# δάχτυλο (τα παλιά 90 ήταν μόλις ~30dp).
+	_tab_weapons = _tab_button("⚔  ΟΠΛΑ", Vector2(16, 12), Vector2(344, 116))
 	bar.add_child(_tab_weapons)
 	_tab_weapons.pressed.connect(func(): _set_category("weapons"))
 
-	_tab_armor = _tab_button("🛡  ΠΑΝΟΠΛΙΕΣ", Vector2(560, 10), Vector2(480, 76))
+	_tab_armor = _tab_button("🛡  ΠΑΝΟΠΛΙΕΣ", Vector2(368, 12), Vector2(344, 116))
 	bar.add_child(_tab_armor)
 	_tab_armor.pressed.connect(func(): _set_category("armor"))
 
+	_tab_characters = _tab_button("🧑  ΗΡΩΕΣ", Vector2(720, 12), Vector2(344, 116))
+	bar.add_child(_tab_characters)
+	_tab_characters.pressed.connect(func(): _set_category("characters"))
+
 	_update_tabs()
-
-## Δεύτερη γραμμή tabs — οι κατηγορίες της τρέχουσας καρτέλας (9 για Όπλα,
-## 4 για Πανοπλίες). Ξαναχτίζεται ολόκληρη σε κάθε εναλλαγή καρτέλας, αφού
-## οι δύο έχουν διαφορετικό σύνολο κατηγοριών.
-func _build_category_bar() -> void:
-	_cat_bar = ScrollContainer.new()
-	_cat_bar.position = Vector2(0, HDR_H + TAB_H + 6)
-	_cat_bar.size     = Vector2(W, CAT_BAR_H)
-	_cat_bar.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	add_child(_cat_bar)
-	_rebuild_category_bar()
-
-func _rebuild_category_bar() -> void:
-	for c in _cat_bar.get_children():
-		c.queue_free()
-	_cat_buttons.clear()
-
-	var catalog := _current_catalog()
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 10)
-	_cat_bar.add_child(row)
-
-	for category in catalog.categories:
-		var btn := Button.new()
-		btn.text = catalog.get_category_label(category)
-		btn.custom_minimum_size = Vector2(150, CAT_BAR_H - 8)
-		btn.add_theme_font_size_override("font_size", 22)
-		_style_iron(btn, category == _selected_category[_category])
-		row.add_child(btn)
-		_cat_buttons[category] = btn
-		btn.pressed.connect(func(): _select_sub_category(category))
 
 func _build_grid_area() -> void:
 	_scroll = ScrollContainer.new()
@@ -228,37 +224,34 @@ func _set_category(cat: String) -> void:
 		return
 	_category = cat
 	_update_tabs()
-	_rebuild_category_bar()
 	_layout_grid_area()
 	_refresh_grid()
 
 func _update_tabs() -> void:
-	_style_iron(_tab_weapons, _category == "weapons")
-	_style_iron(_tab_armor,   _category == "armor")
+	_style_iron(_tab_weapons,    _category == "weapons")
+	_style_iron(_tab_armor,      _category == "armor")
+	_style_iron(_tab_characters, _category == "characters")
 
-## Η κάτω περιοχή (grid) ξεκινάει πάντα ακριβώς κάτω από τη γραμμή
-## κατηγοριών — το ίδιο ύψος και για τις δύο καρτέλες, οπότε δεν χρειάζεται
-## να αλλάζει δυναμικά.
+## Η κάτω περιοχή (grid) ξεκινάει ακριβώς κάτω από τα tabs (Όπλα/Πανοπλίες/
+## Ήρωες) — δεν υπάρχει πλέον γραμμή υπο-κατηγοριών.
 func _layout_grid_area() -> void:
-	var top := HDR_H + TAB_H + 16 + CAT_BAR_H + 10
+	var top := HDR_H + TAB_H + 16
 	_scroll.position = Vector2(0, top)
 	_scroll.size     = Vector2(W, H - top)
-
-func _select_sub_category(category: String) -> void:
-	if _selected_category[_category] == category:
-		return
-	_selected_category[_category] = category
-	for cat in _cat_buttons:
-		_style_iron(_cat_buttons[cat], cat == category)
-	_refresh_grid()
 
 func _refresh_grid() -> void:
 	for c in _grid.get_children():
 		c.queue_free()
+	if _category == "characters":
+		for def in Heroes.HERO_DEFS:
+			_grid.add_child(_make_hero_card(def))
+		return
 	var catalog := _current_catalog()
-	var category: String = _selected_category[_category]
-	for id in catalog.get_items_in_category(category):
-		_grid.add_child(_make_equipment_card(catalog, id))
+	# Όλα τα αντικείμενα όλων των κατηγοριών του καταλόγου μαζί — δεν υπάρχουν
+	# πλέον υπο-κατηγορίες.
+	for category in catalog.categories:
+		for id in catalog.get_items_in_category(category):
+			_grid.add_child(_make_equipment_card(catalog, id))
 
 func _on_equipment_changed() -> void:
 	_refresh_grid()
@@ -268,43 +261,53 @@ func _on_equipment_changed() -> void:
 # αναβάθμιση/πώληση γίνονται αποκλειστικά στο Inventory)
 # ═══════════════════════════════════════════════════════════════
 func _make_equipment_card(catalog: EquipmentCatalog, id: String) -> Control:
-	const CW := 490.0
-	const CH := 320.0
-
 	var owned: bool = catalog.is_owned(id)
 
 	var card := Panel.new()
-	card.custom_minimum_size = Vector2(CW, CH)
+	card.custom_minimum_size = Vector2(CARD_W, CARD_H)
+	# clip_contents: τα fantasy ονόματα είναι συχνά μακριά — με το autowrap
+	# παρακάτω μένουν μέσα, αλλά αν ξεφύγει κάτι κόβεται στην άκρη της κάρτας
+	# αντί να ζωγραφιστεί πάνω στη διπλανή.
+	card.clip_contents = true
 	card.add_theme_stylebox_override("panel", _sb(C_DARK, C_GOLD_D if owned else C_GOLD_D.darkened(0.25), 3, 10))
 
 	var icon := TextureRect.new()
-	icon.position = Vector2(20, 16)
-	icon.size     = Vector2(CW - 40, 140)
-	icon.expand_mode  = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+	# EXPAND_IGNORE_SIZE ΠΡΙΝ το size (αλλιώς το minimum size της υφής κλειδώνει
+	# το πλαίσιο στο φυσικό μέγεθος της εικόνας).
+	icon.expand_mode  = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.position = Vector2(20, 16)
+	icon.size     = Vector2(CARD_W - 40, 200)
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var icon_path := catalog.get_icon_path(id)
 	if ResourceLoader.exists(icon_path):
-		icon.texture = load(icon_path)
+		# ΙΔΙΟ auto-crop pipeline με το Inventory (Inventory.get_item_texture):
+		# τα PNG εξοπλισμού είναι μεγάλος, κατά κύριο λόγο ΔΙΑΦΑΝΗΣ καμβάς, οπότε
+		# η ακατέργαστη υφή εμφανιζόταν μικροσκοπική μέσα στο πλαίσιο (ιδίως οι
+		# πανοπλίες). Το crop στο πραγματικό bounding box τη "γεμίζει".
+		icon.texture = Inventory.get_item_texture({"avatar_overlay": icon_path})
 	card.add_child(icon)
 
-	_lbl(card, catalog.get_item_name(id), Vector2(16, 158), Vector2(CW - 32, 34),
-		 22, C_BONE, HORIZONTAL_ALIGNMENT_CENTER)
+	# Όνομα — 2 γραμμές με autowrap ώστε τα μακριά ονόματα να μη ξεχειλίζουν.
+	var name_lbl := _lbl(card, catalog.get_item_name(id), Vector2(16, 224), Vector2(CARD_W - 32, 84),
+		 32, C_BONE, HORIZONTAL_ALIGNMENT_CENTER)
+	name_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
-	_lbl(card, "%s %s %d" % [catalog.stat_icon, catalog.stat_label, catalog.get_base_stat(id)], Vector2(20, 192), Vector2(CW - 40, 28),
-		 18, C_SILVER, HORIZONTAL_ALIGNMENT_CENTER)
+	_lbl(card, "%s %s %d" % [catalog.stat_icon, catalog.stat_label, catalog.get_base_stat(id)],
+		 Vector2(20, 312), Vector2(CARD_W - 40, 40), 28, C_SILVER, HORIZONTAL_ALIGNMENT_CENTER)
 
 	if owned:
 		_lbl(card, "Κατοχή — Επίπεδο %d/%d" % [catalog.get_tier(id), catalog.UPGRADE_MAX_TIER],
-			 Vector2(20, 220), Vector2(CW - 40, 26), 16, C_GOLD, HORIZONTAL_ALIGNMENT_CENTER)
+			 Vector2(20, 356), Vector2(CARD_W - 40, 44), 26, C_GOLD, HORIZONTAL_ALIGNMENT_CENTER)
 	else:
-		_lbl(card, "%d %s" % [catalog.get_base_price(id), Currency.ICONS.get("Χρυσό", "🪙")],
-			 Vector2(20, 220), Vector2(CW - 40, 26), 20, C_GOLD, HORIZONTAL_ALIGNMENT_CENTER)
+		_lbl(card, "%d %s" % [catalog.get_base_price(id), Currency.ICONS.get("Χαλκός", "🪙")],
+			 Vector2(20, 356), Vector2(CARD_W - 40, 44), 34, C_GOLD, HORIZONTAL_ALIGNMENT_CENTER)
 
 	var buy := Button.new()
-	buy.position = Vector2(20, CH - 66)
-	buy.size     = Vector2(CW - 40, 50)
+	buy.position = Vector2(20, CARD_H - BTN_H - 20)
+	buy.size     = Vector2(CARD_W - 40, BTN_H)
 	buy.text     = "ΑΓΟΡΑΣΜΕΝΟ" if owned else "ΑΓΟΡΑ"
+	buy.add_theme_font_size_override("font_size", 34)
 	buy.disabled = owned
 	_style_iron(buy, not owned)
 	card.add_child(buy)
@@ -315,6 +318,70 @@ func _make_equipment_card(catalog: EquipmentCatalog, id: String) -> Control:
 
 func _buy(catalog: EquipmentCatalog, id: String) -> void:
 	if not catalog.buy(id):
+		_flash_insufficient()
+
+# ═══════════════════════════════════════════════════════════════
+# ΚΑΡΤΑ ΗΡΩΑ (tab "Χαρακτήρες") — αγορά προσθέτει νέο ήρωα στο roster με
+# ΤΥΧΑΙΑ stats (η λογική ζει στο Heroes.buy_hero). Κάθε ήρωας αγοράζεται
+# ΜΙΑ φορά· μετά την αγορά η κάρτα δείχνει "ΣΤΡΑΤΟΛΟΓΗΘΗΚΕ" και ανενεργό
+# κουμπί (ίδιο μοτίβο με την κάρτα εξοπλισμού). Η ανανέωση γίνεται μέσω του
+# Heroes.changed -> _on_equipment_changed.
+# ═══════════════════════════════════════════════════════════════
+func _make_hero_card(def: Dictionary) -> Control:
+	var owned: bool = Heroes.owns_hero_def(str(def["id"]))
+
+	var card := Panel.new()
+	card.custom_minimum_size = Vector2(CARD_W, CARD_H)
+	card.clip_contents = true
+	card.add_theme_stylebox_override("panel", _sb(C_DARK, C_GOLD_D if owned else C_GOLD_D.darkened(0.25), 3, 10))
+
+	var icon := TextureRect.new()
+	icon.position = Vector2(20, 16)
+	icon.size     = Vector2(CARD_W - 40, 200)
+	icon.expand_mode  = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var av := GameData.get_cropped_texture(str(def["avatar"]))
+	if av != null:
+		icon.texture = av
+	card.add_child(icon)
+
+	var name_lbl := _lbl(card, str(def["name"]), Vector2(16, 224), Vector2(CARD_W - 32, 84),
+		 32, C_BONE, HORIZONTAL_ALIGNMENT_CENTER)
+	name_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+
+	# Τα ΠΡΑΓΜΑΤΙΚΑ stats που θα πάρει ο παίκτης (Heroes.get_offer_stats — τα
+	# ρίχνει μία φορά και τα κρατάει, οπότε δεν «χορεύουν» σε κάθε redraw και
+	# η αγορά δίνει ΑΚΡΙΒΩΣ αυτά).
+	var st := Heroes.get_offer_stats(str(def["id"]))
+	_lbl(card, "%s %d   %s %d   %s %d   %s %d" % [
+			Heroes.STAT_ICONS["HP"], int(st["HP"]),
+			Heroes.STAT_ICONS["Damage"], int(st["Damage"]),
+			Heroes.STAT_ICONS["Shield"], int(st["Shield"]),
+			Heroes.STAT_ICONS["AttackSpeed"], int(st["AttackSpeed"])],
+		 Vector2(12, 312), Vector2(CARD_W - 24, 44), 28, C_GOLD, HORIZONTAL_ALIGNMENT_CENTER)
+	if owned:
+		_lbl(card, "Στο ρόστερ σου", Vector2(20, 358), Vector2(CARD_W - 40, 44),
+			 30, C_SILVER, HORIZONTAL_ALIGNMENT_CENTER)
+	else:
+		_lbl(card, "%d %s" % [int(def["price"]), Currency.ICONS.get("Χαλκός", "🪙")],
+			 Vector2(20, 358), Vector2(CARD_W - 40, 44), 34, C_GOLD, HORIZONTAL_ALIGNMENT_CENTER)
+
+	var buy := Button.new()
+	buy.position = Vector2(20, CARD_H - BTN_H - 20)
+	buy.size     = Vector2(CARD_W - 40, BTN_H)
+	buy.text     = "ΣΤΡΑΤΟΛΟΓΗΘΗΚΕ" if owned else "ΣΤΡΑΤΟΛΟΓΗΣΗ"
+	buy.add_theme_font_size_override("font_size", 30)
+	buy.disabled = owned
+	_style_iron(buy, not owned)
+	card.add_child(buy)
+	if not owned:
+		buy.pressed.connect(func(): _buy_hero(str(def["id"])))
+
+	return card
+
+func _buy_hero(def_id: String) -> void:
+	if Heroes.buy_hero(def_id) == "":
 		_flash_insufficient()
 
 func _flash_insufficient() -> void:
@@ -330,7 +397,7 @@ func _tab_button(txt: String, pos: Vector2, sz: Vector2) -> Button:
 	b.text     = txt
 	b.position = pos
 	b.size     = sz
-	b.add_theme_font_size_override("font_size", 32)
+	b.add_theme_font_size_override("font_size", 34)
 	return b
 
 func _sb(bg: Color, border: Color, bw: int, cr: int = 0) -> StyleBoxFlat:

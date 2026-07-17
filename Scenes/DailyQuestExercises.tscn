@@ -1,9 +1,21 @@
 [gd_scene format=3 uid="uid://doi3j0i6x8yld"]
 
 [ext_resource type="Script" path="res://Scripts/daily_quest_exercises.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://d21ohe8t4245y" path="res://Εικόνες/board.png" id="2_board"]
 
 [sub_resource type="StyleBoxFlat" id="bg"]
 bg_color = Color(0.055, 0.038, 0.018, 0.97)
+
+[sub_resource type="StyleBoxTexture" id="board"]
+texture = ExtResource("2_board")
+texture_margin_left = 48.0
+texture_margin_top = 48.0
+texture_margin_right = 48.0
+texture_margin_bottom = 48.0
+content_margin_left = 70.0
+content_margin_top = 60.0
+content_margin_right = 70.0
+content_margin_bottom = 60.0
 
 [node name="DailyQuestExercises" type="Panel"]
 anchors_preset = 15
@@ -28,6 +40,7 @@ theme_override_constants/margin_top = 160
 theme_override_constants/margin_bottom = 100
 
 [node name="VBox" type="VBoxContainer" parent="Margin"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 40
 alignment = 1
@@ -39,7 +52,15 @@ theme_override_font_sizes/font_size = 56
 text = "Daily Quest — Ασκήσεις"
 horizontal_alignment = 1
 
-[node name="HintLabel" type="Label" parent="Margin/VBox"]
+[node name="BoardPanel" type="PanelContainer" parent="Margin/VBox"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("board")
+
+[node name="BoardContent" type="VBoxContainer" parent="Margin/VBox/BoardPanel"]
+layout_mode = 2
+theme_override_constants/separation = 30
+
+[node name="HintLabel" type="Label" parent="Margin/VBox/BoardPanel/BoardContent"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.868, 0.83, 0.685, 1)
@@ -48,7 +69,7 @@ text = "Εδώ θα εμφανίζονται οι εκφωνήσεις των α
 horizontal_alignment = 1
 autowrap_mode = 3
 
-[node name="ExercisesContainer" type="VBoxContainer" parent="Margin/VBox"]
+[node name="ExercisesContainer" type="VBoxContainer" parent="Margin/VBox/BoardPanel/BoardContent"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 20

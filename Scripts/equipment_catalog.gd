@@ -10,16 +10,22 @@ class_name EquipmentCatalog
 ## κοινή και ζει ΜΙΑ φορά εδώ — καμία υποκλάση δεν την ξαναγράφει.
 ##
 ## Οι υποκλάσεις μπορούν προαιρετικά να υπερφορτώσουν το get_base_stat()/
-## get_total_stat() αν χρειάζονται δική τους φόρμουλα στατιστικού (βλ.
-## weapon_inventory.gd, που τη χρειάζεται στην κλίμακα 1-20 για να ταιριάζει
-## με το Character stat panel) — η προεπιλογή (old_level × 10) καλύπτει ήδη
-## το armor_inventory.gd χωρίς καμία υπερφόρτωση.
+## get_total_stat() αν χρειάζονται δική τους φόρμουλα στατιστικού — βλ.
+## weapon_inventory.gd (κλίμακα 1-20 για να ταιριάζει με το Character stat
+## panel) και armor_inventory.gd (χειροκίνητη Άμυνα 1-5 ανά κομμάτι, βλ.
+## εκεί για λεπτομέρειες).
 ##
 ## Για να προστεθεί νέο όπλο/πανοπλία στο μέλλον: αντέγραψε την εικόνα μέσα
 ## στον φάκελο της κατηγορίας της και πρόσθεσε ένα {file, name} entry στο
 ## items[category] της αντίστοιχης υποκλάσης — καμία άλλη αλλαγή λογικής.
 
 signal changed
+## Εκπέμπεται ΜΟΝΟ σε επιτυχή αγορά (όχι upgrade/sell) — το Inventory
+## autoload (Scripts/inventory_data.gd) το ακούει για να εξοπλίζει αυτόματα
+## την πρώτη αγορά που γεμίζει μια άδεια θέση (όπλο ή συγκεκριμένη κατηγορία
+## πανοπλίας). Ξεχωριστό από το "changed" γιατί εκείνο δεν κουβαλάει ποιο id
+## άλλαξε, οπότε δεν αρκεί για να αποφασιστεί αν πρέπει να γίνει auto-equip.
+signal item_bought(id: String)
 
 var item_dir: String = ""
 var categories: Array[String] = []
@@ -29,6 +35,10 @@ var items: Dictionary = {}               # category -> Array[{"file": String, "n
 var stat_label: String = "Επίθεση"
 var stat_icon: String = "⚔"
 var starter_ids: Array[String] = []      # ιδιοκτησία εξ αρχής σε ολοκαίνουργιο save
+# false = ο κατάλογος ΔΕΝ έχει καθόλου σύστημα αναβάθμισης (βλ. armor_inventory.gd):
+# το can_upgrade()/upgrade() αρνούνται πάντα, και το Inventory UI κρύβει το
+# "Επίπεδο x/3" + κουμπί Αναβάθμισης. Το tier παραμένει 1 μετά την αγορά.
+var upgradable: bool = true
 
 const UPGRADE_MAX_TIER := 3
 const UPGRADE_STAT_BONUS := 2
@@ -148,7 +158,7 @@ func get_total_stat(id: String) -> int:
 	return get_base_stat(id) + (get_tier(id) - 1) * UPGRADE_STAT_BONUS
 
 func can_upgrade(id: String) -> bool:
-	return is_owned(id) and get_tier(id) < UPGRADE_MAX_TIER
+	return upgradable and is_owned(id) and get_tier(id) < UPGRADE_MAX_TIER
 
 ## Τιμή πώλησης: 50% της αρχικής τιμής αγοράς + επιστροφή όλων των coins
 ## που ξοδεύτηκαν σε upgrades.
@@ -164,18 +174,19 @@ func get_sell_price(id: String) -> int:
 func buy(id: String) -> bool:
 	if is_owned(id):
 		return false
-	if not Currency.spend({"Χρυσό": get_base_price(id)}):
+	if not Currency.spend({"Χαλκός": get_base_price(id)}):
 		return false
 	_state[id] = {"owned": true, "tier": 1}
 	_persist(id)
 	changed.emit()
+	item_bought.emit(id)
 	return true
 
 ## Αναβάθμιση επιπέδου (1→2→3) — καλείται ΜΟΝΟ από το Inventory.
 func upgrade(id: String) -> bool:
 	if not can_upgrade(id):
 		return false
-	if not Currency.spend({"Χρυσό": get_upgrade_cost(get_tier(id))}):
+	if not Currency.spend({"Χαλκός": get_upgrade_cost(get_tier(id))}):
 		return false
 	var entry: Dictionary = _state[id]
 	entry["tier"] = int(entry["tier"]) + 1
@@ -192,7 +203,7 @@ func sell(id: String) -> bool:
 	var refund := get_sell_price(id)
 	_state[id] = {"owned": false, "tier": 0}
 	_persist(id)
-	Currency.add("Χρυσό", refund)
+	Currency.add("Χαλκός", refund)
 	changed.emit()
 	return true
 

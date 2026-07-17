@@ -1,16 +1,24 @@
 extends Control
 
 # ── Μονοπάτια εικόνων ─────────────────────────────────────────────────────
-const BG_PATH     := "res://Εικόνες/bl.background.png"
+const BG_PATH     := "res://Εικόνες/blacksmith-bg.png"
 const CHAR_PATH   := "res://Εικόνες/blacksmith.png"
 const BOARD_PATH  := "res://Εικόνες/board.png"
 
 # ── Σύστημα ασκήσεων ──────────────────────────────────────────────────────
-# Αρχείο ερωτήσεων πολλαπλής επιλογής (απάντηση πάντα A/B/C/D/E/F).
-const QUIZ_PATH := "res://blacksmith_quiz.json"
+# Οι 20 ασκήσεις ΑΕΠΠ, με τη σειρά. Ο παίκτης γράφει την απάντηση με το
+# πληκτρολόγιο οθόνης (βλ. _build_keyboard) — δεν είναι πολλαπλής επιλογής,
+# εκτός από την τελευταία ("mode": "choice" στο JSON).
+#
+# ΠΡΟΣΟΧΗ: το παλιό blacksmith_quiz.json (A-F) ΔΕΝ διαγράφηκε — το
+# χρησιμοποιεί ακόμη το Level 2 του daily_quest_exercises.gd.
+const QUIZ_PATH := "res://blacksmith_exercises.json"
 
-# Πόσες ερωτήσεις ανά επίσκεψη (τυχαίες κάθε φορά). 0 = όλες.
-const QUESTIONS_PER_ROUND := 5
+# 0 = όλες οι ασκήσεις, με τη σειρά του αρχείου (1 → 20).
+const QUESTIONS_PER_ROUND := 0
+
+# Πόσες λάθος απαντήσεις πριν αποκαλυφθεί η λύση και προχωρήσουμε.
+const MAX_ATTEMPTS := 2
 
 # Loot: μόνο σίδερο. Η ποσότητα εξαρτάται από τη ΔΥΣΚΟΛΙΑ των ερωτήσεων που
 # απαντήθηκαν σωστά. Δίνεται όταν φεύγεις, αρκεί να απάντησες ≥1 ερώτηση.
@@ -54,12 +62,26 @@ var _completion   : Control
 var _answered     := 0
 var _loot_given   := false
 
-# ── Πληκτρολόγιο σιδηρουργού (μόνο A-F λειτουργικά) ────────────────────────
-const KEY_LETTERS: Array[String] = ["A", "B", "C", "D", "E", "F"]
-const KEY_ICONS := {
-	"A": "⚒", "B": "⛓", "C": "⚔", "D": "⚙", "E": "🛡", "F": "🔥",
-}
-var _key_buttons : Dictionary = {}   # letter (String) → Button
+# ── Πεδίο απάντησης + πληκτρολόγιο οθόνης ─────────────────────────────────
+# Το πεδίο απάντησης είναι Label μέσα σε Panel, ΟΧΙ LineEdit: ένα LineEdit
+# (ακόμη κι editable=false) μπορεί να πάρει focus και να σηκώσει το
+# πληκτρολόγιο του κινητού — που είναι ακριβώς ό,τι θέλουμε να αποφύγουμε.
+var _answer_text  := ""
+var _answer_label : Label
+var _keyboard     : Control   # πλήρες πληκτρολόγιο (ασκήσεις 1-19)
+var _choices      : Control   # 4 κουμπιά επιλογής (άσκηση 20)
+var _keys         : Array[Button] = []   # όλα τα πλήκτρα, για enable/disable
+
+# Λέξεις-κουμπιά: ένα πάτημα = όλη η λέξη.
+# Το ΟΧΙ είναι ένα κουμπί που καλύπτει και τον λογικό τελεστή και την
+# απάντηση "ΟΧΙ" — δύο ξεχωριστά κουμπιά θα έγραφαν ακριβώς το ίδιο κείμενο.
+const WORD_KEYS_A: Array[String] = ["div", "mod", "ΚΑΙ", "Ή", "ΟΧΙ", "ΝΑΙ"]
+const WORD_KEYS_B: Array[String] = ["ΑΛΗΘΗΣ", "ΨΕΥΔΗΣ", "ΑΚΕΡΑΙΑ", "ΑΡΤΙΟΣ"]
+const WORD_KEYS_C: Array[String] = ["ΠΡΑΓΜΑΤΙΚΗ", "ΧΑΡΑΚΤΗΡΕΣ", "ΛΟΓΙΚΗ"]
+
+const DIGIT_KEYS: Array[String] = ["0","1","2","3","4","5","6","7","8","9"]
+const GREEK_KEYS: Array[String] = ["χ","ψ","α","β","Χ","(",")","'",".",","]
+const OPER_KEYS:  Array[String] = ["+","-","*","/","^","=","<",">","<=",">="]
 
 # ═══════════════════════════════════════════════════════════════════════════
 func _ready() -> void:
@@ -80,6 +102,7 @@ func show_popup() -> void:
 	_loot_given = false
 	if _feedback: _feedback.text = ""
 	if _progress: _progress.text = ""
+	_set_answer("")
 	_set_keyboard_enabled(false)
 	_char.visible      = true
 	_char.modulate.a   = 1.0
@@ -105,25 +128,22 @@ func _on_gui_input(event: InputEvent) -> void:
 		_go_to_state2()
 	accept_event()
 
-# ── Φυσικό πληκτρολόγιο: τα πλήκτρα A-F λειτουργούν και από το πραγματικό
-#    πληκτρολόγιο, όχι μόνο με κλικ πάνω στο on-screen πληκτρολόγιο ────────
+# ── Φυσικό πληκτρολόγιο: μόνο Backspace/Enter, για δοκιμή σε υπολογιστή.
+#    Στο κινητό η απάντηση γράφεται αποκλειστικά από το πληκτρολόγιο οθόνης
+#    — γι' αυτό δεν δεχόμαστε γράμματα από τη συσκευή. ──────────────────────
 func _unhandled_key_input(event: InputEvent) -> void:
 	if not visible or _state != 2 or _input_locked:
 		return
 	var ke := event as InputEventKey
 	if ke == null or not ke.pressed or ke.echo:
 		return
-	var letter := ""
 	match ke.keycode:
-		KEY_A: letter = "A"
-		KEY_B: letter = "B"
-		KEY_C: letter = "C"
-		KEY_D: letter = "D"
-		KEY_E: letter = "E"
-		KEY_F: letter = "F"
-	if letter != "":
-		_on_key_pressed(letter)
-		get_viewport().set_input_as_handled()
+		KEY_BACKSPACE:
+			_on_backspace()
+			get_viewport().set_input_as_handled()
+		KEY_ENTER, KEY_KP_ENTER:
+			_on_submit()
+			get_viewport().set_input_as_handled()
 
 # ═══════════════════════════════════════════════════════════════════════════
 # ΚΑΤΑΣΤΑΣΗ 2 — blacksmith φεύγει, board + πληκτρολόγιο εμφανίζονται
@@ -174,14 +194,22 @@ func _build_background() -> void:
 	add_child(dim)
 
 # ── Χαρακτήρας blacksmith ─────────────────────────────────────────────────
+# Το blacksmith.png είναι 1408×768 landscape καμβάς με ΤΕΡΑΣΤΙΑ διάφανα
+# περιθώρια — ο σιδεράς καταλαμβάνει μόνο το CHAR_REGION παρακάτω. Χωρίς το
+# crop, το EXPAND_FIT_WIDTH_PROPORTIONAL φούσκωνε το control σε 1760×960 και
+# ο σιδεράς κατέληγε σχεδόν ολόκληρος ΕΚΤΟΣ οθόνης δεξιά (αόρατος). Ίδια
+# λύση με τον γέρο του tutorial (old_man_popup.gd::CHAR_REGION).
+const CHAR_REGION := Rect2(478, 12, 500, 744)
+
 func _build_character() -> TextureRect:
-	var tex : Texture2D = load(CHAR_PATH)
+	var atlas := AtlasTexture.new()
+	atlas.atlas  = load(CHAR_PATH)
+	atlas.region = CHAR_REGION
 	var char_rect := TextureRect.new()
-	if tex:
-		char_rect.texture = tex
-	char_rect.position     = Vector2(530, 580)
+	char_rect.texture      = atlas
+	char_rect.position     = Vector2(470, 580)
 	char_rect.size         = Vector2(510, 960)
-	char_rect.expand_mode  = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+	char_rect.expand_mode  = TextureRect.EXPAND_IGNORE_SIZE
 	char_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	char_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(char_rect)
@@ -196,7 +224,9 @@ func _build_bubble() -> Control:
 	const BX := 32.0
 	const BY := 170.0
 	const BW := 570.0
-	const BH := 460.0
+	# Αρκετό ύψος ώστε το Label (11 γραμμές × ~35px στο font 25) να χωράει στο
+	# BH-130 — στα 460 κόβονταν οι 2 τελευταίες γραμμές της ομιλίας.
+	const BH := 545.0
 
 	_shadow(root, Vector2(BX+8, BY+8), Vector2(BW, BH), 18)
 
@@ -217,7 +247,7 @@ func _build_bubble() -> Control:
 	_cr_on(root, Vector2(BX+30, BY+86), Vector2(BW-60, 2), C_GOLD_D)
 
 	var msg := Label.new()
-	msg.text = "Α! Καλωσόρισες, περιπλανώμενε!\n\nΘα χαρώ να σε βοηθήσω\nμε υλικά για το ταξίδι σου...\n\nΑλλά πρώτα λύσε μερικές\nασκήσεις μου! Θα βλέπεις\nτο πρόβλημα στον πίνακα και\nθα απαντάς πατώντας ένα από\nτα πλήκτρα A B C D E F στο\nπληκτρολόγιο του σιδηρουργείου!"
+	msg.text = "Α! Καλωσόρισες, περιπλανώμενε!\n\nΘα χαρώ να σε βοηθήσω\nμε υλικά για το ταξίδι σου...\n\nΑλλά πρώτα λύσε τις 20\nασκήσεις μου! Θα βλέπεις\nτο πρόβλημα στον πίνακα και\nθα γράφεις την απάντηση με το\nπληκτρολόγιο του σιδηρουργείου.\nΜετά πάτα ΥΠΟΒΟΛΗ!"
 	msg.position         = Vector2(BX+28, BY+96)
 	msg.size             = Vector2(BW-56, BH-130)
 	msg.autowrap_mode    = TextServer.AUTOWRAP_WORD_SMART
@@ -262,16 +292,19 @@ func _sparkle_dots(parent: Control, bx: float, by: float, bw: float, bh: float) 
 		tw.tween_property(sp, "color:a", 0.90, 0.12)
 		tw.tween_property(sp, "color:a", 0.0,  0.35)
 
-# ── Board (Κατάσταση 2) — εκφώνηση + πληκτρολόγιο A-F ──────────────────────
+# ── Board (Κατάσταση 2) — εκφώνηση + πεδίο απάντησης ──────────────────────
+# Ο πίνακας κρατά ΜΟΝΟ την εκφώνηση και την απάντηση. Το πληκτρολόγιο μπαίνει
+# ΚΑΤΩ από τον πίνακα (KB_Y), γι' αυτό ο πίνακας είναι πιο κοντός/ψηλά απ' ό,τι
+# όταν είχε τα 6 πλήκτρα A-F μέσα του.
 func _build_board() -> Control:
 	var root := Control.new()
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(root)
 
 	const BRD_X := 60.0
-	const BRD_Y := 220.0
+	const BRD_Y := 70.0
 	const BRD_W := 960.0
-	const BRD_H := 1320.0
+	const BRD_H := 990.0
 
 	var brd_tex : Texture2D = load(BOARD_PATH)
 	var brd := TextureRect.new()
@@ -287,15 +320,19 @@ func _build_board() -> Control:
 	var pad := MarginContainer.new()
 	pad.position = Vector2(BRD_X, BRD_Y)
 	pad.size     = Vector2(BRD_W, BRD_H)
+	# Το board.png έχει διάφανο περιθώριο γύρω από το ξύλινο πλαίσιο: το ίδιο
+	# το χρυσό πλαίσιο ξεκινά ~190px κάτω από την κορυφή του TextureRect και
+	# τελειώνει ~120px πάνω από τη βάση του. Με μικρότερα margins η γραμμή
+	# προόδου έβγαινε ΠΑΝΩ από τον πίνακα, στο φόντο.
 	pad.add_theme_constant_override("margin_left",   110)
 	pad.add_theme_constant_override("margin_right",  110)
-	pad.add_theme_constant_override("margin_top",    150)
-	pad.add_theme_constant_override("margin_bottom", 130)
+	pad.add_theme_constant_override("margin_top",    190)
+	pad.add_theme_constant_override("margin_bottom", 122)
 	pad.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(pad)
 
 	var col := VBoxContainer.new()
-	col.add_theme_constant_override("separation", 20)
+	col.add_theme_constant_override("separation", 16)
 	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	pad.add_child(col)
 
@@ -314,7 +351,7 @@ func _build_board() -> Control:
 	_q_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_q_label.vertical_alignment   = VERTICAL_ALIGNMENT_CENTER
 	_q_label.size_flags_vertical  = Control.SIZE_EXPAND_FILL
-	_q_label.custom_minimum_size  = Vector2(0, 520)
+	_q_label.custom_minimum_size  = Vector2(0, 380)
 	_q_label.add_theme_font_size_override("font_size", 30)
 	_q_label.add_theme_color_override("font_color", C_PARCH)
 	_q_label.add_theme_color_override("font_shadow_color", Color(0,0,0,0.85))
@@ -324,27 +361,169 @@ func _build_board() -> Control:
 	_q_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	col.add_child(_q_label)
 
-	col.add_child(_build_keyboard())
+	col.add_child(_build_answer_field())
 
 	_feedback = Label.new()
 	_feedback.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_feedback.custom_minimum_size  = Vector2(0, 46)
-	_feedback.add_theme_font_size_override("font_size", 30)
+	_feedback.vertical_alignment   = VERTICAL_ALIGNMENT_CENTER
+	# Autowrap + ύψος για 2-3 γραμμές: η αποκάλυψη της λύσης είναι συχνά μεγάλη
+	# (π.χ. "5   (45789 div 1000 = 45,  45 mod 10 = 5)").
+	_feedback.autowrap_mode        = TextServer.AUTOWRAP_WORD_SMART
+	_feedback.custom_minimum_size  = Vector2(0, 90)
+	_feedback.add_theme_font_size_override("font_size", 23)
 	_feedback.add_theme_color_override("font_shadow_color", Color(0,0,0,0.85))
 	_feedback.add_theme_constant_override("shadow_offset_x", 1)
 	_feedback.add_theme_constant_override("shadow_offset_y", 2)
 	_feedback.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	col.add_child(_feedback)
 
+	# ── Πληκτρολόγιο / κουμπιά επιλογής, ΚΑΤΩ από τον πίνακα ──────────────
+	# Τελειώνουν στο 1755, πάνω από το κουμπί "Πίσω στο Χωριό" (H-138 = 1782).
+	const KB_X := 30.0
+	const KB_Y := 1075.0
+	const KB_W := 1020.0
+	const KB_H := 680.0
+
+	_keys.clear()
+
+	_keyboard = _build_keyboard()
+	_keyboard.position = Vector2(KB_X, KB_Y)
+	_keyboard.size     = Vector2(KB_W, KB_H)
+	root.add_child(_keyboard)
+
+	_choices = _build_choices()
+	_choices.position = Vector2(KB_X, KB_Y)
+	_choices.size     = Vector2(KB_W, KB_H)
+	_choices.visible  = false
+	root.add_child(_choices)
+
 	return root
 
-# ── Πληκτρολόγιο σιδηρουργού — μεταλλικό πλαίσιο με πλήκτρα A-F ───────────
-func _build_keyboard() -> Control:
-	const FRAME_H := 250.0
+# ── Πεδίο απάντησης (readonly) ────────────────────────────────────────────
+func _build_answer_field() -> Control:
+	var p := Panel.new()
+	p.custom_minimum_size = Vector2(0, 100)
+	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var s := StyleBoxFlat.new()
+	s.bg_color     = Color(0.060, 0.055, 0.045, 0.92)
+	s.border_color = C_GOLD_D
+	s.set_border_width_all(3)
+	s.set_corner_radius_all(10)
+	p.add_theme_stylebox_override("panel", s)
 
+	var m := MarginContainer.new()
+	m.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	m.add_theme_constant_override("margin_left",  14)
+	m.add_theme_constant_override("margin_right", 14)
+	m.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	p.add_child(m)
+
+	_answer_label = Label.new()
+	_answer_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_answer_label.vertical_alignment   = VERTICAL_ALIGNMENT_CENTER
+	_answer_label.autowrap_mode        = TextServer.AUTOWRAP_WORD_SMART
+	_answer_label.add_theme_font_size_override("font_size", 30)
+	_answer_label.add_theme_color_override("font_color", C_GOLD_S)
+	_answer_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	m.add_child(_answer_label)
+
+	return p
+
+# ── Πληκτρολόγιο σιδηρουργού — μεταλλικό πλαίσιο, φιλικό για κινητό ────────
+func _build_keyboard() -> Control:
+	var frame := _steel_frame()
+
+	var vcol := VBoxContainer.new()
+	vcol.add_theme_constant_override("separation", 8)
+	vcol.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_frame_body(frame, 12).add_child(vcol)
+
+	vcol.add_child(_key_row(DIGIT_KEYS, 30))
+	vcol.add_child(_key_row(GREEK_KEYS, 30))
+	vcol.add_child(_key_row(OPER_KEYS, 28))
+	vcol.add_child(_build_control_row())
+	vcol.add_child(_key_row(WORD_KEYS_A, 26))
+	vcol.add_child(_key_row(WORD_KEYS_B, 22))
+	vcol.add_child(_key_row(WORD_KEYS_C, 22))
+	vcol.add_child(_build_submit_row())
+
+	return frame
+
+## Σειρά όπου κάθε πλήκτρο γράφει ακριβώς την ετικέτα του.
+func _key_row(labels: Array[String], font_size: int) -> Control:
+	var row := _kb_row()
+	for t in labels:
+		row.add_child(_make_key(t, t, font_size))
+	return row
+
+## <>  ←  κενό  ⌫  Καθαρισμός
+func _build_control_row() -> Control:
+	var row := _kb_row()
+	row.add_child(_make_key("<>", "<>", 28))
+	row.add_child(_make_key("←", "←", 28))
+
+	var space := _make_key("κενό", " ", 22)
+	space.size_flags_stretch_ratio = 1.6
+	row.add_child(space)
+
+	# "Σβήσε" αντί για το σύμβολο ⌫: η γραμματοσειρά του παιχνιδιού δεν έχει
+	# glyph για το U+232B και έβγαινε άδειο τετραγωνάκι στην οθόνη.
+	var bs := _make_action_key("Σβήσε", 22, _on_backspace)
+	bs.size_flags_stretch_ratio = 1.3
+	var clr := _make_action_key("Καθαρισμός", 20, _on_clear)
+	clr.size_flags_stretch_ratio = 1.8
+	row.add_child(bs)
+	row.add_child(clr)
+	return row
+
+func _build_submit_row() -> Control:
+	var row := _kb_row()
+	row.add_child(_make_action_key("✔   ΥΠΟΒΟΛΗ", 30, _on_submit))
+	return row
+
+# ── Άσκηση 20: 4 κουμπιά επιλογής αντί για πληκτρολόγιο ───────────────────
+func _build_choices() -> Control:
+	var frame := _steel_frame()
+
+	var vcol := VBoxContainer.new()
+	vcol.add_theme_constant_override("separation", 14)
+	vcol.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_frame_body(frame, 20).add_child(vcol)
+
+	var title := Label.new()
+	title.text = "Διάλεξε τη σωστή απάντηση"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 26)
+	title.add_theme_color_override("font_color", C_GOLD_S)
+	title.add_theme_color_override("font_shadow_color", Color(0,0,0,0.85))
+	title.add_theme_constant_override("shadow_offset_x", 1)
+	title.add_theme_constant_override("shadow_offset_y", 2)
+	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	vcol.add_child(title)
+
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 14)
+	grid.add_theme_constant_override("v_separation", 14)
+	grid.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	grid.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	vcol.add_child(grid)
+
+	for i in range(1, 5):
+		var btn := Button.new()
+		btn.text = str(i)
+		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		btn.size_flags_vertical   = Control.SIZE_EXPAND_FILL
+		_style_key_btn(btn, 56)
+		btn.pressed.connect(_on_choice_pressed.bind(str(i)))
+		_keys.append(btn)
+		grid.add_child(btn)
+
+	return frame
+
+# ── Κοινά δομικά κομμάτια πληκτρολογίου / κουμπιών επιλογής ───────────────
+func _steel_frame() -> Panel:
 	var frame := Panel.new()
-	frame.custom_minimum_size  = Vector2(0, FRAME_H)
-	frame.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var fs := StyleBoxFlat.new()
 	fs.bg_color     = C_STEEL_D
@@ -354,51 +533,47 @@ func _build_keyboard() -> Control:
 	fs.shadow_color = Color(0, 0, 0, 0.55)
 	fs.shadow_size  = 12
 	frame.add_theme_stylebox_override("panel", fs)
+	return frame
 
-	var inner_margin := MarginContainer.new()
-	inner_margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	inner_margin.add_theme_constant_override("margin_left", 18)
-	inner_margin.add_theme_constant_override("margin_right", 18)
-	inner_margin.add_theme_constant_override("margin_top", 18)
-	inner_margin.add_theme_constant_override("margin_bottom", 18)
-	inner_margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	frame.add_child(inner_margin)
+func _frame_body(frame: Panel, margin: int) -> MarginContainer:
+	var m := MarginContainer.new()
+	m.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	m.add_theme_constant_override("margin_left",   margin)
+	m.add_theme_constant_override("margin_right",  margin)
+	m.add_theme_constant_override("margin_top",    margin)
+	m.add_theme_constant_override("margin_bottom", margin)
+	m.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	frame.add_child(m)
+	return m
 
-	var vcol := VBoxContainer.new()
-	vcol.add_theme_constant_override("separation", 10)
-	vcol.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	inner_margin.add_child(vcol)
-
-	var title := Label.new()
-	title.text = "⚒  ΠΛΗΚΤΡΟΛΟΓΙΟ ΣΙΔΗΡΟΥΡΓΕΙΟΥ  ⚒"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 18)
-	title.add_theme_color_override("font_color", C_GOLD_S)
-	title.add_theme_color_override("font_shadow_color", Color(0,0,0,0.85))
-	title.add_theme_constant_override("shadow_offset_x", 1)
-	title.add_theme_constant_override("shadow_offset_y", 1)
-	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	vcol.add_child(title)
-
+func _kb_row() -> HBoxContainer:
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 12)
+	row.add_theme_constant_override("separation", 8)
 	row.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	vcol.add_child(row)
+	return row
 
-	_key_buttons.clear()
-	for letter in KEY_LETTERS:
-		var btn := Button.new()
-		btn.text = "%s\n%s" % [KEY_ICONS[letter], letter]
-		btn.custom_minimum_size = Vector2(0, 150)
-		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		btn.size_flags_vertical   = Control.SIZE_EXPAND_FILL
-		_style_key_btn(btn)
-		btn.pressed.connect(_on_key_pressed.bind(letter))
-		row.add_child(btn)
-		_key_buttons[letter] = btn
+## Πλήκτρο που προσθέτει κείμενο στην απάντηση.
+func _make_key(label_text: String, insert_text: String, font_size: int) -> Button:
+	var btn := _new_key_button(label_text, font_size)
+	btn.pressed.connect(_on_char_pressed.bind(insert_text))
+	return btn
 
-	return frame
+## Πλήκτρο ενέργειας (⌫ / Καθαρισμός / Υποβολή).
+func _make_action_key(label_text: String, font_size: int, cb: Callable) -> Button:
+	var btn := _new_key_button(label_text, font_size)
+	btn.pressed.connect(cb)
+	return btn
+
+func _new_key_button(label_text: String, font_size: int) -> Button:
+	var btn := Button.new()
+	btn.text = label_text
+	btn.clip_text = true
+	btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	btn.size_flags_vertical   = Control.SIZE_EXPAND_FILL
+	_style_key_btn(btn, font_size)
+	_keys.append(btn)
+	return btn
 
 # ═══════════════════════════════════════════════════════════════════════════
 # ΣΥΣΤΗΜΑ ΑΣΚΗΣΕΩΝ — η λογική ζει στον QuizManager, το scene μόνο δείχνει UI
@@ -413,33 +588,104 @@ func _start_quiz() -> void:
 	_quiz.question_changed.connect(_on_question_changed)
 	_quiz.answer_result.connect(_on_answer_result)
 	_quiz.quiz_completed.connect(_on_quiz_completed)
-	_quiz.start(true, QUESTIONS_PER_ROUND)
+	# shuffle=false: οι ασκήσεις πρέπει να έρθουν με τη σειρά, 1 → 20.
+	_quiz.start(false, QUESTIONS_PER_ROUND)
 
 func _on_question_changed(index: int, total: int, question_text: String) -> void:
 	if _loot_given:
 		return
 	_input_locked = false
 	_q_label.text = question_text
-	_progress.text = "Ερώτηση %d / %d" % [index + 1, total]
+	_progress.text = "Άσκηση %d / %d   •   Σκορ %d" % [index + 1, total, _quiz.get_score()]
 	_feedback.text = ""
+	_set_answer("")
+	# Η τελευταία άσκηση είναι πολλαπλής επιλογής ("mode": "choice" στο JSON):
+	# τότε το πληκτρολόγιο δίνει τη θέση του στα 4 κουμπιά 1-4.
+	var is_choice := _quiz.get_current_mode() == "choice"
+	_keyboard.visible = not is_choice
+	_choices.visible  = is_choice
 	_set_keyboard_enabled(true)
 
-func _on_key_pressed(letter: String) -> void:
+# ── Είσοδος από τα πλήκτρα ────────────────────────────────────────────────
+const ANSWER_MAX_LEN := 60
+
+func _on_char_pressed(text: String) -> void:
+	if _input_locked or _state != 2:
+		return
+	if _answer_text.length() + text.length() > ANSWER_MAX_LEN:
+		return
+	_set_answer(_answer_text + text)
+
+func _on_backspace() -> void:
+	if _input_locked or _state != 2 or _answer_text.is_empty():
+		return
+	_set_answer(_answer_text.substr(0, _answer_text.length() - 1))
+
+func _on_clear() -> void:
+	if _input_locked or _state != 2:
+		return
+	_set_answer("")
+
+func _on_submit() -> void:
 	if _input_locked or _quiz == null or _state != 2:
 		return
+	if _answer_text.strip_edges().is_empty():
+		return
 	_answered += 1
-	_quiz.submit_answer(letter)
+	_quiz.submit_answer(_answer_text)
 
+## Τα κουμπιά 1-4 της άσκησης 20 υποβάλλουν κατευθείαν.
+func _on_choice_pressed(value: String) -> void:
+	if _input_locked or _quiz == null or _state != 2:
+		return
+	_set_answer(value)
+	_on_submit()
+
+func _set_answer(text: String) -> void:
+	_answer_text = text
+	if not is_instance_valid(_answer_label):
+		return
+	if text.is_empty():
+		_answer_label.text = "—"
+		_answer_label.add_theme_color_override("font_color", C_GOLD_D)
+	else:
+		_answer_label.text = text
+		_answer_label.add_theme_color_override("font_color", C_GOLD_S)
+
+# ── Αποτέλεσμα ────────────────────────────────────────────────────────────
 func _on_answer_result(correct: bool) -> void:
 	_input_locked = true
 	_set_keyboard_enabled(false)
+
 	if correct:
 		_feedback.add_theme_color_override("font_color", C_OK)
 		_feedback.text = "✔  Σωστό!"
-	else:
-		_feedback.add_theme_color_override("font_color", C_BAD)
-		_feedback.text = "✘  Λάθος!"
-	var t := get_tree().create_timer(0.9)
+		_advance_later(0.9)
+		return
+
+	# Λάθος: ο παίκτης ξαναπροσπαθεί. Η σωστή απάντηση ΔΕΝ αποκαλύπτεται ποτέ
+	# — το παιχνίδι είναι για εξάσκηση, οπότε η λύση πρέπει να βρεθεί, όχι να
+	# δοθεί. Μετά από MAX_ATTEMPTS αποτυχίες απλώς προχωράμε στην επόμενη,
+	# ώστε να μην κολλήσει ο παίκτης σε άσκηση που δεν ξέρει.
+	_feedback.add_theme_color_override("font_color", C_BAD)
+	if _quiz.get_attempts() < MAX_ATTEMPTS:
+		_feedback.text = "✘  Λάθος, προσπάθησε ξανά"
+		var t := get_tree().create_timer(0.9)
+		t.timeout.connect(func():
+			if _loot_given or _state != 2:
+				return
+			_feedback.text = ""
+			_set_answer("")
+			_input_locked = false
+			_set_keyboard_enabled(true)
+		)
+		return
+
+	_feedback.text = "✘  Λάθος — πάμε στην επόμενη"
+	_advance_later(1.4)
+
+func _advance_later(sec: float) -> void:
+	var t := get_tree().create_timer(sec)
 	t.timeout.connect(func():
 		if is_instance_valid(_quiz) and not _loot_given:
 			_quiz.advance()
@@ -496,7 +742,7 @@ func _show_completion(title_text: String, score: int, results: Array) -> void:
 	overlay.add_child(dim)
 
 	const PW := 820.0
-	const PH := 540.0
+	const PH := 700.0
 	var px := (W - PW) / 2.0
 	var py := (H - PH) / 2.0
 	_shadow(overlay, Vector2(px + 8, py + 10), Vector2(PW, PH), 20)
@@ -515,19 +761,19 @@ func _show_completion(title_text: String, score: int, results: Array) -> void:
 	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	overlay.add_child(title)
 
-	var lines := "Σωστές απαντήσεις: %d\n\nΚέρδισες:" % score
-	for item in results:
-		lines += "\n•  +%d %s" % [item["amount"], item["name"]]
-	var loot := Label.new()
-	loot.text = lines
-	loot.position = Vector2(px + 40, py + 240)
-	loot.size     = Vector2(PW - 80, PH - 280)
-	loot.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	loot.vertical_alignment   = VERTICAL_ALIGNMENT_TOP
-	loot.add_theme_font_size_override("font_size", 30)
-	loot.add_theme_color_override("font_color", C_GOLD_D)
-	loot.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	overlay.add_child(loot)
+	var header := Label.new()
+	var total := _quiz.get_total() if _quiz else 0
+	header.text = "Σωστές απαντήσεις: %d / %d\n\nΚέρδισες:" % [score, total]
+	header.position = Vector2(px + 40, py + 240)
+	header.size     = Vector2(PW - 80, 130)
+	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	header.vertical_alignment   = VERTICAL_ALIGNMENT_TOP
+	header.add_theme_font_size_override("font_size", 30)
+	header.add_theme_color_override("font_color", C_GOLD_D)
+	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	overlay.add_child(header)
+
+	_build_loot_rows(overlay, results, Vector2(px + 40, py + 370), PW - 80)
 
 	overlay.modulate.a = 0.0
 	var tw := create_tween()
@@ -535,14 +781,60 @@ func _show_completion(title_text: String, score: int, results: Array) -> void:
 	tw.tween_interval(1.9)
 	tw.tween_callback(_close)
 
-# ── Ενεργοποίηση/απενεργοποίηση πλήκτρων A-F ───────────────────────────────
+## Μία γραμμή ανά ανταμοιβή· αν έχει "icon" δείχνει την εικόνα δίπλα στο
+## κείμενο (π.χ. οι νέες Σφαίρες), αλλιώς μένει στο απλό bullet-κείμενο
+## (υλικά όπως Σίδερο/Χαλκός, που δεν έχουν ακόμα δικό τους εικονίδιο εδώ).
+## Κοινό μοτίβο με cotton_popup.gd/miner_popup.gd.
+func _build_loot_rows(parent: Control, results: Array, pos: Vector2, width: float) -> void:
+	var col := VBoxContainer.new()
+	col.position = pos
+	col.size     = Vector2(width, 0)
+	col.add_theme_constant_override("separation", 10)
+	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(col)
+	for item in results:
+		col.add_child(_make_loot_row(item))
+
+func _make_loot_row(item: Dictionary) -> Control:
+	var col := VBoxContainer.new()
+	col.alignment = BoxContainer.ALIGNMENT_CENTER
+	col.add_theme_constant_override("separation", 8)
+	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	var icon_path: String = str(item.get("icon", ""))
+	var lbl := Label.new()
+	lbl.text = "+%d %s" % [item["amount"], item["name"]]
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.add_theme_font_size_override("font_size", 30)
+	lbl.add_theme_color_override("font_color", C_GOLD_D)
+	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	col.add_child(lbl)
+
+	# Το εικονίδιο μπαίνει ΚΑΤΩ από το κείμενο, κεντραρισμένο, σε αρκετά
+	# μεγάλο μέγεθος ώστε να φαίνεται καθαρά το σχέδιο της σφαίρας (όχι σαν
+	# μικρό bullet-εικονίδιο δίπλα στο κείμενο όπως πριν).
+	if icon_path != "" and ResourceLoader.exists(icon_path):
+		var icon := TextureRect.new()
+		icon.texture = load(icon_path)
+		icon.custom_minimum_size = Vector2(110, 110)
+		icon.expand_mode  = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		col.add_child(icon)
+
+	return col
+
+# ── Ενεργοποίηση/απενεργοποίηση όλων των πλήκτρων ─────────────────────────
 func _set_keyboard_enabled(enabled: bool) -> void:
-	for letter in _key_buttons:
-		(_key_buttons[letter] as Button).disabled = not enabled
+	for btn in _keys:
+		if is_instance_valid(btn):
+			btn.disabled = not enabled
 
 # ── Στυλ πλήκτρου (μεταλλικό keycap σιδηρουργείου) ──────────────────────────
-func _style_key_btn(btn: Button) -> void:
-	btn.add_theme_font_size_override("font_size", 30)
+func _style_key_btn(btn: Button, font_size: int = 30) -> void:
+	btn.add_theme_font_size_override("font_size", font_size)
 	var n := StyleBoxFlat.new()
 	n.bg_color = C_IRON
 	n.border_color = C_GOLD_D

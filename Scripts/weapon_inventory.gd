@@ -21,8 +21,8 @@ extends "res://Scripts/equipment_catalog.gd"
 ## λογικής δεν χρειάζεται.
 
 # Όπλο που έχει ήδη ο παίκτης, κατοχυρωμένο, σε ένα ολοκαίνουργιο save (βλ.
-# EquipmentCatalog._grant_starters_if_new_save). Χωρίς αυτό ΚΑΝΕΝΑ από τα 81
-# όπλα δεν θα ήταν ιδιοκτησία στην αρχή — ο παίκτης θα ξεκινούσε άοπλος.
+# EquipmentCatalog._grant_starters_if_new_save). Χωρίς αυτό κανένα όπλο δεν θα
+# ήταν ιδιοκτησία στην αρχή — ο παίκτης θα ξεκινούσε άοπλος.
 const STARTER_WEAPON_ID := "Μαχαίρι_1"
 
 func _configure() -> void:
@@ -49,35 +49,19 @@ func _configure() -> void:
 	}
 
 	# Κάθε εικόνα αναλύθηκε οπτικά και πήρε ένα μοναδικό fantasy όνομα που
-	# ταιριάζει με το ύφος/υλικό/αίσθημά της.
+	# ταιριάζει με το ύφος/υλικό/αίσθημά της. Κρατιέται ΕΝΑ όπλο (Level1) ανά
+	# κατηγορία — για να προστεθούν κι άλλα αργότερα, ξαναβάλε επιπλέον ονόματα
+	# εδώ και τα αντίστοιχα LevelN.png στον φάκελο της κατηγορίας.
 	items = {
-		"Μαχαίρι": _level_files(["Nebulyn Fang", "Emerald Crescent Fang", "Amethyst Serpent Fang",
-			"Sworn Heart Dagger", "Thornvine Shard", "Gilt Vine Fang",
-			"Tidescale Fin Dagger", "Batwing Bloodfang", "Shattered Frostfang"]),
-		"Σπαθί": _level_files(["Winterwing Longsword", "Dragoneye Warblade", "Tuskhorn Ripper",
-			"Aurelian Rapier", "Sekhmet's Wingblade", "Moonveil Scimitar",
-			"Frostgilded Saber", "Emberbloom Flameblade", "Prismshard Greatblade"]),
-		"Σφυρί": _level_files(["Ironbound Warhammer", "Doomforged Twinhammer", "Ironspike Morningstar",
-			"Thornspine Warmace", "Moonstone Morningstar", "Cinderstone Morningstar",
-			"Crimson-Banded Warmace", "Voidthorn Mace", "Molten Doombringer"]),
-		"Σιδηρομπουνιά": _level_files(["Starveil Glove", "Steelclaw Gauntlet", "Infernus Talon",
-			"Runebound Voidglove", "Hexcore Gauntlet", "Wraithclaw Gauntlet",
-			"Ionforge Fist", "Stormcore Warfists", "Sunshard Warfist"]),
-		"Τσεκούρι": _level_files(["Stonehide Hatchet", "Cinderfiend Hatchet", "Trailhewn Hatchet",
-			"Glyphedge Battleaxe", "Windfeather Warbind", "Sunblaze Labrys",
-			"Frostrune Battleaxe", "Hellmaw Doomaxe", "Bloodrend Ravager"]),
-		"Αξίνα": _level_files(["Silvermoon Sickle", "Voidmoon Reaver", "Jade Crescent Scythe",
-			"Brassfire Cleaver", "Boneharvest Reaper", "Stormfiend Scythe",
-			"Frostwyrm Reaper", "Glacial Howler Scythe", "Nightshade Reaper"]),
-		"Λεπίδα": _level_files(["Voidcrescent Blade", "Glacial Crescentfang", "Solarforge Crescent",
-			"Tideglyph Fang", "Glacient Starshard", "Amethyst Whirlstar",
-			"Sunspiral Bladestar", "Frostwhirl Cyclone", "Demonhorn Talon"]),
-		"Μαστίγιο": _level_files(["Oxhide Lash", "Briarcoil Lash", "Tidebind Serpentlash",
-			"Dragoncoil Whip", "Nightspine Coilwhip", "Viperscale Warlash",
-			"Rosebloom Lash", "Gilded Emberlash", "Venomthorn Bramblewhip"]),
-		"Τόξο": _level_files(["Ashwood Hunting Bow", "Voidhorn Warbow", "Sylvan Knotbow",
-			"Feathertotem Bow", "Cherryblossom Warbow", "Verdant Leafbow",
-			"Silverwood Rangerbow", "Rubygold Sovereign Bow", "Emerald Windshaft"]),
+		"Μαχαίρι": _level_files(["Nebulyn Fang"]),
+		"Σπαθί": _level_files(["Winterwing Longsword"]),
+		"Σφυρί": _level_files(["Ironbound Warhammer"]),
+		"Σιδηρομπουνιά": _level_files(["Starveil Glove"]),
+		"Τσεκούρι": _level_files(["Stonehide Hatchet"]),
+		"Αξίνα": _level_files(["Silvermoon Sickle"]),
+		"Λεπίδα": _level_files(["Voidcrescent Blade"]),
+		"Μαστίγιο": _level_files(["Oxhide Lash"]),
+		"Τόξο": _level_files(["Ashwood Hunting Bow"]),
 	}
 
 ## Βοηθητικό μόνο για το _configure(): μετατρέπει μία απλή λίστα ονομάτων σε

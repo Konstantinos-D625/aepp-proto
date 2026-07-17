@@ -2,7 +2,6 @@
 
 [ext_resource type="Script" uid="uid://cppltoqha00cc" path="res://Scripts/witch_map_popup.gd" id="1_script"]
 [ext_resource type="Texture2D" uid="uid://bo3revpnfp643" path="res://Εικόνες/witch_map.png" id="2_bg"]
-[ext_resource type="Texture2D" uid="uid://jbn600rgy5i1" path="res://Εικόνες/witchHouse.png" id="3_house"]
 
 [node name="WitchMapPopup" type="Control" unique_id=1387227623]
 layout_mode = 3
@@ -11,7 +10,6 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 2
 script = ExtResource("1_script")
 
 [node name="Background" type="TextureRect" parent="." unique_id=1262811452]
@@ -30,12 +28,43 @@ stretch_mode = 6
 [node name="WitchHouseButton" type="TextureButton" parent="." unique_id=396499609]
 unique_name_in_owner = true
 layout_mode = 1
-offset_left = 55.00009
-offset_top = 244.0
-offset_right = 742.44434
-offset_bottom = 640.5169
-scale = Vector2(1.3048328, 1.4349954)
-texture_normal = ExtResource("3_house")
+anchors_preset = -1
+offset_left = 47.0
+offset_top = 212.00003
+offset_right = 488.70404
+offset_bottom = 818.41077
+scale = Vector2(1.1523553, 1.1955591)
+ignore_texture_size = true
+stretch_mode = 3
+flip_h = true
+
+[node name="GnomeHouseButton" type="TextureButton" parent="." unique_id=396499611]
+unique_name_in_owner = true
+layout_mode = 1
+offset_left = 616.0
+offset_top = 1019.0
+offset_right = 1084.0
+offset_bottom = 1630.0
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="GoblinButton" type="TextureButton" parent="." unique_id=396499612]
+unique_name_in_owner = true
+layout_mode = 1
+offset_left = 30.0
+offset_top = 1150.0
+offset_right = 470.0
+offset_bottom = 1610.0
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="TreeButton" type="TextureButton" parent="." unique_id=396499613]
+unique_name_in_owner = true
+layout_mode = 1
+offset_left = 690.0
+offset_top = 150.0
+offset_right = 1080.0
+offset_bottom = 850.0
 ignore_texture_size = true
 stretch_mode = 5
 

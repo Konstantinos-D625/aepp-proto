@@ -42,6 +42,7 @@ offset_right = 440.0
 offset_bottom = 600.0
 grow_horizontal = 2
 grow_vertical = 2
+clip_contents = true
 theme_override_styles/panel = SubResource("card_bg")
 
 [node name="Margin" type="MarginContainer" parent="Card"]
@@ -89,6 +90,15 @@ custom_minimum_size = Vector2(0, 76)
 toggle_mode = true
 theme_override_font_sizes/font_size = 32
 text = "🛡 Πανοπλίες"
+
+[node name="CharactersTab" type="Button" parent="Card/Margin/VBox/Tabs"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 76)
+toggle_mode = true
+theme_override_font_sizes/font_size = 32
+text = "🧑 Ήρωες"
 
 [node name="Sep" type="HSeparator" parent="Card/Margin/VBox"]
 layout_mode = 2

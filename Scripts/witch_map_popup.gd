@@ -29,13 +29,37 @@ func _ready() -> void:
 	hide()
 	_style_back_button(%BackButton)
 	%WitchHouseButton.pressed.connect(_on_witch_house_pressed)
+	%GnomeHouseButton.pressed.connect(_on_gnome_button_pressed)
+	%GoblinButton.pressed.connect(_on_mini_boss_pressed.bind("goblin"))
+	%TreeButton.pressed.connect(_on_mini_boss_pressed.bind("tree"))
 
+## ΡΟΗ: πατώντας το σπίτι ανοίγει ΠΡΩΤΑ το BossPopup με τον εισαγωγικό διάλογο
+## (η μάγισσα μέσα στο σπίτι της προκαλεί τον ταξιδιώτη). Από εκεί, με ένα κλικ
+## εμφανίζεται η πιθανότητα νίκης + κουμπί «Επίθεση», που τελικά ξεκινάει το
+## animated BossFight (βλ. boss_popup.gd -> _launch_fight). Έτσι η ζαριά/odds
+## προηγείται της ζωντανής μάχης.
 ## Ο γονιός (Area1) έχει το BossPopup ως άμεσο sibling — βλ. σχόλιο πιο πάνω
 ## για το γιατί η σύνδεση γίνεται εδώ αντί για connection στο Area1.tscn.
 func _on_witch_house_pressed() -> void:
 	var boss := get_parent().get_node_or_null("BossPopup")
 	if boss:
 		boss.show_popup()
+
+## Ίδιο μοτίβο — το Ανταλλακτήριο του Νάνου (GnomePopup, sibling του Area1):
+## 1 Χαλκός + 1 Δέρμα + 1 Σίδερο -> 1 Κέρμα, βλ. Scripts/gnome_popup.gd.
+func _on_gnome_button_pressed() -> void:
+	var gnome := get_parent().get_node_or_null("GnomePopup")
+	if gnome:
+		gnome.show_popup()
+
+## Τα δύο mini bosses του δάσους (σπηλιά καλικάντζαρου κάτω-αριστερά,
+## στοιχειωμένο δέντρο πάνω-δεξιά — τα κουμπιά είναι ΑΟΡΑΤΑ πάνω στο art του
+## χάρτη, ίδιο μοτίβο με τη μάγισσα/νάνο). ΕΝΑ κοινό popup εξυπηρετεί και τα
+## δύο — ξεχωρίζουν από το boss_id (βλ. mini_boss_popup.gd BOSS_DEFS).
+func _on_mini_boss_pressed(boss_id: String) -> void:
+	var mini := get_parent().get_node_or_null("MiniBossPopup")
+	if mini:
+		mini.show_popup(boss_id)
 
 func show_popup() -> void:
 	visible = true

@@ -1,6 +1,11 @@
 extends Control
 
 # ── Μονοπάτια εικόνων ─────────────────────────────────────────────────────
+# ΙΔΙΟ μοτίβο με τη Δερματού (cotton_popup.gd): το miner.png είναι πλέον
+# ΟΛΟΚΛΗΡΗ σκηνή (ο miner ΜΑΖΙ με το ορυχείο «ΟΡΥΧΕΙΟ ΧΑΛΚΟΥ») και το
+# mine.background.png είναι η ΙΔΙΑ σκηνή χωρίς αυτόν. Το _build_character
+# στήνει ΔΕΥΤΕΡΟ full-screen layer πάνω από το BG_PATH: στην Κατάσταση 2 το
+# fade out του _char «αποκαλύπτει» το άδειο ορυχείο από κάτω.
 const BG_PATH     := "res://Εικόνες/mine.background.png"
 const CHAR_PATH   := "res://Εικόνες/miner.png"
 const BOARD_PATH  := "res://Εικόνες/board.png"
@@ -11,20 +16,30 @@ const BOARD_PATH  := "res://Εικόνες/board.png"
 # αντιστοίχισης που καταλαβαίνει το MatchingQuizManager.
 const QUIZ_PATH := "res://miner_quiz.json"
 
+# Μέγεθος των rows αντιστοίχισης — παίζεται σε κινητό (Android, portrait
+# 1080×1920), οπότε κάθε στοιχείο drag & drop πρέπει να είναι τουλάχιστον
+# όσο ένα δάχτυλο. Σημαντικά μεγαλύτερο ύψος από παλιά (το προηγούμενο
+# καθοριζόταν μόνο από το περιεχόμενο, ~50-56px, πολύ μικρό σαν στόχος
+# αφής/ποντικιού) — το board είναι πλέον auto-sizing PanelContainer
+# (βλ. _build_board) και μεγαλώνει αυτόματα προς τα κάτω για να χωράει.
+const ROW_MIN_HEIGHT := 138.0
+const ROW_FONT_SIZE  := 26
+
 # Κάθε επίσκεψη = 3 διαφορετικές ασκήσεις αντιστοίχισης (γύροι), τυχαία
 # επιλεγμένες από το pool — ίδια λογική με το QUESTIONS_PER_ROUND του
 # cotton_popup.gd, απλώς κάθε "ερώτηση" εδώ είναι μια άσκηση 5 ζευγαριών
 # αντί για μία ερώτηση Σωστό/Λάθος.
 const MATCHING_ROUNDS_PER_VISIT := 3
 
-# Loot: μόνο χρυσό. Ίδια λογική βάσης με το COTTON_BASE του cotton_popup.gd
-# (ίδια σταθερά GOLD_BASE=2) — αλλάζει μόνο το resource type. Η ανταμοιβή
-# είναι GOLD_BASE + άθροισμα (σωστά ζευγάρια × δυσκολία άσκησης) σε ΟΛΟΥΣ
-# τους γύρους της επίσκεψης — αφού τώρα υπάρχουν 3 γύροι (15 ζευγάρια)
-# αντί για 1, το ανώτατο δυνατό ποσό είναι φυσιολογικά μεγαλύτερο από το
-# cotton man (έως 2+15×3=47 αντί για 2+5×3=17), ανάλογο με την επιπλέον
-# προσπάθεια.
-const GOLD_BASE := 2
+# Loot: μόνο χαλκός («ΟΡΥΧΕΙΟ ΧΑΛΚΟΥ»). Ίδια λογική βάσης με το LEATHER_BASE
+# του cotton_popup.gd (ίδια σταθερά COPPER_BASE=2) — αλλάζει μόνο το resource
+# type. Η ανταμοιβή είναι COPPER_BASE + άθροισμα (σωστά ζευγάρια × δυσκολία
+# άσκησης) σε ΟΛΟΥΣ τους γύρους της επίσκεψης — αφού τώρα υπάρχουν 3 γύροι
+# (15 ζευγάρια) αντί για 1, το ανώτατο δυνατό ποσό είναι φυσιολογικά
+# μεγαλύτερο από τη Δερματού (έως 2+15×3=47 αντί για 2+5×3=17), ανάλογο με
+# την επιπλέον προσπάθεια. Δίνεται ΜΟΝΟ αν πέτυχε τουλάχιστον ΕΝΑ σωστό
+# ζευγάρι σε όλη την επίσκεψη — 0 σωστά = κανένα loot, βλ. _finish.
+const COPPER_BASE := 2
 
 # ── Παλέτα (mine / σπηλιά) ────────────────────────────────────────────────
 const C0       := Color(0, 0, 0, 0)
@@ -158,19 +173,28 @@ func _build_background() -> void:
 	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(dim)
 
-# ── Χαρακτήρας miner ──────────────────────────────────────────────────────
+# ── Χαρακτήρας miner — full-screen layer «σκηνή με τον miner» ───────────────
+# ΙΔΙΟ expand/stretch με το _build_background ώστε οι δύο εικόνες (με/χωρίς
+# τον miner) να κάθονται pixel-πάνω-σε-pixel — αλλιώς το fade της Κατάστασης
+# 2 θα «κουνούσε» τη σπηλιά. Κουβαλάει και δικό του dim overlay (ίδιο με του
+# background) ως ΠΑΙΔΙ, ώστε η φωτεινότητα να είναι ίδια πριν και μετά το
+# fade — τα παιδιά κληρονομούν το modulate του γονιού, οπότε σβήνουν όλα
+# μαζί στο tween του _go_to_state2. (Ίδια λύση με cotton_popup.gd.)
 func _build_character() -> TextureRect:
 	var tex : Texture2D = load(CHAR_PATH)
 	var char_rect := TextureRect.new()
 	if tex:
 		char_rect.texture = tex
-	# Δεξί μέρος οθόνης
-	char_rect.position     = Vector2(530, 560)
-	char_rect.size         = Vector2(510, 980)
+	char_rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	char_rect.expand_mode  = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
-	char_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	char_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	char_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(char_rect)
+	var dim := ColorRect.new()
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	dim.color = Color(0, 0, 0, 0.32)
+	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	char_rect.add_child(dim)
 	return char_rect
 
 # ── Φούσκα ομιλίας ────────────────────────────────────────────────────────
@@ -179,8 +203,11 @@ func _build_bubble() -> Control:
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(root)
 
-	const BX := 32.0
-	const BY := 155.0
+	# Πάνω-δεξιά: ο miner στη νέα σκηνή στέκεται στο ΚΕΝΤΡΟ (η παλιά θέση
+	# πάνω-αριστερά έπεφτε πάνω στο πρόσωπό του)· εδώ η φούσκα καλύπτει μόνο
+	# το λάβαρο του ορυχείου, με ουρά κάτω-αριστερά προς το μέρος του.
+	const BX := 478.0
+	const BY := 70.0
 	const BW := 570.0
 	const BH := 490.0
 
@@ -193,8 +220,8 @@ func _build_bubble() -> Control:
 	_styled_panel(root, Vector2(BX+10, BY+10), Vector2(BW-20, BH-20),
 		C0, C_GOLD_D, 2, 14)
 
-	# Ουρά φούσκας (προς τον miner — κάτω-δεξιά)
-	_bubble_tail(root, BX + BW - 48, BY + BH - 2)
+	# Ουρά φούσκας (προς τον miner — κάτω-αριστερά)
+	_bubble_tail(root, BX + 48, BY + BH - 2)
 
 	# Τίτλος NPC
 	_styled_panel(root, Vector2(BX+22, BY+22), Vector2(BW-44, 58),
@@ -227,12 +254,15 @@ func _build_bubble() -> Control:
 
 	return root
 
+# Καθρεφτισμένη ουρά — τα σκαλοπάτια κατεβαίνουν προς τα ΑΡΙΣΤΕΡΑ (εκεί
+# στέκεται πλέον ο miner, στο κέντρο της σκηνής). Ίδιο μοτίβο με το
+# _bubble_tail του cotton_popup.gd (Δερματού).
 func _bubble_tail(parent: Control, tx: float, ty: float) -> void:
 	_cr_on(parent, Vector2(tx,    ty),    Vector2(32, 14), C_PARCH)
-	_cr_on(parent, Vector2(tx+8,  ty+12), Vector2(22, 14), C_PARCH)
-	_cr_on(parent, Vector2(tx+16, ty+24), Vector2(14, 14), C_PARCH)
+	_cr_on(parent, Vector2(tx-8,  ty+12), Vector2(22, 14), C_PARCH)
+	_cr_on(parent, Vector2(tx-14, ty+24), Vector2(14, 14), C_PARCH)
 	_cr_on(parent, Vector2(tx-1,  ty-1),  Vector2(34, 5),  C_GOLD)
-	_cr_on(parent, Vector2(tx+31, ty+2),  Vector2(5,  14), C_GOLD)
+	_cr_on(parent, Vector2(tx-4,  ty+2),  Vector2(5,  14), C_GOLD)
 
 func _crystal_sparkles(parent: Control, bx: float, by: float, bw: float, bh: float) -> void:
 	var rng := RandomNumberGenerator.new()
@@ -265,37 +295,42 @@ func _build_board() -> Control:
 	const BRD_X := 60.0
 	const BRD_Y := 220.0
 	const BRD_W := 960.0
-	const BRD_H := 1320.0
+	const BRD_MIN_H := 1000.0
 
+	# Το board δεν είναι πια TextureRect σταθερού ύψους (960×1320) με σταθερά
+	# margins — μεγάλες ασκήσεις ξεχείλιζαν. Τώρα είναι PanelContainer με το
+	# board.png ως 9-slice StyleBoxTexture (ίδιο μοτίβο με το BoardPanel του
+	# DailyQuestExercises.tscn): παίρνει αυτόματα το ύψος του περιεχομένου
+	# (μεγαλώνει προς τα κάτω) και η ξύλινη κορνίζα δεν παραμορφώνεται.
+	# Το region_rect κόβει τα διάφανα περιθώρια της εικόνας (opaque bounding
+	# box: x 16-424, y 84-512 στο 441×565 png — μετρημένο από το alpha), οπότε
+	# δεν χρειάζονται πια τα παλιά «ψαγμένα» margins (340 πάνω κ.λπ.) που
+	# αντιστάθμιζαν το ~15% διάφανο πάνω μέρος.
+	var panel := PanelContainer.new()
+	panel.position = Vector2(BRD_X, BRD_Y)
+	panel.custom_minimum_size = Vector2(BRD_W, BRD_MIN_H)
+	panel.size = Vector2(BRD_W, BRD_MIN_H)
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var sb := StyleBoxTexture.new()
 	var brd_tex : Texture2D = load(BOARD_PATH)
-	var brd := TextureRect.new()
 	if brd_tex:
-		brd.texture = brd_tex
-	brd.position     = Vector2(BRD_X, BRD_Y)
-	brd.size         = Vector2(BRD_W, BRD_H)
-	brd.expand_mode  = TextureRect.EXPAND_IGNORE_SIZE
-	brd.stretch_mode = TextureRect.STRETCH_SCALE
-	brd.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root.add_child(brd)
-
-	var pad := MarginContainer.new()
-	pad.position = Vector2(BRD_X, BRD_Y)
-	pad.size     = Vector2(BRD_W, BRD_H)
-	pad.add_theme_constant_override("margin_left",   90)
-	pad.add_theme_constant_override("margin_right",  90)
-	# Το board.png έχει ~15% διάφανο περιθώριο στην κορυφή πριν καν ξεκινήσει
-	# το ξύλινο πλαίσιο (bounding box της εικόνας, όχι του BRD_H) — 150 δεν
-	# έφτανε. 340 (~25.8% του BRD_H=1320) το κατεβάζει ακόμα πιο καθαρά μέσα
-	# στο ορατό ξύλο (μετά από feedback ότι το 260 ήταν ακόμα λίγο ψηλά).
-	pad.add_theme_constant_override("margin_top",    340)
-	pad.add_theme_constant_override("margin_bottom", 130)
-	pad.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root.add_child(pad)
+		sb.texture = brd_tex
+	sb.region_rect = Rect2(16, 84, 409, 429)
+	sb.texture_margin_left   = 44.0
+	sb.texture_margin_top    = 44.0
+	sb.texture_margin_right  = 44.0
+	sb.texture_margin_bottom = 44.0
+	sb.content_margin_left   = 70.0
+	sb.content_margin_right  = 70.0
+	sb.content_margin_top    = 150.0
+	sb.content_margin_bottom = 70.0
+	panel.add_theme_stylebox_override("panel", sb)
+	root.add_child(panel)
 
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", 20)
 	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	pad.add_child(col)
+	panel.add_child(col)
 
 	var title := Label.new()
 	title.text = "⛏  Σύρε κάθε στοιχείο στη σωστή αντιστοιχία!"
@@ -326,7 +361,7 @@ func _build_board() -> Control:
 	col.add_child(grid_row)
 
 	_left_col = VBoxContainer.new()
-	_left_col.add_theme_constant_override("separation", 12)
+	_left_col.add_theme_constant_override("separation", 16)
 	_left_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_left_col.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	grid_row.add_child(_left_col)
@@ -336,7 +371,7 @@ func _build_board() -> Control:
 	grid_row.add_child(sep)
 
 	_right_col = VBoxContainer.new()
-	_right_col.add_theme_constant_override("separation", 12)
+	_right_col.add_theme_constant_override("separation", 16)
 	_right_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_right_col.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	grid_row.add_child(_right_col)
@@ -407,8 +442,11 @@ func _make_left_row(index: int, text: String) -> MatchDragItem:
 	row.preview_text = "%d.  %s" % [index + 1, text]
 	row.mouse_filter = Control.MOUSE_FILTER_STOP
 	row.add_theme_stylebox_override("panel", _row_style(C_STONE))
+	# Ελάχιστο ύψος αγγίγματος για κινητό — τα rows είναι ο βασικός στόχος
+	# drag & drop του παιχνιδιού, δεν πρέπει να είναι πιο λεπτά από δάχτυλο.
+	row.custom_minimum_size = Vector2(0, ROW_MIN_HEIGHT)
 	var hbox := HBoxContainer.new()
-	hbox.add_theme_constant_override("separation", 12)
+	hbox.add_theme_constant_override("separation", 16)
 	hbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(hbox)
 
@@ -418,8 +456,9 @@ func _make_left_row(index: int, text: String) -> MatchDragItem:
 	lbl.text = text
 	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	lbl.add_theme_font_size_override("font_size", 22)
+	lbl.add_theme_font_size_override("font_size", ROW_FONT_SIZE)
 	lbl.add_theme_color_override("font_color", C_PARCH)
 	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hbox.add_child(lbl)
@@ -434,8 +473,9 @@ func _make_right_row(index: int, text: String) -> MatchDragItem:
 	row.is_target = true
 	row.mouse_filter = Control.MOUSE_FILTER_STOP
 	row.add_theme_stylebox_override("panel", _row_style(C_STONE))
+	row.custom_minimum_size = Vector2(0, ROW_MIN_HEIGHT)
 	var hbox := HBoxContainer.new()
-	hbox.add_theme_constant_override("separation", 12)
+	hbox.add_theme_constant_override("separation", 16)
 	hbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(hbox)
 
@@ -443,9 +483,10 @@ func _make_right_row(index: int, text: String) -> MatchDragItem:
 
 	var assigned := Label.new()
 	assigned.text = "—"
-	assigned.custom_minimum_size = Vector2(34, 0)
+	assigned.custom_minimum_size = Vector2(40, 0)
 	assigned.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	assigned.add_theme_font_size_override("font_size", 22)
+	assigned.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	assigned.add_theme_font_size_override("font_size", ROW_FONT_SIZE)
 	assigned.add_theme_color_override("font_color", C_AMBER)
 	assigned.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hbox.add_child(assigned)
@@ -454,8 +495,9 @@ func _make_right_row(index: int, text: String) -> MatchDragItem:
 	lbl.text = text
 	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	lbl.add_theme_font_size_override("font_size", 22)
+	lbl.add_theme_font_size_override("font_size", ROW_FONT_SIZE)
 	lbl.add_theme_color_override("font_color", C_PARCH)
 	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hbox.add_child(lbl)
@@ -468,20 +510,21 @@ func _make_right_row(index: int, text: String) -> MatchDragItem:
 
 func _row_badge(text: String, color: Color) -> Control:
 	var badge := PanelContainer.new()
-	badge.custom_minimum_size = Vector2(40, 40)
+	badge.custom_minimum_size = Vector2(54, 54)
+	badge.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var sb := StyleBoxFlat.new()
 	sb.bg_color     = color.darkened(0.30)
 	sb.border_color = color
 	sb.set_border_width_all(2)
-	sb.set_corner_radius_all(20)
+	sb.set_corner_radius_all(27)
 	badge.add_theme_stylebox_override("panel", sb)
 
 	var lbl := Label.new()
 	lbl.text = text
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl.vertical_alignment   = VERTICAL_ALIGNMENT_CENTER
-	lbl.add_theme_font_size_override("font_size", 20)
+	lbl.add_theme_font_size_override("font_size", 23)
 	lbl.add_theme_color_override("font_color", Color(1, 1, 1))
 	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	badge.add_child(lbl)
@@ -492,11 +535,13 @@ func _row_style(bg: Color) -> StyleBoxFlat:
 	s.bg_color = Color(bg.r, bg.g, bg.b, 0.65)
 	s.border_color = C_GOLD_D
 	s.set_border_width_all(1)
-	s.set_corner_radius_all(8)
-	s.content_margin_left   = 10
-	s.content_margin_right  = 10
-	s.content_margin_top    = 8
-	s.content_margin_bottom = 8
+	s.set_corner_radius_all(12)
+	# Μεγαλύτερο εσωτερικό padding ώστε το κείμενο να "ανασαίνει" μέσα στο
+	# πολύ ψηλότερο πλέον πλαίσιο αντί να κολλάει στα άκρα.
+	s.content_margin_left   = 17
+	s.content_margin_right  = 17
+	s.content_margin_top    = 17
+	s.content_margin_bottom = 17
 	return s
 
 ## Καλείται όταν ο παίκτης αφήνει ένα αριστερό στοιχείο (payload = index του)
@@ -563,7 +608,7 @@ func _on_round_completed(_round_index: int, _total_rounds: int, correct_count: i
 	)
 
 func _on_session_completed(total_correct: int, total_pairs: int, total_earned: int) -> void:
-	_finish(total_correct, total_pairs, GOLD_BASE + total_earned)
+	_finish(total_correct, total_pairs, COPPER_BASE + total_earned)
 
 # ═══════════════════════════════════════════════════════════════════════════
 # ΚΛΕΙΣΙΜΟ + LOOT
@@ -573,17 +618,25 @@ func _on_session_completed(total_correct: int, total_pairs: int, total_earned: i
 # τουλάχιστον έναν γύρο, παίρνει την ανταμοιβή για ό,τι έχει ήδη
 # ολοκληρώσει — ίδια λογική με το "μερικό loot" του cotton_popup.gd,
 # προσαρμοσμένη σε γύρους αντί για μεμονωμένες ερωτήσεις.
-func _finish(correct_count: int, total: int, gold: int) -> void:
+func _finish(correct_count: int, total: int, copper: int) -> void:
 	if _loot_given:
 		return
 	_loot_given = true
-	Currency.add("Χρυσό", gold)
-	var results := [{ "name": "Χρυσό", "amount": gold }]
-	_show_completion("Ο μεταλλωρύχος σου έδωσε το χρυσάφι!", correct_count, total, results)
+	# Χωρίς έστω ΕΝΑ σωστό ζευγάρι δεν δίνεται τίποτα — ούτε το COPPER_BASE
+	# ούτε Σφαίρα· απλώς κλείνει. Ίδιος κανόνας με το cotton_popup.gd
+	# (_finish: score <= 0 -> _close χωρίς loot).
+	if correct_count <= 0:
+		_close()
+		return
+	Currency.add("Χαλκός", copper)
+	var results := [
+		{ "name": "Χαλκός", "amount": copper },
+	]
+	_show_completion("Ο μεταλλωρύχος σου έδωσε τον χαλκό!", correct_count, total, results)
 
 func _on_back_pressed() -> void:
 	if _state == 2 and not _loot_given and is_instance_valid(_matching) and _matching.get_total_pairs() > 0:
-		_finish(_matching.get_total_correct(), _matching.get_total_pairs(), GOLD_BASE + _matching.get_total_earned())
+		_finish(_matching.get_total_correct(), _matching.get_total_pairs(), COPPER_BASE + _matching.get_total_earned())
 	else:
 		_close()
 
@@ -602,7 +655,7 @@ func _show_completion(title_text: String, score: int, total: int, results: Array
 	overlay.add_child(dim)
 
 	const PW := 820.0
-	const PH := 540.0
+	const PH := 700.0
 	var px := (W - PW) / 2.0
 	var py := (H - PH) / 2.0
 	_shadow(overlay, Vector2(px + 8, py + 10), Vector2(PW, PH), 20)
@@ -621,25 +674,69 @@ func _show_completion(title_text: String, score: int, total: int, results: Array
 	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	overlay.add_child(title)
 
-	var lines := "Σωστές αντιστοιχίσεις: %d/%d\n\nΚέρδισες:" % [score, total]
-	for item in results:
-		lines += "\n•  +%d %s" % [item["amount"], item["name"]]
-	var loot := Label.new()
-	loot.text = lines
-	loot.position = Vector2(px + 40, py + 240)
-	loot.size     = Vector2(PW - 80, PH - 280)
-	loot.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	loot.vertical_alignment   = VERTICAL_ALIGNMENT_TOP
-	loot.add_theme_font_size_override("font_size", 30)
-	loot.add_theme_color_override("font_color", C_GOLD_D)
-	loot.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	overlay.add_child(loot)
+	var header := Label.new()
+	header.text = "Σωστές αντιστοιχίσεις: %d/%d\n\nΚέρδισες:" % [score, total]
+	header.position = Vector2(px + 40, py + 240)
+	header.size     = Vector2(PW - 80, 130)
+	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	header.vertical_alignment   = VERTICAL_ALIGNMENT_TOP
+	header.add_theme_font_size_override("font_size", 30)
+	header.add_theme_color_override("font_color", C_GOLD_D)
+	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	overlay.add_child(header)
+
+	_build_loot_rows(overlay, results, Vector2(px + 40, py + 370), PW - 80)
 
 	overlay.modulate.a = 0.0
 	var tw := create_tween()
 	tw.tween_property(overlay, "modulate:a", 1.0, 0.40)
 	tw.tween_interval(1.9)
 	tw.tween_callback(_close)
+
+## Μία γραμμή ανά ανταμοιβή· αν έχει "icon" δείχνει την εικόνα δίπλα στο
+## κείμενο (π.χ. η νέα Σφαίρα Ταχύτητας), αλλιώς μένει στο απλό
+## bullet-κείμενο (π.χ. Χαλκός, που δεν έχει ακόμα δικό του εικονίδιο εδώ).
+## Κοινό μοτίβο με cotton_popup.gd/blacksmith_popup.gd.
+func _build_loot_rows(parent: Control, results: Array, pos: Vector2, width: float) -> void:
+	var col := VBoxContainer.new()
+	col.position = pos
+	col.size     = Vector2(width, 0)
+	col.add_theme_constant_override("separation", 10)
+	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(col)
+	for item in results:
+		col.add_child(_make_loot_row(item))
+
+func _make_loot_row(item: Dictionary) -> Control:
+	var col := VBoxContainer.new()
+	col.alignment = BoxContainer.ALIGNMENT_CENTER
+	col.add_theme_constant_override("separation", 8)
+	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	var icon_path: String = str(item.get("icon", ""))
+	var lbl := Label.new()
+	lbl.text = "+%d %s" % [item["amount"], item["name"]]
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.add_theme_font_size_override("font_size", 30)
+	lbl.add_theme_color_override("font_color", C_GOLD_D)
+	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	col.add_child(lbl)
+
+	# Το εικονίδιο μπαίνει ΚΑΤΩ από το κείμενο, κεντραρισμένο, σε αρκετά
+	# μεγάλο μέγεθος ώστε να φαίνεται καθαρά το σχέδιο της σφαίρας (όχι σαν
+	# μικρό bullet-εικονίδιο δίπλα στο κείμενο όπως πριν).
+	if icon_path != "" and ResourceLoader.exists(icon_path):
+		var icon := TextureRect.new()
+		icon.texture = load(icon_path)
+		icon.custom_minimum_size = Vector2(110, 110)
+		icon.expand_mode  = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		col.add_child(icon)
+
+	return col
 
 # ── Hint ──────────────────────────────────────────────────────────────────
 func _build_hint() -> Label:
