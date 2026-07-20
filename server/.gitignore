@@ -1,0 +1,13 @@
+# ── PocketBase binary & release files (κατέβασέ τα με download-pocketbase.*) ──
+pocketbase
+pocketbase.exe
+CHANGELOG.md
+LICENSE.md
+pb.zip
+
+# ── Runtime data — ΠΟΤΕ στο git (τοπική DB, logs, αρχεία χρηστών, κλειδιά) ──
+pb_data/
+pb_serve.log
+*.log
+
+# Committed (ΔΕΝ αγνοούνται): pb_migrations/, pb_hooks/, README.md, download-*
