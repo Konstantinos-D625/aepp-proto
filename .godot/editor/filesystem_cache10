@@ -1,5 +1,5 @@
 9cad1ddce9e5a63143ba340c9520626b
-::res://::1784548806
+::res://::1784550729
 blacksmith_exercises.json::JSON::-1::1784287139::0::1::::<><><>0<>0<><>::
 blacksmith_quiz.json::JSON::-1::1782986437::0::1::::<><><>0<>0<><>::
 cotton.bg.png::CompressedTexture2D::7887478072552478722::1782980431::1782980448::1::::<><><>0<>0<>4f59e20a75fce349a3cf84e7cedfa687<>res://.godot/imported/cotton.bg.png-fc80643cd319784c5fdd8d4ad70e9ee2.ctex::
@@ -66,8 +66,8 @@ Bäring.mp3::AudioStreamMP3::4425883104930032401::1782980430::1782980430::1::::<
 charsfx.gd::GDScript::5841267518890008036::1782980430::0::1::::<>AudioStreamPlayer<><>0<>0<><>::
 Medieval Trumpet Sound Effects.mp3::AudioStreamMP3::4778988038431794551::1782980430::1782980430::1::::<><><>0<>0<>8af0f520ef90f9983e574dd8fcb125a1<>res://.godot/imported/Medieval Trumpet Sound Effects.mp3-63ed118c87dd0d18a8c4f7d41abc78f0.mp3str::
 Smithing Sound Effect.mp3::AudioStreamMP3::6341490168223893955::1782980430::1782980430::1::::<><><>0<>0<>4de3145bdcc055f919af6f41c454677e<>res://.godot/imported/Smithing Sound Effect.mp3-a78b2431cdd673931c2507daf01c64fe.mp3str::
-::res://Scenes/::1784548763
-Area1.tscn::PackedScene::3307231366579678210::1784293421::0::1::::<><><>0<>0<><>::uid://cwl4ofs06wqnj::::res://Music/Smithing Sound Effect.mp3<>uid://lgtra1umm75q::::res://Music/blacksmithSFX.gd<>uid://cac8h8ntb6eux::::res://Music/Medieval Trumpet Sound Effects.mp3<>uid://cphs277dyi43y::::res://Music/charsfx.gd<>uid://b4b6wbhi3jy4p::::res://Music/Bäring.mp3<>uid://dyudc04ugy6ka::::res://Εικόνες/bg1.png<>uid://blacksmith001::::res://Scenes/BlacksmithPopup.tscn<>uid://b7c08r38qo3h7::::res://Scenes/BossFight.tscn<>uid://ftwod68gmpix::::res://Scenes/BossPopup.tscn<>res://Scenes/CastlePopup.tscn<>uid://bfxx88hsb0mcd::::res://Εικόνες/char.png<>uid://charselect001::::res://Scenes/CharacterSelect.tscn<>uid://cotton001::::res://Scenes/CottonPopup.tscn<>uid://doi3j0i6x8yld::::res://Scenes/DailyQuestExercises.tscn<>uid://b4i3ybrjf1ngw::::res://Scenes/DailyQuestPopup.tscn<>uid://dyc3hy1mvk2fn::::res://Εικόνες/dq.png<>uid://b5yo74otw82i0::::res://Εικόνες/friends.png<>uid://gnome001::::res://Scenes/GnomePopup.tscn<>uid://cgwkqgjbrbim0::::res://Εικόνες/Inventory1.png<>uid://mx4he0vrynwy::::res://Scenes/InventoryPopup.tscn<>uid://b5jkmspmb8xb3::::res://Εικόνες/loot.png<>uid://c6uwqyp885ntg::::res://Scenes/LootPopup.tscn<>uid://n0onwcivmsln::::res://Εικόνες/map.png<>uid://dwsc6lgu1bbrx::::res://Scenes/MapPopup.tscn<>uid://miner001::::res://Scenes/MinerPopup.tscn<>uid://minibossp001::::res://Scenes/MiniBossPopup.tscn<>uid://bfqlbwpnemv4i::::res://Εικόνες/old-man.png<>uid://oldman001::::res://Scenes/OldManPopup.tscn<>uid://bk5ukyemg4ah0::::res://Εικόνες/options.png<>uid://yo5qmvew6urw::::res://Scenes/OptionsMenu.tscn<>uid://boywbmrd7cmun::::res://Scenes/ShopPopup.tscn<>uid://cmex2ibj3lcm1::::res://Εικόνες/sidebar.png<>uid://dric4kdeffx15::::res://Εικόνες/sideq.png<>uid://witchmap001::::res://Scenes/WitchMapPopup.tscn
+::res://Scenes/::1784550720
+Area1.tscn::PackedScene::3307231366579678210::1784550399::0::1::::<><><>0<>0<><>::uid://cwl4ofs06wqnj::::res://Music/Smithing Sound Effect.mp3<>uid://lgtra1umm75q::::res://Music/blacksmithSFX.gd<>uid://cac8h8ntb6eux::::res://Music/Medieval Trumpet Sound Effects.mp3<>uid://cphs277dyi43y::::res://Music/charsfx.gd<>uid://b4b6wbhi3jy4p::::res://Music/Bäring.mp3<>uid://dyudc04ugy6ka::::res://Εικόνες/bg1.png<>uid://blacksmith001::::res://Scenes/BlacksmithPopup.tscn<>uid://b7c08r38qo3h7::::res://Scenes/BossFight.tscn<>uid://ftwod68gmpix::::res://Scenes/BossPopup.tscn<>res://Scenes/CastlePopup.tscn<>uid://bfxx88hsb0mcd::::res://Εικόνες/char.png<>uid://charselect001::::res://Scenes/CharacterSelect.tscn<>uid://cotton001::::res://Scenes/CottonPopup.tscn<>uid://doi3j0i6x8yld::::res://Scenes/DailyQuestExercises.tscn<>uid://b4i3ybrjf1ngw::::res://Scenes/DailyQuestPopup.tscn<>uid://dyc3hy1mvk2fn::::res://Εικόνες/dq.png<>uid://b5yo74otw82i0::::res://Εικόνες/friends.png<>uid://gnome001::::res://Scenes/GnomePopup.tscn<>uid://cgwkqgjbrbim0::::res://Εικόνες/Inventory1.png<>uid://mx4he0vrynwy::::res://Scenes/InventoryPopup.tscn<>uid://b5jkmspmb8xb3::::res://Εικόνες/loot.png<>uid://c6uwqyp885ntg::::res://Scenes/LootPopup.tscn<>uid://n0onwcivmsln::::res://Εικόνες/map.png<>uid://dwsc6lgu1bbrx::::res://Scenes/MapPopup.tscn<>uid://miner001::::res://Scenes/MinerPopup.tscn<>uid://minibossp001::::res://Scenes/MiniBossPopup.tscn<>uid://bfqlbwpnemv4i::::res://Εικόνες/old-man.png<>uid://oldman001::::res://Scenes/OldManPopup.tscn<>uid://bk5ukyemg4ah0::::res://Εικόνες/options.png<>uid://yo5qmvew6urw::::res://Scenes/OptionsMenu.tscn<>uid://boywbmrd7cmun::::res://Scenes/ShopPopup.tscn<>uid://cmex2ibj3lcm1::::res://Εικόνες/sidebar.png<>uid://dric4kdeffx15::::res://Εικόνες/sideq.png<>uid://witchmap001::::res://Scenes/WitchMapPopup.tscn
 BlacksmithPopup.tscn::PackedScene::3158638219983173432::1782980446::0::1::::<><><>0<>0<><>::res://Scripts/blacksmith_popup.gd
 BossFight.tscn::PackedScene::4638170229309089422::1783681233::0::1::::<><><>0<>0<><>::res://Scripts/boss_fight.gd
 BossPopup.tscn::PackedScene::391528377439692035::1782980430::0::1::::<><><>0<>0<><>::res://Scripts/boss_popup.gd
@@ -83,16 +83,17 @@ GenderSelect.tscn::PackedScene::5402934565712689656::1784025309::0::1::::<><><>0
 GnomePopup.tscn::PackedScene::335874877232::1784016905::0::1::::<><><>0<>0<><>::res://Scripts/gnome_popup.gd
 HeroSlotPopup.tscn::PackedScene::14724634398523944::1784110176::0::1::::<><><>0<>0<><>::res://Scripts/hero_slot_popup.gd
 InventoryPopup.tscn::PackedScene::891520355038656872::1784111089::0::1::::<><><>0<>0<><>::uid://bx0pcrvekiocp::::res://Scripts/inventory_popup.gd
-LootPopup.tscn::PackedScene::6991348707066874656::1784189079::0::1::::<><><>0<>0<><>::uid://cs8xjwp0ju2hc::::res://Scripts/loot_popup.gd<>uid://d21ohe8t4245y::::res://Εικόνες/board.png
 MapPopup.tscn::PackedScene::8740752792254848645::1782980446::0::1::::<><><>0<>0<><>::res://Scripts/map_popup.gd<>res://Εικόνες/map1.png
 MinerPopup.tscn::PackedScene::643235340856::1782980446::0::1::::<><><>0<>0<><>::res://Scripts/miner_popup.gd
 MiniBossPopup.tscn::PackedScene::859584827939193000::1784241703::0::1::::<><><>0<>0<><>::res://Scripts/mini_boss_popup.gd
 OldManPopup.tscn::PackedScene::25584051699192::1783935164::0::1::::<><><>0<>0<><>::res://Scripts/old_man_popup.gd
 OptionsMenu.tscn::PackedScene::1715284281288564032::1782980446::0::1::::<><><>0<>0<><>::uid://kmjwcryfq44w::::res://Scripts/OptionsMenu.gd
+ProfilePopup.tscn::PackedScene::6440956095888245096::1784550720::0::1::::<><><>0<>0<><>::res://Scripts/profile_popup.gd
 RoomImagePopup.tscn::PackedScene::-1::1783429359::0::1::::<><><>0<>0<><>::res://Scripts/room_image_popup.gd<>res://Scenes/FoundKeyPopup.tscn
 ShopPopup.tscn::PackedScene::3419947777078795157::1782980430::0::1::::<><><>0<>0<><>::res://Scripts/shop_popup.gd
 WitchMapPopup.tscn::PackedScene::45936093021815432::1784241937::0::1::::<><><>0<>0<><>::uid://cppltoqha00cc::::res://Scripts/witch_map_popup.gd<>uid://bo3revpnfp643::::res://Εικόνες/witch_map.png
-::res://Scripts/::1784548763
+::res://Scripts/::1784550610
+achievements.gd::GDScript::4602972129006798931::1784550061::0::1::::<>Node<><>0<>0<><>::
 armor_inventory.gd::GDScript::4943718543629863539::1784547756::0::1::::<>Node<><>0<>0<><>::
 battle_animations.gd::GDScript::2250147451654589212::1784287139::0::1::::BattleAnimations<>RefCounted<><>0<>0<><>::
 blacksmith_popup.gd::GDScript::1104947120708314717::1784287139::0::1::::<>Control<><>0<>0<><>::
@@ -109,17 +110,16 @@ daily_streak_icon.gd::GDScript::9133484433124490579::1784293421::0::1::::<>Contr
 equipment_catalog.gd::GDScript::8220899368612002966::1784546646::0::1::::EquipmentCatalog<>Node<><>0<>0<><>::
 exercise_popup.gd::GDScript::4413751119549013950::1783430263::0::1::::<>Control<><>0<>0<><>::
 found_key_popup.gd::GDScript::8012495537441729554::1783429359::0::1::::<>Control<><>0<>0<><>::
-GameData.gd::GDScript::7281786025913595614::1784293421::0::1::::<>Node<><>0<>0<><>::
+GameData.gd::GDScript::7281786025913595614::1784550162::0::1::::<>Node<><>0<>0<><>::
 gender_select.gd::GDScript::8422143277808484551::1784191078::0::1::::<>Control<><>0<>0<><>::
 gnome_popup.gd::GDScript::6327436408539605330::1784024764::0::1::::<>Control<><>0<>0<><>::
 heroes.gd::GDScript::6184848438944181353::1784544760::0::1::::<>Node<><>0<>0<><>::
 hero_slot_popup.gd::GDScript::1976868662772412618::1784191110::0::1::::HeroSlotPopup<>Control<><>0<>0<><>::
 inventory_data.gd::GDScript::3332798620403996391::1784538640::0::1::::<>Node<><>0<>0<><>::
-inventory_popup.gd::GDScript::4053288783231927979::1784546679::0::1::::<>Control<><>0<>0<><>::
+inventory_popup.gd::GDScript::4053288783231927979::1784550266::0::1::::<>Control<><>0<>0<><>::
 key_drop_zone.gd::GDScript::3643484733162168551::1783429359::0::1::::<>Panel<><>0<>0<><>::
 key_inventory.gd::GDScript::549379175661400944::1784025311::0::1::::<>Node<><>0<>0<><>::
 key_token.gd::GDScript::7472227817666806628::1783429359::0::1::::<>Button<><>0<>0<><>::
-loot_popup.gd::GDScript::6105778761568029932::1784189079::0::1::::<>Control<><>0<>0<><>::
 map_popup.gd::GDScript::3856352631502612001::1783585091::0::1::::<>Control<><>0<>0<><>::
 MatchDragItem.gd::GDScript::7471654915675482530::1784293421::0::1::::MatchDragItem<>PanelContainer<><>0<>0<><>::
 MatchingQuizManager.gd::GDScript::8936308416369787290::1783424314::0::1::::MatchingQuizManager<>RefCounted<><>0<>0<><>::
@@ -127,6 +127,8 @@ miner_popup.gd::GDScript::3248297179168208394::1784293421::0::1::::<>Control<><>
 mini_boss_popup.gd::GDScript::7775751994260464204::1784542464::0::1::::<>Control<><>0<>0<><>::
 old_man_popup.gd::GDScript::8859547473265482108::1784548588::0::1::::<>Control<><>0<>0<><>::
 OptionsMenu.gd::GDScript::727246842236017652::1782980430::0::1::::<>Panel<><>0<>0<><>::
+player_profile.gd::GDScript::8200953446782244452::1784550062::0::1::::<>Node<><>0<>0<><>::
+profile_popup.gd::GDScript::9046519275355994529::1784550062::0::1::::<>Control<><>0<>0<><>::
 QuizManager.gd::GDScript::1747317443515993810::1784287139::0::1::::QuizManager<>RefCounted<><>0<>0<><>::
 room_image_popup.gd::GDScript::5478719028964953031::1783585091::0::1::::<>Control<><>0<>0<><>::
 shop_popup.gd::GDScript::3475271302785549210::1784543627::0::1::::<>Control<><>0<>0<><>::
@@ -154,7 +156,7 @@ Level1.png::CompressedTexture2D::7793793826560959295::1783331295::1783331822::1:
 Level1.png::CompressedTexture2D::7632732532309853318::1783331296::1783331822::1::::<><><>0<>0<>dfb2a24b8b07cc601b0f3751e1c20118<>res://.godot/imported/Level1.png-af7dee0f1066635a65152a5fe67d8360.ctex::
 ::res://Όπλα/Τσεκούρι/::1784189079
 Level1.png::CompressedTexture2D::5166843851197328891::1783331296::1783331822::1::::<><><>0<>0<>98076829b278ad85ef7cfcffea988b8c<>res://.godot/imported/Level1.png-3e9f6bfa99e1ab4ac725ae6df1780550.ctex::
-::res://Εικόνες/::1784539497
+::res://Εικόνες/::1784550931
 archer_frog.png::CompressedTexture2D::6501876379542328522::1784191851::1784192744::1::::<><><>0<>0<>d8c18ddfc03c2c76aed8886621e3e039<>res://.godot/imported/archer_frog.png-d22408b48f25fd811d71caad1400c17a.ctex::
 armor.png::CompressedTexture2D::4396914478175038623::1782980431::1782980431::1::::<><><>0<>0<>b7dee98b125b6b9985a77da376305a5a<>res://.godot/imported/armor.png-466a34db8939a84d2c689eade312c7f6.ctex::
 armory.png::CompressedTexture2D::6324612726790246304::1783429230::1783430623::1::::<><><>0<>0<>a9a779bc0fa58e65339ddcdac49a48fa<>res://.godot/imported/armory.png-a2785dbc26f80a8aea8558e767eb4ee2.ctex::
@@ -216,7 +218,6 @@ leather-woman.png::CompressedTexture2D::4216164388729588682::1783936318::1783937
 leather.png::CompressedTexture2D::7154039315257909745::1784024352::1784024571::1::::<><><>0<>0<>0c8b909c81054984cbb34a9e090376fc<>res://.godot/imported/leather.png-019485994ddb452bde9b3a1eff5044a0.ctex::
 leggings.png::CompressedTexture2D::4677571205764476107::1783074541::1783074620::1::::<><><>0<>0<>8a282e19758b8ccc7aa69d9b13a71a98<>res://.godot/imported/leggings.png-26d65d864190fbc8ecac6d1e854d2445.ctex::
 library.png::CompressedTexture2D::6041449625293774795::1783429231::1783430623::1::::<><><>0<>0<>0cabf1c0cdb096af0ea8c0acf4f30806<>res://.godot/imported/library.png-7c8bd41c3e4eeeb46162b22840670f7f.ctex::
-loot.png::CompressedTexture2D::4511294961215387890::1784025318::1784104260::1::::<><><>0<>0<>c2dd5911a31793853666785366d383d6<>res://.godot/imported/loot.png-3ddb53840bb22dbeaaae3556cd640ee0.ctex::
 main_bailey.png::CompressedTexture2D::6196022506549691436::1783585091::1783585104::1::::<><><>0<>0<>118af69120c200601d5b8f93e236573a<>res://.godot/imported/main_bailey.png-7d9cadc7329aa97a0bf13c085820ce16.ctex::
 map1.png::CompressedTexture2D::3175464693152241452::1783585091::1782980447::1::::<><><>0<>0<>689a57e61e9616ead66159c4a2fbfa6e<>res://.godot/imported/map1.png-3cdfa3c5b7efde058451f40aa8b9b106.ctex::
 map.png::CompressedTexture2D::964938823360760827::1784025319::1784103380::1::::<><><>0<>0<>c220c96ca6624ba1d5939608f1a88f1b<>res://.godot/imported/map.png-99cb5c1d4458831a02b30b807c87143d.ctex::
@@ -224,8 +225,10 @@ mine.background.png::CompressedTexture2D::542150785374686221::1783939695::178394
 miner.png::CompressedTexture2D::3959639038888032731::1783939681::1783940130::1::::<><><>0<>0<>befa923024d250ceb8c6be35b99b80ee<>res://.godot/imported/miner.png-af1ebaaab2c884c62cfad7477257aff4.ctex::
 old-man-bg.png::CompressedTexture2D::4756503902741210720::1783933544::1783934419::1::::<><><>0<>0<>aeafd51436f0922e4da8d3739429da99<>res://.godot/imported/old-man-bg.png-a0db33f7b2c8b9692d6035412cf40c7c.ctex::
 old-man.png::CompressedTexture2D::2771065797944827574::1783931798::1783934419::1::::<><><>0<>0<>e87facd0c8ae0a6173d5a4e7156483fd<>res://.godot/imported/old-man.png-83ed441028e19a825ec3b60852115238.ctex::
-options.png::CompressedTexture2D::3151473917783600719::1784025319::1784104260::1::::<><><>0<>0<>62d53450a318b7445fa6e291ab7275c9<>res://.godot/imported/options.png-16f960f75f56f287585bd8629bed29d3.ctex::
+options2.png::CompressedTexture2D::6301501519884825170::1784025319::1784550938::1::::<><><>0<>0<>ab3d2dcfcfbd250ded9f11f64954bc59<>res://.godot/imported/options2.png-33ed2daba37da05eee19ce4c214f06fb.ctex::
+options.png::CompressedTexture2D::3151473917783600719::1784550931::1784550938::1::::<><><>0<>0<>62d53450a318b7445fa6e291ab7275c9<>res://.godot/imported/options.png-16f960f75f56f287585bd8629bed29d3.ctex::
 play_store_512.png::CompressedTexture2D::3640688213712482610::1783595167::1783595172::1::::<><><>0<>0<>6b6db2a1e1e11396224ce091636665f6<>res://.godot/imported/play_store_512.png-843db7fbc2600caf2ef9d8df05d3ca14.ctex::
+profile.png::CompressedTexture2D::7112449149840318841::1784550062::1784550720::1::::<><><>0<>0<>761617a92106d8cea1ca6387969ceb79<>res://.godot/imported/profile.png-9725e622172892f40267da7ff793fc0f.ctex::
 random_area.png::CompressedTexture2D::9171411617740505736::1782980431::1782980448::1::::<><><>0<>0<>09360bedf330ed17c3ed6b5cf2a90e54<>res://.godot/imported/random_area.png-eb200c3e5004860d1f54fe3f2edb424f.ctex::
 red-orb.png::CompressedTexture2D::1996464713438488393::1783413068::1783413851::1::::<><><>0<>0<>ae72394f8051eef66707c37b5a7ff715<>res://.godot/imported/red-orb.png-041af3bee7a967e4a0d3441bdefe974c.ctex::
 shield.png::CompressedTexture2D::8829992543328256973::1783680995::1783681233::1::::<><><>0<>0<>75dfeb2d802b78dfec661bce38cecc36<>res://.godot/imported/shield.png-a070f560d07a6a5d7ec2e5b42cd82a17.ctex::

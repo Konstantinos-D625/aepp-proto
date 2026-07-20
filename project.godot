@@ -24,6 +24,8 @@ WeaponInventory="*res://Scripts/weapon_inventory.gd"
 KeyInventory="*res://Scripts/key_inventory.gd"
 ArmorInventory="*res://Scripts/armor_inventory.gd"
 Heroes="*res://Scripts/heroes.gd"
+Achievements="*res://Scripts/achievements.gd"
+PlayerProfile="*res://Scripts/player_profile.gd"
 
 [display]
 

@@ -41,6 +41,12 @@ const SAVE_ENABLED := true
 ## αυτόματα.
 signal streak_changed(new_streak: int)
 
+## Εκπέμπεται όταν αλλάζει ένα «ορόσημο» προόδου (νίκη σε boss/mini boss ή
+## ολοκλήρωση Daily Quest) — το Achievements autoload συνδέεται εδώ για να
+## επαναξιολογεί τα επιτεύγματα χωρίς polling. Ξεχωριστό από το streak_changed
+## (που αφορά ΜΟΝΟ το streak).
+signal progress_changed
+
 # ── Streak ────────────────────────────────────────────────────────────────
 var streak: int = 0
 var last_streak_date: String = ""              # "YYYY-MM-DD" — τελευταία μέρα που ανανεώθηκε το streak
@@ -72,6 +78,14 @@ var weapons: Dictionary = {}
 # +1 σε καθένα), που βασιζόταν στο ΠΑΛΙΟ σύστημα στατιστικών εξοπλισμού και
 # δεν ισχύει πια μετά το party/hero σύστημα (βλ. Scripts/heroes.gd).
 var boss_lost_once: bool = false
+
+# ── Νίκη κατά της Μόργκανας (κύριο boss) — μόνιμο ορόσημο προόδου ─────────────
+# true μόλις νικηθεί ΜΙΑ φορά η Μόργκανα (monotonic — δεν ξαναγίνεται false).
+# ΞΕΧΩΡΙΣΤΟ από το boss_lost_once (που αφορά μόνο τη χρέωση επανάληψης και
+# μηδενίζεται σε κάθε νίκη): αυτό μένει μόνιμα true, ώστε το «κεφάλαιο» του
+# παίκτη (Scripts/player_profile.gd get_region) και το αντίστοιχο επίτευγμα να
+# ξέρουν ότι η Μόργκανα έχει νικηθεί.
+var boss_defeated: bool = false
 
 # ── Mini bosses (mini_boss_popup.gd) ────────────────────────────────────────
 # boss_id -> {"defeated": bool, "lost_once": bool}. Ίδια δύο έννοιες με τη
@@ -110,6 +124,12 @@ var keys: Dictionary = {}
 # currencies/weapons. Ένα ενιαίο Dictionary ώστε roster + slots + unlocks +
 # ο μετρητής uid να σώζονται ΜΑΖΙ και να μένουν πάντα συνεπή.
 var party: Dictionary = {}
+
+# ── Επιτεύγματα (Achievements autoload, βλ. Scripts/achievements.gd) ──────────
+# id επιτεύγματος -> ημερομηνία ξεκλειδώματος. Το GameData είναι ΜΟΝΟ ο
+# persistence layer· ο κατάλογος + η λογική ξεκλειδώματος ζουν στο
+# achievements.gd (ίδιο μοτίβο με currencies/party).
+var achievements: Dictionary = {}
 
 
 func _ready() -> void:
@@ -209,6 +229,7 @@ func record_daily_quest_result(levels_completed: int) -> void:
 	daily_quest_levels_completed = 3
 	increment_streak() # επαναχρησιμοποίηση της ΗΔΗ υπάρχουσας streak λογικής — ΔΕΝ δημιουργείται νέα
 	_save()
+	progress_changed.emit()
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -256,15 +277,23 @@ func save_equipped_loadout(equipped: Dictionary) -> void:
 func has_lost_to_boss() -> bool:
 	return boss_lost_once
 
+## True αν ο παίκτης έχει νικήσει ΕΣΤΩ ΜΙΑ φορά τη Μόργκανα (μόνιμο ορόσημο,
+## βλ. boss_defeated). Το χρησιμοποιούν το «κεφάλαιο» προόδου και τα επιτεύγματα.
+func has_defeated_boss() -> bool:
+	return boss_defeated
+
 ## Καλείται σε ήττα — από εδώ και πέρα η επόμενη προσπάθεια χρεώνεται.
 func record_boss_loss() -> void:
 	boss_lost_once = true
 	_save()
 
-## Καλείται σε νίκη — μηδενίζει τη χρέωση επανάληψης.
+## Καλείται σε νίκη — μηδενίζει τη χρέωση επανάληψης ΚΑΙ σημειώνει μόνιμα ότι
+## η Μόργκανα νικήθηκε (ορόσημο προόδου -> progress_changed).
 func record_boss_win() -> void:
 	boss_lost_once = false
+	boss_defeated = true
 	_save()
+	progress_changed.emit()
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -299,6 +328,7 @@ func record_mini_boss_win(boss_id: String) -> void:
 	state["defeated"] = true
 	mini_bosses[boss_id] = state
 	_save()
+	progress_changed.emit()
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -415,6 +445,18 @@ func save_party(data: Dictionary) -> void:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
+# ΔΗΜΟΣΙΟ API — ΕΠΙΤΕΥΓΜΑΤΑ (persistence μόνο· λογική στο Achievements)
+# ═══════════════════════════════════════════════════════════════════════════
+
+func get_saved_achievements() -> Dictionary:
+	return achievements
+
+func save_achievements(data: Dictionary) -> void:
+	achievements = data.duplicate(true)
+	_save()
+
+
+# ═══════════════════════════════════════════════════════════════════════════
 # SAVE SYSTEM (ConfigFile — ίδιο μοτίβο με OptionsMenu.gd)
 # ═══════════════════════════════════════════════════════════════════════════
 
@@ -433,11 +475,13 @@ func _load() -> void:
 	daily_quest_levels_completed = config.get_value("daily_quest", "levels_completed", 0)
 	weapons                     = config.get_value("weapons", "state", {})
 	boss_lost_once              = config.get_value("boss", "lost_once", false)
+	boss_defeated               = config.get_value("boss", "defeated", false)
 	mini_bosses                 = config.get_value("mini_bosses", "state", {})
 	hero_gender                 = config.get_value("hero", "gender", "")
 	currencies                  = config.get_value("currencies", "amounts", {})
 	keys                        = config.get_value("keys", "state", {})
 	party                       = config.get_value("party", "data", {})
+	achievements                = config.get_value("achievements", "unlocked", {})
 
 func _save() -> void:
 	if not SAVE_ENABLED:
@@ -449,9 +493,11 @@ func _save() -> void:
 	config.set_value("daily_quest", "levels_completed", daily_quest_levels_completed)
 	config.set_value("weapons", "state", weapons)
 	config.set_value("boss", "lost_once", boss_lost_once)
+	config.set_value("boss", "defeated", boss_defeated)
 	config.set_value("mini_bosses", "state", mini_bosses)
 	config.set_value("hero", "gender", hero_gender)
 	config.set_value("currencies", "amounts", currencies)
 	config.set_value("keys", "state", keys)
 	config.set_value("party", "data", party)
+	config.set_value("achievements", "unlocked", achievements)
 	config.save(SAVE_PATH)

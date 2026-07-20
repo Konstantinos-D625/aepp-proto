@@ -13,7 +13,13 @@ const CATEGORY_CHARACTERS := "characters"
 # EquipmentCatalog.upgrade/sell. Ίδια σταθερά με το shop_popup.gd.
 const PRICE_CURRENCY := "Χαλκός"
 
+# Νομίσματα/υλικά που δείχνει το strip στην κορυφή του Inventory — αντικατέστησαν
+# την παλιά «Αποθήκη»/LootPopup (ό,τι έδειχνε το loot φαίνεται τώρα εδώ, ίδιο
+# μοτίβο με το currency strip του Shop). Ίδιο σύνολο με το Shop.
+const STRIP_CURRENCIES: Array[String] = ["Χαλκός", "Δέρμα", "Σίδερο", "Κέρμα"]
+
 var _current_category := Inventory.CATEGORY_WEAPON
+var _currency_amount_labels: Dictionary = {}   # currency -> Label (ποσό)
 
 func _ready() -> void:
 	hide()
@@ -49,6 +55,10 @@ func _ready() -> void:
 		if visible:
 			_refresh()
 	)
+	# Νομίσματα/υλικά στην κορυφή (η παλιά «Αποθήκη»): ζωντανή ενημέρωση όταν
+	# ξοδεύονται/κερδίζονται πόροι οπουδήποτε, ίδια πηγή με το Shop (Currency).
+	Currency.changed.connect(_update_currency_strip)
+	_build_currency_strip()
 
 func open() -> void:
 	_select_category(Inventory.CATEGORY_WEAPON)
@@ -62,6 +72,79 @@ func close_popup() -> void:
 func _on_dim_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed:
 		close_popup()
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# CURRENCY STRIP (η παλιά «Αποθήκη»/LootPopup — τώρα ενσωματωμένη εδώ, ίδιο
+# μοτίβο με το currency strip του Shop)
+# ═══════════════════════════════════════════════════════════════════════════
+
+## Χτίζεται ΜΙΑ φορά και μπαίνει στην κορυφή της κάρτας (μετά τον τίτλο, πριν τα
+## tabs) — 4 badges (εικονίδιο + ποσό) για Χαλκός/Δέρμα/Σίδερο/Κέρμα.
+func _build_currency_strip() -> void:
+	var vbox := $Card/Margin/VBox as VBoxContainer
+	var strip := HBoxContainer.new()
+	strip.name = "CurrencyStrip"
+	strip.add_theme_constant_override("separation", 12)
+	vbox.add_child(strip)
+	vbox.move_child(strip, 1)   # ακριβώς κάτω από τον τίτλο «Εξοπλισμός»
+	for currency in STRIP_CURRENCIES:
+		strip.add_child(_make_currency_badge(currency))
+	_update_currency_strip()
+
+func _make_currency_badge(currency: String) -> Control:
+	var badge := PanelContainer.new()
+	badge.custom_minimum_size = Vector2(0, 72)
+	badge.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0, 0, 0, 0.28)
+	sb.border_color = Currency.COLORS.get(currency, C_GOLD).darkened(0.15)
+	sb.set_border_width_all(2)
+	sb.set_corner_radius_all(10)
+	sb.content_margin_left = 8
+	sb.content_margin_right = 8
+	sb.content_margin_top = 6
+	sb.content_margin_bottom = 6
+	badge.add_theme_stylebox_override("panel", sb)
+
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 8)
+	badge.add_child(row)
+
+	# Εικόνα-εικονίδιο αν υπάρχει (copper/iron/leather/coin.png, Currency.
+	# TEXTURE_ICONS)· αλλιώς το text/emoji fallback.
+	var icon_tex := Currency.get_icon_texture(currency)
+	if icon_tex:
+		var icon := TextureRect.new()
+		icon.texture = icon_tex
+		# expand_mode ΠΡΙΝ το size (τα PNG είναι ~1000px — αλλιώς κλειδώνει το
+		# minimum size στο φυσικό μέγεθος και ξεχειλίζει, βλ. shop_popup.gd).
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.custom_minimum_size = Vector2(40, 40)
+		icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		row.add_child(icon)
+	else:
+		var e := Label.new()
+		e.text = str(Currency.ICONS.get(currency, "•"))
+		e.add_theme_font_size_override("font_size", 30)
+		row.add_child(e)
+
+	var amount := Label.new()
+	amount.text = str(Currency.get_amount(currency))
+	amount.add_theme_color_override("font_color", C_PARCH)
+	amount.add_theme_font_size_override("font_size", 30)
+	amount.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	row.add_child(amount)
+	_currency_amount_labels[currency] = amount
+	return badge
+
+func _update_currency_strip() -> void:
+	for currency in _currency_amount_labels:
+		var lbl = _currency_amount_labels[currency]
+		if is_instance_valid(lbl):
+			(lbl as Label).text = str(Currency.get_amount(currency))
 
 func _current_catalog() -> EquipmentCatalog:
 	if _current_category == Inventory.CATEGORY_WEAPON:
