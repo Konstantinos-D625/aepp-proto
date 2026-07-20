@@ -2,36 +2,43 @@ extends "res://Scripts/equipment_catalog.gd"
 
 ## Καθολική (autoload) κατάσταση για το σύστημα όπλων.
 ## Υποκλάση του Scripts/equipment_catalog.gd — η κοινή λογική (κατάλογος,
-## τιμολόγηση, αγορά/αναβάθμιση/πώληση, persistence, starter grant) ζει ΕΚΕΙ.
-## Εδώ ορίζονται μόνο τα δεδομένα του όπλου (_configure) και οι δύο ειδικές
-## φόρμουλες στατιστικού (get_base_stat/get_total_stat) που χρειάζονται το
-## 1-20 clamp ώστε να ταιριάζουν με το Character stat panel — βλ.
-## Scripts/armor_inventory.gd για το ανάλογο (γενικευμένο, χωρίς clamp)
-## σύστημα πανοπλιών.
+## τιμολόγηση, αγορά/πώληση, persistence, starter grant, στατιστικά μέσω
+## get_item_buffs) ζει ΕΚΕΙ. Εδώ ορίζονται ΜΟΝΟ τα δεδομένα κάθε όπλου
+## (_configure) — βλ. Scripts/armor_inventory.gd για το ανάλογο σύστημα
+## πανοπλιών.
 ##
 ## ΑΡΧΙΤΕΚΤΟΝΙΚΗ: κάθε εικόνα Level1..Level9.png μέσα σε κάθε φάκελο
 ## κατηγορίας είναι ένα ξεχωριστό, μοναδικά ονομασμένο, αγοράσιμο όπλο. Το
 ## "old_level" (1-9, το νούμερο της εικόνας) είναι μόνιμο χαρακτηριστικό του
-## όπλου. Το ξεχωριστό "tier" (1-3) είναι η αναβάθμιση που αγοράζει ο
-## παίκτης ΜΕΤΑ την αγορά, μέσα από το Inventory.
+## όπλου. ΔΕΝ αναβαθμίζονται (upgradable = false, όπως και οι πανοπλίες) —
+## το tier μένει πάντα 1 μετά την αγορά.
 ##
+## Για να αλλάξεις τα στατιστικά ενός όπλου: άλλαξε ΑΠΕΥΘΕΙΑΣ τους αριθμούς
+## στο "buffs" του entry του παρακάτω (Damage/AttackSpeed) — καμία φόρμουλα.
 ## Για να προστεθεί νέο όπλο στο μέλλον: αντέγραψε την εικόνα μέσα στον
 ## φάκελο της κατηγορίας του (Όπλα/<category>/LevelN.png) και πρόσθεσε ένα
-## {file, name} entry στο items[category] στη θέση N-1 — καμία άλλη αλλαγή
-## λογικής δεν χρειάζεται.
+## {file, name, buffs} entry στο items[category] στη θέση N-1 — καμία άλλη
+## αλλαγή λογικής δεν χρειάζεται.
 
 func _configure() -> void:
 	item_dir = "res://Όπλα/"
 	stat_label = "Επίθεση"
 	stat_icon = "⚔"
+	primary_stat_key = "Damage"
 	# Κανένα starter όπλο — ο παίκτης ξεκινά άοπλος, ΟΛΑ αγοράζονται από το
 	# Shop (starter_ids μένει άδειο, βλ. equipment_catalog.gd).
+	# Τα όπλα ΔΕΝ αναβαθμίζονται (μόνο αγορά/πώληση) — ίδιο μοτίβο με τις
+	# πανοπλίες (armor_inventory.gd). Το Inventory UI κρύβει αυτόματα το
+	# "Επίπεδο x/3"/κουμπί Αναβάθμισης όταν upgradable = false.
+	upgradable = false
 
 	categories = [
 		"Μαχαίρι", "Σπαθί", "Σφυρί", "Σιδηρομπουνιά", "Τσεκούρι",
-		"Αξίνα", "Λεπίδα", "Μαστίγιο", "Τόξο",
+		"Αξίνα", "Λεπίδα", "Μαστίγιο", "Τόξο", "Σφαίρα",
 	]
 
+	# Μόνο τιμολόγηση (βλ. EquipmentCatalog.get_base_price) — ΔΕΝ επηρεάζει τα
+	# stats, αυτά είναι το χειροκίνητο "buffs" κάθε αντικειμένου παρακάτω.
 	category_multiplier = {
 		"Μαχαίρι": 1.0,
 		"Σπαθί": 1.3,
@@ -42,56 +49,51 @@ func _configure() -> void:
 		"Λεπίδα": 3.2,
 		"Μαστίγιο": 3.8,
 		"Τόξο": 4.5,
+		"Σφαίρα": 4.2,
 	}
 
-	# Κάθε εικόνα αναλύθηκε οπτικά και πήρε ένα μοναδικό fantasy όνομα που
-	# ταιριάζει με το ύφος/υλικό/αίσθημά της. Κρατιέται ΕΝΑ όπλο (Level1) ανά
-	# κατηγορία — για να προστεθούν κι άλλα αργότερα, ξαναβάλε επιπλέον ονόματα
-	# εδώ και τα αντίστοιχα LevelN.png στον φάκελο της κατηγορίας.
+	# Κάθε όπλο: "file" (όνομα εικόνας μέσα στον φάκελο της κατηγορίας),
+	# "name" (fantasy όνομα), "buffs" (stats ΠΟΥ ΔΙΝΕΙ ΟΤΑΝ ΕΞΟΠΛΙΣΤΕΙ —
+	# Damage + AttackSpeed, χειροκίνητα ανά όπλο, ΚΑΜΙΑ φόρμουλα). Κρατιέται
+	# ΕΝΑ όπλο (Level1) ανά κατηγορία — για να προστεθούν κι άλλα αργότερα,
+	# ξαναβάλε επιπλέον entries εδώ και τα αντίστοιχα LevelN.png στον φάκελο
+	# της κατηγορίας.
+	#
+	# "Σφαίρα" (Σφαίρα_1) είναι εξαίρεση: τρόπαιο από το δέντρο-boss (βλ.
+	# mini_boss_popup.gd BOSS_DEFS["tree"]["weapon_reward"] + boss_fight.gd::
+	# _conclude_fight, EquipmentCatalog.grant). "hidden": true = ΔΕΝ
+	# αγοράζεται/εμφανίζεται στο Shop (βλ. EquipmentCatalog.is_shop_hidden/
+	# buy), παίρνεται ΜΟΝΟ νικώντας το δέντρο· μόλις αποκτηθεί, φαίνεται
+	# κανονικά στο Inventory.
 	items = {
-		"Μαχαίρι": _level_files(["Nebulyn Fang"]),
-		"Σπαθί": _level_files(["Winterwing Longsword"]),
-		"Σφυρί": _level_files(["Ironbound Warhammer"]),
-		"Σιδηρομπουνιά": _level_files(["Starveil Glove"]),
-		"Τσεκούρι": _level_files(["Stonehide Hatchet"]),
-		"Αξίνα": _level_files(["Silvermoon Sickle"]),
-		"Λεπίδα": _level_files(["Voidcrescent Blade"]),
-		"Μαστίγιο": _level_files(["Oxhide Lash"]),
-		"Τόξο": _level_files(["Ashwood Hunting Bow"]),
+		"Μαχαίρι": [
+			{"file": "Level1", "name": "Nebulyn Fang", "buffs": {"Damage": 1, "AttackSpeed": 3}},
+		],
+		"Σπαθί": [
+			{"file": "Level1", "name": "Winterwing Longsword", "buffs": {"Damage": 2, "AttackSpeed": 2}},
+		],
+		"Σφυρί": [
+			{"file": "Level1", "name": "Ironbound Warhammer", "buffs": {"Damage": 3, "AttackSpeed": 2}},
+		],
+		"Σιδηρομπουνιά": [
+			{"file": "Level1", "name": "Starveil Glove", "buffs": {"Damage": 3, "AttackSpeed": 3}},
+		],
+		"Τσεκούρι": [
+			{"file": "Level1", "name": "Stonehide Hatchet", "buffs": {"Damage": 4, "AttackSpeed": 1}},
+		],
+		"Αξίνα": [
+			{"file": "Level1", "name": "Silvermoon Sickle", "buffs": {"Damage": 4, "AttackSpeed": 2}},
+		],
+		"Λεπίδα": [
+			{"file": "Level1", "name": "Voidcrescent Blade", "buffs": {"Damage": 2, "AttackSpeed": 6}},
+		],
+		"Μαστίγιο": [
+			{"file": "Level1", "name": "Oxhide Lash", "buffs": {"Damage": 4, "AttackSpeed": 4}},
+		],
+		"Τόξο": [
+			{"file": "Level1", "name": "Ashwood Hunting Bow", "buffs": {"Damage": 3, "AttackSpeed": 4}},
+		],
+		"Σφαίρα": [
+			{"file": "tree_magic_sphere", "name": "Tree Magic Sphere", "buffs": {"Damage": 4, "AttackSpeed": 7}, "hidden": true},
+		],
 	}
-
-## Βοηθητικό μόνο για το _configure(): μετατρέπει μία απλή λίστα ονομάτων σε
-## Array[{"file","name"}] με file = "Level1".."LevelN" (ίδια σύμβαση με τα
-## υπάρχοντα αρχεία εικόνων Level1.png..Level9.png).
-func _level_files(names: Array) -> Array[Dictionary]:
-	var result: Array[Dictionary] = []
-	for i in names.size():
-		result.append({"file": "Level%d" % (i + 1), "name": names[i]})
-	return result
-
-## Βασική επίθεση (πριν τα upgrades), ΠΑΝΤΑ μέσα σε 1-20 — δύο συστατικά:
-##   - level_component: το κύριο συστατικό, βήμα 2 ανά old_level μέσα στην
-##     ΙΔΙΑ κατηγορία (level1=1 ... level9=17).
-##   - category_bonus (0-3): μικρό μπόνους βάσει της θέσης της κατηγορίας
-##     μέσα στο categories, που είναι ήδη σε αύξουσα σειρά ακρίβειας/τιμής
-##     (Μαχαίρι το φθηνότερο -> Τόξο το ακριβότερο, βλ. category_multiplier).
-## Έτσι η επίθεση ακολουθεί (χωρίς να είναι δέσμια της ίδιας φόρμουλας με)
-## την τιμή του όπλου: το φθηνότερο όπλο του παιχνιδιού (Μαχαίρι Level1)
-## κάνει 1 επίθεση, το ακριβότερο (Τόξο Level9) κάνει 20 — πριν τα upgrades.
-func get_base_stat(id: String) -> int:
-	var old_level := get_old_level(id)
-	var level_component := 1 + (old_level - 1) * 2   # 1, 3, 5, ..., 17
-	var category_rank := categories.find(get_category(id))   # 0..8, φθηνό -> ακριβό
-	var category_bonus := 0
-	if category_rank > 0:
-		category_bonus = int(round(category_rank * 3.0 / float(categories.size() - 1)))   # 0..3
-	return clampi(level_component + category_bonus, 1, 20)
-
-## Συνολική επίθεση (βάση + upgrades), πάντα μέσα σε 1-20 — τα upgrades
-## μπορούν να "σπρώξουν" ένα ήδη ισχυρό όπλο πάνω από 20, οπότε γίνεται
-## clamp εδώ (soft-cap: τα upgrades σε όπλα κοντά στο ανώτατο όριο έχουν
-## μικρότερο πραγματικό όφελος — σκόπιμο, όχι bug).
-func get_total_stat(id: String) -> int:
-	if not is_owned(id):
-		return get_base_stat(id)
-	return clampi(get_base_stat(id) + (get_tier(id) - 1) * UPGRADE_STAT_BONUS, 1, 20)

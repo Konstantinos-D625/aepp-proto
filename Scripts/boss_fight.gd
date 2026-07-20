@@ -245,16 +245,23 @@ func _conclude_fight() -> void:
 		var md: Dictionary = MiniBossScript.BOSS_DEFS.get(_boss_id, {})
 		if won:
 			# ΙΔΙΑ ανταμοιβή/καταγραφή με το παλιό στιγμιαίο roll του
-			# mini_boss_popup._do_fight: Χαλκός + (μόνο goblin) το bootstrap
-			# κλειδί + η πανοπλία-τρόπαιο, ΜΙΑ φορά — το record_mini_boss_win
-			# κλειδώνει το boss.
-			Currency.add(MiniBossScript.REWARD_CURRENCY, int(md.get("reward", 0)))
+			# mini_boss_popup._do_fight: πολλαπλά νομίσματα (Χαλκός/Δέρμα/
+			# Σίδερο/Κέρμα, βλ. BOSS_DEFS[...]["reward"]) + (μόνο goblin) το
+			# bootstrap κλειδί + πανοπλία-τρόπαιο, + (μόνο δέντρο) η
+			# σφαίρα-τρόπαιο, ΜΙΑ φορά — το record_mini_boss_win κλειδώνει
+			# το boss.
+			var reward: Dictionary = md.get("reward", {})
+			for currency in reward:
+				Currency.add(currency, int(reward[currency]))
 			var key_reward: Dictionary = md.get("key_reward", {})
 			if not key_reward.is_empty():
 				KeyInventory.add_key(key_reward["value"], str(key_reward["category"]))
 			var armor_reward := str(md.get("armor_reward", ""))
 			if armor_reward != "":
 				ArmorInventory.grant(armor_reward)
+			var weapon_reward := str(md.get("weapon_reward", ""))
+			if weapon_reward != "":
+				WeaponInventory.grant(weapon_reward)
 			GameData.record_mini_boss_win(_boss_id)
 		else:
 			GameData.record_mini_boss_loss(_boss_id)
@@ -613,7 +620,8 @@ func _style_back_btn(btn: Button) -> void:
 ## Σκοτεινό full-screen overlay με πάνελ αποτελέσματος + κουμπί επιστροφής.
 ## MOUSE_FILTER_STOP ώστε να μπλοκάρει το από κάτω HUD. Το κείμενο διαφέρει
 ## ανά boss: Μόργκανα = ξεκλείδωμα περιοχής/κόστος επανάληψης 200· mini =
-## ατάκα + ανταμοιβές (Χαλκός, κλειδί του goblin) / κόστος επανάληψης 100.
+## ατάκα + ανταμοιβές (νομίσματα + κλειδί/πανοπλία του goblin ή σφαίρα του
+## δέντρου) / κόστος επανάληψης 100.
 func _show_result(won: bool) -> void:
 	var d := _def()
 	var is_morgana := str(d["kind"]) == "morgana"
@@ -690,12 +698,19 @@ func _show_result(won: bool) -> void:
 	sub.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	overlay.add_child(sub)
 
-	# Γραμμές ανταμοιβής (μόνο mini + νίκη): +Χαλκός και, αν υπάρχει (goblin),
-	# +1 κλειδί + η πανοπλία-τρόπαιο — οι ποσότητες ήρθαν από το
-	# MiniBossScript.BOSS_DEFS και έχουν ΗΔΗ πιστωθεί στο _conclude_fight.
+	# Γραμμές ανταμοιβής (μόνο mini + νίκη): όλα τα νομίσματα σε ΜΙΑ γραμμή
+	# (Χαλκός/Δέρμα/Σίδερο/Κέρμα, μόνο ποσό+εικονίδιο — το όνομα θα ξεχείλιζε
+	# με 4 νομίσματα μαζί) + από 1 ακόμα γραμμή αν υπάρχει (goblin: κλειδί,
+	# δέντρο: σφαίρα) + από 1 ακόμα για την πανοπλία/όπλο-τρόπαιο — οι
+	# ποσότητες ήρθαν από το MiniBossScript.BOSS_DEFS και έχουν ΗΔΗ πιστωθεί
+	# στο _conclude_fight.
 	if not is_morgana and won:
-		var reward_line := "+%d %s  %s" % [int(md.get("reward", 0)),
-			MiniBossScript.REWARD_CURRENCY, Currency.ICONS.get(MiniBossScript.REWARD_CURRENCY, "")]
+		var reward: Dictionary = md.get("reward", {})
+		var parts: Array = []
+		for currency in Currency.ORDER:
+			if reward.has(currency):
+				parts.append("+%d%s" % [int(reward[currency]), Currency.ICONS.get(currency, "")])
+		var reward_line := "  ".join(parts)
 		var key_reward: Dictionary = md.get("key_reward", {})
 		if not key_reward.is_empty():
 			reward_line += "\n+1 %s  %s" % [str(key_reward["category"]),
@@ -703,6 +718,9 @@ func _show_result(won: bool) -> void:
 		var armor_reward := str(md.get("armor_reward", ""))
 		if armor_reward != "":
 			reward_line += "\n+%s  🛡" % ArmorInventory.get_item_name(armor_reward)
+		var weapon_reward := str(md.get("weapon_reward", ""))
+		if weapon_reward != "":
+			reward_line += "\n+%s  ⚔" % WeaponInventory.get_item_name(weapon_reward)
 		var rl := Label.new()
 		rl.text = reward_line
 		# Πάνω από το κουμπί (pyr+PH-110) — μέχρι 3 γραμμές πλέον (Χαλκός +

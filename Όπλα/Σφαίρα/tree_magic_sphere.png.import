@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://0etvesr1neiy"
-path="res://.godot/imported/tree_magic_sphere.png-15983140d3747f331e53738802d46c35.ctex"
+uid="uid://dqmooktpyndtg"
+path="res://.godot/imported/tree_magic_sphere.png-09ab038695e7be67345e681c0174e0bc.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Όπλα/tree_magic_sphere.png"
-dest_files=["res://.godot/imported/tree_magic_sphere.png-15983140d3747f331e53738802d46c35.ctex"]
+source_file="res://Όπλα/Σφαίρα/tree_magic_sphere.png"
+dest_files=["res://.godot/imported/tree_magic_sphere.png-09ab038695e7be67345e681c0174e0bc.ctex"]
 
 [params]
 

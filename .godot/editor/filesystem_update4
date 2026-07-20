@@ -1,8 +1,2 @@
-res://Scripts/shop_popup.gd
-res://Scripts/heroes.gd
 res://Scripts/armor_inventory.gd
-res://Scripts/equipment_catalog.gd
-res://Scripts/inventory_data.gd
 res://Scripts/weapon_inventory.gd
-res://Scripts/boss_fight.gd
-res://Scripts/mini_boss_popup.gd

@@ -294,18 +294,25 @@ func _catalog_for(item_id: String) -> EquipmentCatalog:
 		return ArmorInventory
 	return null
 
-## Η ΜΟΝΑΔΙΚΗ μετατροπή item -> προσωρινό stat buff. Τα όπλα buff-άρουν
-## Damage (+λίγη Attack Speed), οι πανοπλίες Shield (+λίγη HP). Μελλοντικό
-## σύστημα rarity/items αλλάζει ΜΟΝΟ αυτή τη συνάρτηση.
+## Η ΜΟΝΑΔΙΚΗ μετατροπή item -> stat buff ΠΟΥ ΜΕΤΡΑΕΙ στην πραγματική ισχύ
+## ενός εξοπλισμένου ήρωα (get_buff_stats/get_final_stats) — επιστρέφει {} αν
+## το item δεν ανήκει (ακόμα) στον παίκτη. Τα ίδια τα buffs είναι ΧΕΙΡΟΚΙΝΗΤΑ
+## ανά αντικείμενο (πεδίο "buffs" στο items[category] του weapon/
+## armor_inventory.gd) — βλ. EquipmentCatalog.get_item_buffs.
 func item_stat_buffs(item_id: String) -> Dictionary:
 	var cat := _catalog_for(item_id)
 	if cat == null or not cat.is_owned(item_id):
 		return {}
-	var power: int = cat.get_old_level(item_id) + (cat.get_tier(item_id) - 1)
-	var minor: int = int(ceil(power / 3.0))
-	if cat == WeaponInventory:
-		return {"Damage": power, "AttackSpeed": minor}
-	return {"Shield": power, "HP": minor}
+	return cat.get_item_buffs(item_id)
+
+## ΓΙΑ ΕΜΦΑΝΙΣΗ ΜΟΝΟ (Shop/Inventory) — ίδιο με το item_stat_buffs() αλλά δεν
+## απαιτεί ιδιοκτησία, ώστε το Shop να δείχνει τα stats ΚΑΙ σε αντικείμενα
+## πριν την αγορά.
+func display_item_buffs(item_id: String) -> Dictionary:
+	var cat := _catalog_for(item_id)
+	if cat == null:
+		return {}
+	return cat.get_item_buffs(item_id)
 
 ## Πληροφορίες εμφάνισης ενός item id (για τον επιλογέα/κάρτες).
 func item_info(item_id: String) -> Dictionary:

@@ -175,8 +175,10 @@ func _make_equipment_card(catalog: EquipmentCatalog, id: String) -> Control:
 		tier_label.add_theme_font_size_override("font_size", 22)
 		info.add_child(tier_label)
 
+	# ΟΛΑ τα stats που δίνει το αντικείμενο εξοπλισμένο (όχι μόνο το πρωτεύον
+	# Επίθεση/Άμυνα του καταλόγου) — βλ. Heroes.display_item_buffs.
 	var stat_row_label := Label.new()
-	stat_row_label.text = "%s %s: %d" % [catalog.stat_icon, catalog.stat_label, catalog.get_total_stat(id)]
+	stat_row_label.text = _stat_line(Heroes.display_item_buffs(id))
 	stat_row_label.add_theme_color_override("font_color", C_GOLD)
 	stat_row_label.add_theme_font_size_override("font_size", 26)
 	info.add_child(stat_row_label)
@@ -271,6 +273,17 @@ func _make_sell_row(catalog: EquipmentCatalog, id: String) -> Control:
 	sell_btn.pressed.connect(func(): catalog.sell(id))
 
 	return row
+
+## Μία γραμμή κειμένου με ΟΛΑ τα stats ενός buffs Dictionary (π.χ. {"Damage":
+## 13, "AttackSpeed": 5} -> "⚔ 13   ⚡ 5"), σε σειρά Heroes.STAT_KEYS — ίδιο
+## helper με το shop_popup.gd (δεν υπάρχει κοινό UI-utils module, κάθε popup
+## κρατά τα δικά του μικρά format helpers, ίδιο μοτίβο με το υπόλοιπο codebase).
+func _stat_line(buffs: Dictionary) -> String:
+	var parts: Array = []
+	for key in Heroes.STAT_KEYS:
+		if buffs.has(key):
+			parts.append("%s %d" % [Heroes.STAT_ICONS[key], int(buffs[key])])
+	return "   ".join(parts)
 
 ## Βάζει την ΠΡΑΓΜΑΤΙΚΗ εικόνα του Χαλκού (copper.png) δίπλα στο κείμενο του
 ## κουμπιού, αντί για το παλιό emoji "🪙" — που είναι ΧΡΥΣΟ νόμισμα, ενώ χρυσός

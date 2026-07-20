@@ -231,6 +231,17 @@ func _price_chip(box: HBoxContainer, currency: String, amount: int, font_sz: int
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.add_child(icon)
 
+## Μία γραμμή κειμένου με ΟΛΑ τα stats ενός buffs Dictionary (π.χ. {"Damage":
+## 13, "AttackSpeed": 5} -> "⚔ 13   ⚡ 5"), σε σειρά Heroes.STAT_KEYS, με τα
+## ίδια εικονίδια/χρώματα με το Character stat panel — ώστε η κάρτα να δείχνει
+## ΟΛΑ όσα δίνει το αντικείμενο, όχι μόνο το πρωτεύον Επίθεση/Άμυνα.
+func _stat_line(buffs: Dictionary) -> String:
+	var parts: Array = []
+	for key in Heroes.STAT_KEYS:
+		if buffs.has(key):
+			parts.append("%s %d" % [Heroes.STAT_ICONS[key], int(buffs[key])])
+	return "   ".join(parts)
+
 func _build_tabs() -> void:
 	var bar := Panel.new()
 	bar.position = Vector2(0, HDR_H + 6)
@@ -304,9 +315,13 @@ func _refresh_grid() -> void:
 		return
 	var catalog := _current_catalog()
 	# Όλα τα αντικείμενα όλων των κατηγοριών του καταλόγου μαζί — δεν υπάρχουν
-	# πλέον υπο-κατηγορίες.
+	# πλέον υπο-κατηγορίες. Τα αποκλειστικά τρόπαια boss (is_shop_hidden, π.χ.
+	# Bad Goblin Armor/Tree Magic Sphere) ΔΕΝ εμφανίζονται εδώ — παίρνονται
+	# ΜΟΝΟ νικώντας το αντίστοιχο boss (βλ. boss_fight.gd).
 	for category in catalog.categories:
 		for id in catalog.get_items_in_category(category):
+			if catalog.is_shop_hidden(id):
+				continue
 			_grid.add_child(_make_equipment_card(catalog, id))
 
 func _on_equipment_changed() -> void:
@@ -349,12 +364,17 @@ func _make_equipment_card(catalog: EquipmentCatalog, id: String) -> Control:
 		 32, C_BONE, HORIZONTAL_ALIGNMENT_CENTER)
 	name_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
-	_lbl(card, "%s %s %d" % [catalog.stat_icon, catalog.stat_label, catalog.get_base_stat(id)],
+	# ΟΛΑ τα stats που δίνει το αντικείμενο όταν εξοπλιστεί (όχι μόνο το
+	# πρωτεύον Επίθεση/Άμυνα του καταλόγου) — π.χ. ένα όπλο δείχνει Damage ΚΑΙ
+	# AttackSpeed αν δίνει και τα δύο. Βλ. Heroes.display_item_buffs.
+	_lbl(card, _stat_line(Heroes.display_item_buffs(id)),
 		 Vector2(20, 312), Vector2(CARD_W - 40, 40), 28, C_SILVER, HORIZONTAL_ALIGNMENT_CENTER)
 
+	# Χωρίς αναβαθμίσεις (κανένα catalog δεν είναι πλέον upgradable) δεν έχει
+	# νόημα να δείχνεται "Επίπεδο x/3" — απλό "Κατοχή".
 	if owned:
-		_lbl(card, "Κατοχή — Επίπεδο %d/%d" % [catalog.get_tier(id), catalog.UPGRADE_MAX_TIER],
-			 Vector2(20, 356), Vector2(CARD_W - 40, 44), 26, C_GOLD, HORIZONTAL_ALIGNMENT_CENTER)
+		_lbl(card, "Κατοχή", Vector2(20, 356), Vector2(CARD_W - 40, 44),
+			 26, C_GOLD, HORIZONTAL_ALIGNMENT_CENTER)
 
 	# Το κουμπί δείχνει την τιμή αντί για "ΑΓΟΡΑ" όσο δεν έχει αγοραστεί (βλ.
 	# _price_row παρακάτω, μπαίνει ΜΕΣΑ στο κουμπί) — μόλις αγοραστεί, δείχνει

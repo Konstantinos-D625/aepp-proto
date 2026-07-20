@@ -9,15 +9,16 @@ class_name EquipmentCatalog
 ## τιμολόγηση, αγορά/αναβάθμιση/πώληση, persistence, starter grant) είναι
 ## κοινή και ζει ΜΙΑ φορά εδώ — καμία υποκλάση δεν την ξαναγράφει.
 ##
-## Οι υποκλάσεις μπορούν προαιρετικά να υπερφορτώσουν το get_base_stat()/
-## get_total_stat() αν χρειάζονται δική τους φόρμουλα στατιστικού — βλ.
-## weapon_inventory.gd (κλίμακα 1-20 για να ταιριάζει με το Character stat
-## panel) και armor_inventory.gd (χειροκίνητη Άμυνα 1-5 ανά κομμάτι, βλ.
-## εκεί για λεπτομέρειες).
+## Τα ΠΡΑΓΜΑΤΙΚΑ stats κάθε αντικειμένου είναι ΧΕΙΡΟΚΙΝΗΤΑ — πεδίο "buffs" σε
+## κάθε entry του items[category] (βλ. get_item_buffs παρακάτω), π.χ.
+## {"Damage": 3, "AttackSpeed": 1} για ένα όπλο, {"Shield": 2, "HP": 1} για
+## μία πανοπλία. ΚΑΜΙΑ φόρμουλα/πολλαπλασιαστής — για να αλλάξεις τα stats
+## ενός συγκεκριμένου αντικειμένου, άλλαξε ΑΠΕΥΘΕΙΑΣ τους αριθμούς στο
+## weapon_inventory.gd/armor_inventory.gd.
 ##
 ## Για να προστεθεί νέο όπλο/πανοπλία στο μέλλον: αντέγραψε την εικόνα μέσα
-## στον φάκελο της κατηγορίας της και πρόσθεσε ένα {file, name} entry στο
-## items[category] της αντίστοιχης υποκλάσης — καμία άλλη αλλαγή λογικής.
+## στον φάκελο της κατηγορίας της και πρόσθεσε ένα {file, name, buffs} entry
+## στο items[category] της αντίστοιχης υποκλάσης — καμία άλλη αλλαγή λογικής.
 
 signal changed
 ## Εκπέμπεται ΜΟΝΟ σε επιτυχή αγορά (όχι upgrade/sell) — το Inventory
@@ -31,9 +32,10 @@ var item_dir: String = ""
 var categories: Array[String] = []
 var category_multiplier: Dictionary = {}
 var category_labels: Dictionary = {}     # προαιρετικό override εμφάνισης (π.χ. πληθυντικός τύπος)
-var items: Dictionary = {}               # category -> Array[{"file": String, "name": String}]
+var items: Dictionary = {}               # category -> Array[{"file", "name", "buffs": {STAT_KEY: int}}]
 var stat_label: String = "Επίθεση"
 var stat_icon: String = "⚔"
+var primary_stat_key: String = "Damage"  # ποιο κλειδί του "buffs" είναι το πρωτεύον στατιστικό (π.χ. "Shield" για armor)
 var starter_ids: Array[String] = []      # ιδιοκτησία εξ αρχής σε ολοκαίνουργιο save
 # false = ο κατάλογος ΔΕΝ έχει καθόλου σύστημα αναβάθμισης (βλ. armor_inventory.gd):
 # το can_upgrade()/upgrade() αρνούνται πάντα, και το Inventory UI κρύβει το
@@ -107,11 +109,20 @@ func get_icon_path(id: String) -> String:
 	var entry: Dictionary = items[get_category(id)][get_old_level(id) - 1]
 	return "%s%s/%s.png" % [item_dir, get_category(id), entry["file"]]
 
-## Εσωτερική "ισχύς" ανά old_level (old_level × 15) — η κοινή βάση πάνω στην
-## οποία υπολογίζονται τόσο η προεπιλεγμένη φόρμουλα στατιστικού όσο και η
-## τιμή αγοράς. Το ×15 (πριν ×10) είναι σκόπιμη, μέτρια αύξηση της τιμής
-## εξοπλισμού (+50%) — weapon/armor_inventory.gd υπερφορτώνουν το δικό τους
-## get_base_stat(), οπότε η αλλαγή εδώ επηρεάζει ΜΟΝΟ την τιμή, όχι τα stats.
+## ΟΛΑ τα stats (buffs) που δίνει ένα αντικείμενο όταν εξοπλιστεί — χειροκίνητο
+## πεδίο "buffs" στο entry του (π.χ. {"Damage": 3, "AttackSpeed": 1} για ένα
+## όπλο, {"Shield": 2, "HP": 1} για μία πανοπλία). Η ΜΟΝΑΔΙΚΗ πηγή αλήθειας —
+## καμία φόρμουλα/πολλαπλασιαστής από πίσω. Χρησιμοποιείται και από το Shop/
+## Inventory (μέσω Heroes.display_item_buffs/item_stat_buffs) ΚΑΙ από το
+## get_base_stat παρακάτω (το πρωτεύον stat της κάρτας).
+func get_item_buffs(id: String) -> Dictionary:
+	var entry: Dictionary = items[get_category(id)][get_old_level(id) - 1]
+	return (entry.get("buffs", {}) as Dictionary).duplicate()
+
+## Εσωτερική "ισχύς" ανά old_level (old_level × 15) — η βάση πάνω στην οποία
+## υπολογίζεται η τιμή αγοράς (get_base_price). Το ×15 (πριν ×10) είναι
+## σκόπιμη, μέτρια αύξηση της τιμής εξοπλισμού (+50%). ΔΕΝ επηρεάζει τα
+## stats — αυτά είναι χειροκίνητα, βλ. get_item_buffs.
 func _price_power(old_level: int) -> int:
 	return old_level * 15
 
@@ -138,6 +149,16 @@ func get_purchase_cost(id: String) -> Dictionary:
 	var copper := get_base_price(id)
 	return {"Χαλκός": copper, "Κέρμα": maxi(1, int(round(copper / 10.0)))}
 
+## True αν το αντικείμενο είναι ΑΠΟΚΡΥΜΜΕΝΟ από το Shop — π.χ. τρόπαιο boss
+## (βλ. "Bad Goblin Armor" στο armor_inventory.gd, "Tree Magic Sphere" στο
+## weapon_inventory.gd): παραμένει πλήρως λειτουργικό (is_owned/grant/equip/
+## εμφάνιση στο Inventory), απλά ΔΕΝ αγοράζεται ούτε εμφανίζεται στη λίστα
+## του Shop — μόνο EquipmentCatalog.grant() (π.χ. από boss_fight.gd) το δίνει.
+## Χειροκίνητο πεδίο "hidden" στο entry του items[category], false αν λείπει.
+func is_shop_hidden(id: String) -> bool:
+	var entry: Dictionary = items[get_category(id)][get_old_level(id) - 1]
+	return bool(entry.get("hidden", false))
+
 ## Κόστος αναβάθμισης 1→2 = 20, 2→3 = 30 (σταθερό, ίδιο για όλα τα αντικείμενα).
 func get_upgrade_cost(tier: int) -> int:
 	return 20 if tier == 1 else 30
@@ -149,9 +170,11 @@ func _upgrade_refund(tier: int) -> int:
 		return 20
 	return 0
 
-## Βασικό στατιστικό πριν τα upgrades. Προεπιλογή: old_level × 10.
+## Το πρωτεύον στατιστικό της κάρτας (Επίθεση για όπλα, Άμυνα για πανοπλίες)
+## — διαβάζεται από το χειροκίνητο "buffs" dict του αντικειμένου, στο κλειδί
+## primary_stat_key (βλ. get_item_buffs).
 func get_base_stat(id: String) -> int:
-	return _price_power(get_old_level(id))
+	return int(get_item_buffs(id).get(primary_stat_key, 0))
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -183,9 +206,11 @@ func get_sell_price(id: String) -> int:
 # ΔΗΜΟΣΙΟ API — MUTATIONS
 # ═══════════════════════════════════════════════════════════════════════════
 
-## Αγορά αντικειμένου — καλείται ΜΟΝΟ από το Shop.
+## Αγορά αντικειμένου — καλείται ΜΟΝΟ από το Shop. Τα κρυμμένα (is_shop_hidden)
+## τρόπαια boss ΔΕΝ αγοράζονται ποτέ, ακόμα κι αν κληθεί απευθείας — μόνο
+## το grant() (βλ. boss_fight.gd) δίνει ιδιοκτησία σε αυτά.
 func buy(id: String) -> bool:
-	if is_owned(id):
+	if is_owned(id) or is_shop_hidden(id):
 		return false
 	if not Currency.spend(get_purchase_cost(id)):
 		return false
