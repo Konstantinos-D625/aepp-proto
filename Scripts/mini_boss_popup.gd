@@ -35,7 +35,9 @@ extends Control
 #
 # Ο καλικάντζαρος ΕΠΙΠΛΕΟΝ δίνει, ΜΟΝΟ στην πρώτη νίκη, το bootstrap κλειδί
 # του side quest του κάστρου (βλ. BOSS_DEFS["goblin"]["key_reward"] — παλιά
-# το έδινε η Δερματού, απεριόριστα farmable, βλ. cotton_popup.gd).
+# το έδινε η Δερματού, απεριόριστα farmable, βλ. cotton_popup.gd) ΚΑΙ το
+# "Bad Goblin Armor" δωρεάν (βλ. BOSS_DEFS["goblin"]["armor_reward"] +
+# EquipmentCatalog.grant στο boss_fight.gd).
 #
 # Η πρώτη προσπάθεια είναι δωρεάν. Μετά από ήττα (GameData.record_mini_boss_loss)
 # ΚΑΘΕ νέα προσπάθεια κοστίζει RETRY_COST Κέρματα — ίδιο μοτίβο/νόμισμα με τη
@@ -69,7 +71,11 @@ const BOSS_DEFS := {
 		"char_region": Rect2(494, 32, 401, 701),
 		"bg": "res://Εικόνες/bad_goblin_bg.png",
 		"stat": 5,
-		"reward": 100,
+		# 100→60: μαζί με το key_reward + armor_reward παρακάτω η συνολική αξία
+		# της νίκης αυξήθηκε αισθητά (κλειδί + πανοπλία ~90+ Χαλκός αξίας στο
+		# Shop) — μειώνεται λίγο το καθαρό Χαλκός ώστε να μείνει balanced
+		# απέναντι στο δέντρο (stat 10, δυσκολότερο, 200 Χαλκός χωρίς μπόνους).
+		"reward": 60,
 		# Το bootstrap κλειδί του side quest του κάστρου (Armory, "k <= 8" —
 		# βλ. Scripts/castle_popup.gd) — δινόταν παλιά (απεριόριστα farmable)
 		# από τη Δερματού· τώρα δίνεται ΜΙΑ φορά, εδώ, στην πρώτη νίκη πάνω
@@ -77,6 +83,11 @@ const BOSS_DEFS := {
 		# βλ. _do_fight). Μόνο ο καλικάντζαρος έχει αυτό το πεδίο· κανένα
 		# άλλο mini boss δεν δίνει κλειδί.
 		"key_reward": {"value": 8, "category": KEY_CATEGORY_NUMERIC},
+		# Τρόπαιο: το "Bad Goblin Armor" (βλ. armor_inventory.gd, Θώρακας_2),
+		# χαρίζεται ΧΩΡΙΣ χρέωση στην πρώτη νίκη (EquipmentCatalog.grant, βλ.
+		# boss_fight.gd::_conclude_fight) — ΕΠΙΠΛΕΟΝ από το ότι μπορεί κανείς
+		# να το αγοράσει κανονικά στο Shop.
+		"armor_reward": "Θώρακας_2",
 		"dialogue": "Χι χι χι... ποιος τολμάει;\n\nΑυτή η σπηλιά είναι ΔΙΚΗ μου!\nΕδώ και εκατό χρόνια κλέβω\nό,τι περνάει από το μονοπάτι!\n\nΆντε, δείξε μου τι αξίζεις!",
 		"taunt_win":  "Άουτς! Πάρ' τα και άσε με ήσυχο!",
 		"taunt_lose": "Χα! Γύρνα σπίτι σου, αδύναμε!",

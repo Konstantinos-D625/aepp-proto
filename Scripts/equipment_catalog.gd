@@ -62,8 +62,10 @@ func _configure() -> void:
 	pass
 
 ## Σε ένα ολοκαίνουργιο save (καμία αποθηκευμένη κατάσταση ποτέ για το id),
-## δίνει αυτόματα ιδιοκτησία+tier 1 — μιμείται ό,τι έκανε ήδη το
-## weapon_inventory.gd (STARTER_WEAPON_ID) πριν τη γενίκευση.
+## δίνει αυτόματα ιδιοκτησία+tier 1 σε κάθε id του starter_ids. Καμία υποκλάση
+## το χρησιμοποιεί πλέον (weapon/armor_inventory.gd έχουν starter_ids άδειο —
+## ο παίκτης ξεκινά χωρίς εξοπλισμό, όλα αγοράζονται από το Shop) — μένει εδώ
+## ως γενική, έτοιμη υποδομή για μελλοντική κατηγορία εξοπλισμού.
 func _grant_starters_if_new_save() -> void:
 	for id in starter_ids:
 		if GameData.get_weapon_state(id).is_empty():
@@ -105,11 +107,13 @@ func get_icon_path(id: String) -> String:
 	var entry: Dictionary = items[get_category(id)][get_old_level(id) - 1]
 	return "%s%s/%s.png" % [item_dir, get_category(id), entry["file"]]
 
-## Εσωτερική "ισχύς" ανά old_level (old_level × 10) — η κοινή βάση πάνω στην
+## Εσωτερική "ισχύς" ανά old_level (old_level × 15) — η κοινή βάση πάνω στην
 ## οποία υπολογίζονται τόσο η προεπιλεγμένη φόρμουλα στατιστικού όσο και η
-## τιμή αγοράς.
+## τιμή αγοράς. Το ×15 (πριν ×10) είναι σκόπιμη, μέτρια αύξηση της τιμής
+## εξοπλισμού (+50%) — weapon/armor_inventory.gd υπερφορτώνουν το δικό τους
+## get_base_stat(), οπότε η αλλαγή εδώ επηρεάζει ΜΟΝΟ την τιμή, όχι τα stats.
 func _price_power(old_level: int) -> int:
-	return old_level * 10
+	return old_level * 15
 
 ## Πολλαπλασιαστής τιμής βάσει old_level· επεκτείνει γραμμικά τη σχέση
 ## base ×1.0 / ×1.6 / ×2.6 (old_level 1/2/3) ώστε να καλύπτει και τα
@@ -124,6 +128,15 @@ func get_base_price(id: String) -> int:
 	var old_level := get_old_level(id)
 	var mult: float = category_multiplier.get(category, 1.0)
 	return int(round(_price_power(old_level) * mult * _level_price_multiplier(old_level)))
+
+## Πλήρες κόστος αγοράς στο Shop: Χαλκός (get_base_price) + Κέρμα. Το Κέρμα
+## είναι πάντα τουλάχιστον 1 (κάθε αντικείμενο κοστίζει σίγουρα λίγο Κέρμα,
+## βλ. currency_manager.gd) και κλιμακώνεται αναλογικά με την τιμή σε Χαλκό
+## (1 Κέρμα ανά ~10 Χαλκός) — η ΙΔΙΑ φόρμουλα δουλεύει αυτόματα και για
+## μελλοντικά, ακριβότερα επίπεδα χωρίς καμία αλλαγή εδώ.
+func get_purchase_cost(id: String) -> Dictionary:
+	var copper := get_base_price(id)
+	return {"Χαλκός": copper, "Κέρμα": maxi(1, int(round(copper / 10.0)))}
 
 ## Κόστος αναβάθμισης 1→2 = 20, 2→3 = 30 (σταθερό, ίδιο για όλα τα αντικείμενα).
 func get_upgrade_cost(tier: int) -> int:
@@ -174,7 +187,19 @@ func get_sell_price(id: String) -> int:
 func buy(id: String) -> bool:
 	if is_owned(id):
 		return false
-	if not Currency.spend({"Χαλκός": get_base_price(id)}):
+	if not Currency.spend(get_purchase_cost(id)):
+		return false
+	_state[id] = {"owned": true, "tier": 1}
+	_persist(id)
+	changed.emit()
+	item_bought.emit(id)
+	return true
+
+## Ιδιοκτησία ΧΩΡΙΣ χρέωση — ίδιο αποτέλεσμα με buy() αλλά χωρίς Currency.spend
+## (π.χ. δωρεάν ανταμοιβή boss, βλ. boss_fight.gd::_conclude_fight για τον
+## καλικάντζαρο). False αν ήδη ανήκει (idempotent — ασφαλές να καλείται ξανά).
+func grant(id: String) -> bool:
+	if is_owned(id):
 		return false
 	_state[id] = {"owned": true, "tier": 1}
 	_persist(id)

@@ -31,16 +31,12 @@ extends "res://Scripts/equipment_catalog.gd"
 ## φάκελο της κατηγορίας της (Πανοπλία/<category>/<αρχείο>.png) και πρόσθεσε
 ## ένα {file, name} entry στο items[category] — καμία άλλη αλλαγή λογικής.
 
-const STARTER_CHEST_ID  := "Θώρακας_1"
-const STARTER_HELMET_ID := "Κράνος_1"
-const STARTER_LEGS_ID   := "Παντελόνι_1"
-const STARTER_BOOTS_ID  := "Μπότες_1"
-
 func _configure() -> void:
 	item_dir = "res://Πανοπλία/"
 	stat_label = "Άμυνα"
 	stat_icon = "🛡"
-	starter_ids = [STARTER_CHEST_ID, STARTER_HELMET_ID, STARTER_LEGS_ID, STARTER_BOOTS_ID]
+	# Καμία starter πανοπλία — ο παίκτης ξεκινά χωρίς εξοπλισμό, ΟΛΑ
+	# αγοράζονται από το Shop (starter_ids μένει άδειο, βλ. equipment_catalog.gd).
 	# Οι πανοπλίες ΔΕΝ αναβαθμίζονται (μόνο αγορά/πώληση) — η Άμυνα κάθε
 	# κομματιού είναι το σταθερό "stat" (1-5) του items παρακάτω, οριστική
 	# από την αγορά. Μόνο τα όπλα έχουν tiers.
@@ -74,12 +70,20 @@ func _configure() -> void:
 	# Κρατιέται ΕΝΑ κομμάτι (το Γήινο, stat 1) ανά κατηγορία — για να προστεθούν
 	# κι άλλα αργότερα, ξαναβάλε επιπλέον {file,name,stat} entries εδώ και τις
 	# αντίστοιχες εικόνες στον φάκελο της κατηγορίας.
+	#
+	# Εξαίρεση: το "Θώρακας_2" (Bad Goblin Armor) — τρόπαιο από τον καλικάντζαρο
+	# (βλ. mini_boss_popup.gd BOSS_DEFS["goblin"]["armor_reward"] +
+	# boss_fight.gd::_conclude_fight, EquipmentCatalog.grant). Δεν ανήκει στην
+	# υλική ιεραρχία Γήινο<Σιδερένιο<... των άλλων κατηγοριών (γι' αυτό ΜΟΝΟ ο
+	# Θώρακας έχει 2ο entry) — αγοράζεται ΚΑΙ από το Shop σαν κανονικό
+	# αντικείμενο, αλλά ο καλικάντζαρος τη χαρίζει δωρεάν στην πρώτη νίκη.
 	items = {
 		"Θώρακας": [
-			{"file": "Γήινος",     "name": "Wildroot Bark Plate",      "stat": 1},
+			{"file": "Γήινος",       "name": "Wildroot Bark Plate", "stat": 2},
+			{"file": "goblin_armour", "name": "Bad Goblin Armor",   "stat": 3},
 		],
 		"Κράνος": [
-			{"file": "Γήινο",      "name": "Antlerwood Wildhelm",      "stat": 1},
+			{"file": "Γήινο",      "name": "Antlerwood Wildhelm",      "stat": 2},
 		],
 		"Παντελόνι": [
 			{"file": "Γήινο",      "name": "Bramblewood Legguards",    "stat": 1},

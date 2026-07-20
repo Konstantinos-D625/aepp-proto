@@ -43,26 +43,46 @@ const DEFAULT_UNLOCKED: Array = [true, true, false, false, false, false]
 const ITEMS_PER_HERO := 2
 
 # ── Καταλογος αγοράσιμων ηρώων (Shop -> tab "Χαρακτήρες") ────────────────────
-# Νέος ήρωας = ένα entry εδώ (id/όνομα/εικόνα/τιμή) — τίποτα άλλο.
+# Νέος ήρωας = ένα entry εδώ (id/όνομα/εικόνα/τιμή/stats) — τίποτα άλλο.
+#
+# Τα "base_stats" είναι ΧΕΙΡΟΚΙΝΗΤΑ και ΣΤΑΘΕΡΑ (ίδιο μοτίβο με το χειροκίνητο
+# "stat" της armor, βλ. armor_inventory.gd) — ΔΕΝ τυχαιοποιούνται πια, ώστε ο
+# χαρακτήρας κάθε ήρωα να έχει νόημα (π.χ. ο Γίγαντας πάντα μεγάλη ζωή/αργός,
+# ο Τοξότης πάντα γρήγορος/εύθραυστος) και η τιμή να αντιστοιχεί σε πραγματική
+# ισχύ (το άθροισμα των 4 stats μεγαλώνει μαζί με την τιμή: 22/33/44).
+#
+# Η "price" είναι Dictionary νόμισμα->ποσό (ίδιο σχήμα με ό,τι δέχεται
+# Currency.spend). Χαλκός/Δέρμα/Σίδερο βγαίνουν ΟΛΑ από quiz NPC με ΤΗΝ ΙΔΙΑ
+# φόρμουλα ανταμοιβής (BASE=2 + Σδυσκολία, βλ. miner_popup.gd/cotton_popup.gd/
+# blacksmith_popup.gd) — άρα είναι ΙΣΑΞΙΑ σε δυσκολία απόκτησης. Οι ήρωες
+# κοστίζουν το ΙΔΙΟ ποσό και στα τρία (όχι μόνο Χαλκός + λίγο από ένα ακόμα),
+# ώστε ο παίκτης να ΑΝΑΓΚΑΖΕΤΑΙ να λύσει εξίσου ασκήσεις και στους 3
+# NPC/κατηγορίες (Μεταλλωρύχος/Δερματού/Σιδεράς) για να αγοράσει έναν ήρωα —
+# όχι μόνο να φαρμάρει έναν από τους τρεις. Κέρμα (sink, βλ.
+# currency_manager.gd) πάνω σε αυτό, σκαλωμένο με την τιμή/ισχύ του ήρωα.
 const HERO_DEFS: Array[Dictionary] = [
-	{"id": "giant",  "name": "Βράχος ο Γίγαντας",    "avatar": "res://Εικόνες/giant.png",       "price": 200},
-	{"id": "knight", "name": "Σερ Ατρόμητος",        "avatar": "res://Εικόνες/knight.png",      "price": 300},
-	{"id": "frog",   "name": "Βρεκεκέξ ο Τοξότης",   "avatar": "res://Εικόνες/archer_frog.png", "price": 400},
+	{
+		"id": "giant", "name": "Βράχος ο Γίγαντας", "avatar": "res://Εικόνες/giant.png",
+		"price": {"Χαλκός": 100, "Δέρμα": 100, "Σίδερο": 100, "Κέρμα": 3},
+		"base_stats": {"HP": 13, "Damage": 2, "Shield": 5, "AttackSpeed": 2},
+	},
+	{
+		"id": "knight", "name": "Σερ Ατρόμητος", "avatar": "res://Εικόνες/knight.png",
+		"price": {"Χαλκός": 200, "Δέρμα": 200, "Σίδερο": 200, "Κέρμα": 5},
+		"base_stats": {"HP": 8, "Damage": 10, "Shield": 9, "AttackSpeed": 6},
+	},
+	{
+		"id": "frog", "name": "Βρεκεκέξ ο Τοξότης", "avatar": "res://Εικόνες/archer_frog.png",
+		"price": {"Χαλκός": 300, "Δέρμα": 300, "Σίδερο": 300, "Κέρμα": 8},
+		"base_stats": {"HP": 4, "Damage": 18, "Shield": 2, "AttackSpeed": 20},
+	},
 ]
-const HERO_PRICE_CURRENCY := "Χαλκός"
 
 # ── Κατάσταση (φορτώνεται από GameData) ─────────────────────────────────────
 var _roster: Array = []            # Array[hero dict] — βλ. _make_hero για σχήμα
 var _slots: Array = []             # Array[NUM_SLOTS] από uid ("" = κενό)
 var _slots_unlocked: Array = []    # Array[NUM_SLOTS] από bool
 var _next_uid := 0
-
-# ── Προσφορές Shop: def_id -> base_stats ───────────────────────────────────
-# Τα stats κάθε αγοράσιμου ήρωα «ρίχνονται» ΤΥΧΑΙΑ ΜΙΑ φορά (την πρώτη φορά
-# που ζητούνται) και ΑΠΟΘΗΚΕΥΟΝΤΑΙ εδώ. Έτσι το Shop μπορεί να δείξει τα
-# ΠΡΑΓΜΑΤΙΚΑ stats ΠΡΙΝ την αγορά, και η αγορά δίνει ΑΚΡΙΒΩΣ αυτά — χωρίς να
-# ξανα-randomize-άρονται σε κάθε redraw (που θα «χόρευαν» τα νούμερα).
-var _offers: Dictionary = {}
 
 
 func _ready() -> void:
@@ -74,7 +94,6 @@ func _load_saved() -> void:
 	_slots          = data.get("slots", []).duplicate(true)
 	_slots_unlocked = data.get("slots_unlocked", []).duplicate(true)
 	_next_uid       = int(data.get("next_uid", 0))
-	_offers         = data.get("offers", {}).duplicate(true)
 	# Γέμισμα/διόρθωση μεγεθών ώστε να είναι πάντα NUM_SLOTS (future-proof αν
 	# αλλάξει το NUM_SLOTS ανάμεσα σε εκδόσεις).
 	while _slots.size() < NUM_SLOTS: _slots.append("")
@@ -134,7 +153,6 @@ func _persist() -> void:
 		"slots": _slots,
 		"slots_unlocked": _slots_unlocked,
 		"next_uid": _next_uid,
-		"offers": _offers,
 	})
 
 
@@ -159,20 +177,14 @@ func owns_hero_def(def_id: String) -> bool:
 			return true
 	return false
 
-## Τα stats της προσφοράς ενός αγοράσιμου ήρωα — «ρίχνονται» τυχαία την ΠΡΩΤΗ
-## φορά που ζητούνται και αποθηκεύονται, ώστε το Shop να δείχνει ΑΚΡΙΒΩΣ αυτά
-## που θα πάρει ο παίκτης (και να μην αλλάζουν σε κάθε redraw).
-func get_offer_stats(def_id: String) -> Dictionary:
-	if not _offers.has(def_id):
-		var base := {}
-		for k in STAT_KEYS:
-			base[k] = randi_range(STAT_MIN, STAT_MAX)
-		_offers[def_id] = base
-		_persist()
-	return (_offers[def_id] as Dictionary).duplicate()
+## Τα ΣΤΑΘΕΡΑ base stats ενός αγοράσιμου ήρωα του καταλόγου (HERO_DEFS) — ίδια
+## σε κάθε save/παρτίδα, ώστε το Shop να δείχνει ΑΚΡΙΒΩΣ αυτά που θα πάρει ο
+## παίκτης.
+func get_hero_stats(def_id: String) -> Dictionary:
+	return (_hero_def(def_id).get("base_stats", {}) as Dictionary).duplicate()
 
-## Αγορά ήρωα από τον κατάλογο (Shop). Παίρνει ΑΚΡΙΒΩΣ τα stats που έδειχνε η
-## προσφορά (get_offer_stats). Κάθε ήρωας αγοράζεται ΜΙΑ φορά — αν κατέχεται
+## Αγορά ήρωα από τον κατάλογο (Shop). Παίρνει ΑΚΡΙΒΩΣ τα σταθερά stats του
+## καταλόγου (get_hero_stats). Κάθε ήρωας αγοράζεται ΜΙΑ φορά — αν κατέχεται
 ## ήδη, η αγορά αποτυγχάνει (χωρίς χρέωση). Επιστρέφει το uid του νέου ήρωα,
 ## ή "" σε αποτυχία.
 func buy_hero(def_id: String) -> String:
@@ -181,8 +193,8 @@ func buy_hero(def_id: String) -> String:
 		return ""
 	if owns_hero_def(def_id):
 		return ""
-	var base := get_offer_stats(def_id)
-	if not Currency.spend({HERO_PRICE_CURRENCY: int(def["price"])}):
+	var base := get_hero_stats(def_id)
+	if not Currency.spend(def["price"] as Dictionary):
 		return ""
 	var hero := _make_hero(def_id, def["name"], def["avatar"], base)
 	_roster.append(hero)

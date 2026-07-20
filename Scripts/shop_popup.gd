@@ -116,17 +116,12 @@ func _build_header() -> void:
 
 	_build_currency_strip(hdr)
 
-# Τα υλικά που αφορούν το Shop (η αγορά γίνεται αποκλειστικά σε Χαλκό — βλ.
-# EquipmentCatalog.buy) ΚΑΙ το Κέρμα: δεν ξοδεύεται εδώ (μόνο σε boss retries,
-# βλ. boss_popup.gd/mini_boss_popup.gd), αλλά φαίνεται ώστε ο παίκτης να ξέρει
+# Τα υλικά που αφορούν το Shop — όλα ξοδεύονται πλέον εδώ (Χαλκός+Κέρμα σε
+# ΚΑΘΕ αγορά· Δέρμα/Σίδερο στους ήρωες, βλ. EquipmentCatalog.get_purchase_cost
+# / Heroes.HERO_DEFS), οπότε φαίνονται όλα στο strip ώστε ο παίκτης να ξέρει
 # πόσο έχει μαζέψει χωρίς να ανοίξει την Αποθήκη. Όχι Κλειδιά — δεν αφορούν
 # καθόλου το Shop. Ίδια σχετική σειρά με το Currency.ORDER.
 const STRIP_CURRENCIES: Array[String] = ["Χαλκός", "Δέρμα", "Σίδερο", "Κέρμα"]
-
-# Το νόμισμα ΚΑΘΕ τιμής του Shop (όπλα, πανοπλίες, ήρωες) — βλ.
-# EquipmentCatalog.buy / Heroes.HERO_PRICE_CURRENCY. Μία σταθερά ώστε να μη
-# σκορπίζεται το literal "Χαλκός" στις κάρτες.
-const PRICE_CURRENCY := "Χαλκός"
 
 func _build_currency_strip(hdr: Control) -> void:
 	_currency_strip = Control.new()
@@ -182,21 +177,26 @@ func _update_currency_labels() -> void:
 	for currency in _currency_labels:
 		(_currency_labels[currency] as Label).text = str(Currency.get_amount(currency))
 
-## Τιμή κάρτας: αριθμός + η ΠΡΑΓΜΑΤΙΚΗ εικόνα του Χαλκού (copper.png), αντί για
-## το παλιό emoji "🪙" — που είναι ΧΡΥΣΟ νόμισμα, ενώ χρυσός δεν υπάρχει πια στο
-## παιχνίδι (τα πάντα τιμολογούνται σε Χαλκό). Ίδιος αγωγός εικόνας με το
-## currency strip παραπάνω (Currency.get_icon_texture), ώστε το εικονίδιο της
-## τιμής και το εικονίδιο του αποθέματος να είναι πάντα η ΙΔΙΑ εικόνα.
-## Το emoji μένει ως fallback μόνο αν λείψει το PNG.
-func _price_row(parent: Control, amount: int, pos: Vector2, sz: Vector2, font_sz: int, col: Color) -> void:
+## Γραμμή τιμής κάρτας: ένα "chip" (αριθμός + εικονίδιο) ανά νόμισμα του cost
+## (π.χ. {"Χαλκός": 300, "Κέρμα": 3, "Σίδερο": 15}), σε σειρά Currency.ORDER,
+## μέσα στο ίδιο HBox — ώστε οι κάρτες να δείχνουν όλα τα κόστη μιας αγοράς
+## μαζί (εξοπλισμός: Χαλκός+Κέρμα· ήρωες: Χαλκός+Κέρμα+υλικό). Χρησιμοποιεί
+## την ΠΡΑΓΜΑΤΙΚΗ εικόνα κάθε νομίσματος (Currency.get_icon_texture, ίδιος
+## αγωγός με το currency strip παραπάνω) με emoji ως fallback αν λείψει το PNG.
+func _price_row(parent: Control, cost: Dictionary, pos: Vector2, sz: Vector2, font_sz: int, col: Color) -> void:
 	var box := HBoxContainer.new()
 	box.position  = pos
 	box.size      = sz
 	box.alignment = BoxContainer.ALIGNMENT_CENTER
-	box.add_theme_constant_override("separation", 8)
+	box.add_theme_constant_override("separation", 10)
 	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	parent.add_child(box)
 
+	for currency in Currency.ORDER:
+		if cost.has(currency):
+			_price_chip(box, currency, int(cost[currency]), font_sz, col)
+
+func _price_chip(box: HBoxContainer, currency: String, amount: int, font_sz: int, col: Color) -> void:
 	var amount_lbl := Label.new()
 	amount_lbl.text = str(amount)
 	amount_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -208,10 +208,10 @@ func _price_row(parent: Control, amount: int, pos: Vector2, sz: Vector2, font_sz
 	amount_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.add_child(amount_lbl)
 
-	var icon_tex := Currency.get_icon_texture(PRICE_CURRENCY)
+	var icon_tex := Currency.get_icon_texture(currency)
 	if icon_tex == null:
 		var fallback := Label.new()
-		fallback.text = str(Currency.ICONS.get(PRICE_CURRENCY, "•"))
+		fallback.text = str(Currency.ICONS.get(currency, "•"))
 		fallback.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		fallback.add_theme_font_size_override("font_size", font_sz)
 		fallback.add_theme_color_override("font_color", col)
@@ -355,18 +355,20 @@ func _make_equipment_card(catalog: EquipmentCatalog, id: String) -> Control:
 	if owned:
 		_lbl(card, "Κατοχή — Επίπεδο %d/%d" % [catalog.get_tier(id), catalog.UPGRADE_MAX_TIER],
 			 Vector2(20, 356), Vector2(CARD_W - 40, 44), 26, C_GOLD, HORIZONTAL_ALIGNMENT_CENTER)
-	else:
-		_price_row(card, catalog.get_base_price(id), Vector2(20, 356), Vector2(CARD_W - 40, 44), 34, C_GOLD)
 
+	# Το κουμπί δείχνει την τιμή αντί για "ΑΓΟΡΑ" όσο δεν έχει αγοραστεί (βλ.
+	# _price_row παρακάτω, μπαίνει ΜΕΣΑ στο κουμπί) — μόλις αγοραστεί, δείχνει
+	# "ΑΓΟΡΑΣΜΕΝΟ" όπως πριν.
 	var buy := Button.new()
 	buy.position = Vector2(20, CARD_H - BTN_H - 20)
 	buy.size     = Vector2(CARD_W - 40, BTN_H)
-	buy.text     = "ΑΓΟΡΑΣΜΕΝΟ" if owned else "ΑΓΟΡΑ"
+	buy.text     = "ΑΓΟΡΑΣΜΕΝΟ" if owned else ""
 	buy.add_theme_font_size_override("font_size", 34)
 	buy.disabled = owned
 	_style_iron(buy, not owned)
 	card.add_child(buy)
 	if not owned:
+		_price_row(buy, catalog.get_purchase_cost(id), Vector2.ZERO, buy.size, 34, C_GOLD)
 		buy.pressed.connect(func(): _buy(catalog, id))
 
 	return card
@@ -376,8 +378,8 @@ func _buy(catalog: EquipmentCatalog, id: String) -> void:
 		_flash_insufficient()
 
 # ═══════════════════════════════════════════════════════════════
-# ΚΑΡΤΑ ΗΡΩΑ (tab "Χαρακτήρες") — αγορά προσθέτει νέο ήρωα στο roster με
-# ΤΥΧΑΙΑ stats (η λογική ζει στο Heroes.buy_hero). Κάθε ήρωας αγοράζεται
+# ΚΑΡΤΑ ΗΡΩΑ (tab "Χαρακτήρες") — αγορά προσθέτει νέο ήρωα στο roster με τα
+# ΣΤΑΘΕΡΑ stats του HERO_DEFS (η λογική ζει στο Heroes.buy_hero). Κάθε ήρωας αγοράζεται
 # ΜΙΑ φορά· μετά την αγορά η κάρτα δείχνει "ΣΤΡΑΤΟΛΟΓΗΘΗΚΕ" και ανενεργό
 # κουμπί (ίδιο μοτίβο με την κάρτα εξοπλισμού). Η ανανέωση γίνεται μέσω του
 # Heroes.changed -> _on_equipment_changed.
@@ -405,10 +407,9 @@ func _make_hero_card(def: Dictionary) -> Control:
 		 32, C_BONE, HORIZONTAL_ALIGNMENT_CENTER)
 	name_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
-	# Τα ΠΡΑΓΜΑΤΙΚΑ stats που θα πάρει ο παίκτης (Heroes.get_offer_stats — τα
-	# ρίχνει μία φορά και τα κρατάει, οπότε δεν «χορεύουν» σε κάθε redraw και
-	# η αγορά δίνει ΑΚΡΙΒΩΣ αυτά).
-	var st := Heroes.get_offer_stats(str(def["id"]))
+	# Τα ΣΤΑΘΕΡΑ stats που θα πάρει ο παίκτης (Heroes.get_hero_stats — ίδια
+	# πάντα, βλ. HERO_DEFS, οπότε η αγορά δίνει ΑΚΡΙΒΩΣ αυτά).
+	var st := Heroes.get_hero_stats(str(def["id"]))
 	_lbl(card, "%s %d   %s %d   %s %d   %s %d" % [
 			Heroes.STAT_ICONS["HP"], int(st["HP"]),
 			Heroes.STAT_ICONS["Damage"], int(st["Damage"]),
@@ -418,18 +419,21 @@ func _make_hero_card(def: Dictionary) -> Control:
 	if owned:
 		_lbl(card, "Στο ρόστερ σου", Vector2(20, 358), Vector2(CARD_W - 40, 44),
 			 30, C_SILVER, HORIZONTAL_ALIGNMENT_CENTER)
-	else:
-		_price_row(card, int(def["price"]), Vector2(20, 358), Vector2(CARD_W - 40, 44), 34, C_GOLD)
 
+	# Το κουμπί δείχνει την τιμή αντί για "ΣΤΡΑΤΟΛΟΓΗΣΗ" όσο δεν έχει αγοραστεί
+	# (βλ. _price_row παρακάτω, μπαίνει ΜΕΣΑ στο κουμπί) — μόλις αγοραστεί,
+	# δείχνει "ΣΤΡΑΤΟΛΟΓΗΘΗΚΕ" όπως πριν. Μικρότερη γραμματοσειρά (28) γιατί οι
+	# ήρωες έχουν έως 3 νομίσματα (Χαλκός+Κέρμα+υλικό) αντί για 1.
 	var buy := Button.new()
 	buy.position = Vector2(20, CARD_H - BTN_H - 20)
 	buy.size     = Vector2(CARD_W - 40, BTN_H)
-	buy.text     = "ΣΤΡΑΤΟΛΟΓΗΘΗΚΕ" if owned else "ΣΤΡΑΤΟΛΟΓΗΣΗ"
+	buy.text     = "ΣΤΡΑΤΟΛΟΓΗΘΗΚΕ" if owned else ""
 	buy.add_theme_font_size_override("font_size", 30)
 	buy.disabled = owned
 	_style_iron(buy, not owned)
 	card.add_child(buy)
 	if not owned:
+		_price_row(buy, def["price"] as Dictionary, Vector2.ZERO, buy.size, 28, C_GOLD)
 		buy.pressed.connect(func(): _buy_hero(str(def["id"])))
 
 	return card

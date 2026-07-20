@@ -20,16 +20,12 @@ extends "res://Scripts/equipment_catalog.gd"
 ## {file, name} entry στο items[category] στη θέση N-1 — καμία άλλη αλλαγή
 ## λογικής δεν χρειάζεται.
 
-# Όπλο που έχει ήδη ο παίκτης, κατοχυρωμένο, σε ένα ολοκαίνουργιο save (βλ.
-# EquipmentCatalog._grant_starters_if_new_save). Χωρίς αυτό κανένα όπλο δεν θα
-# ήταν ιδιοκτησία στην αρχή — ο παίκτης θα ξεκινούσε άοπλος.
-const STARTER_WEAPON_ID := "Μαχαίρι_1"
-
 func _configure() -> void:
 	item_dir = "res://Όπλα/"
 	stat_label = "Επίθεση"
 	stat_icon = "⚔"
-	starter_ids = [STARTER_WEAPON_ID]
+	# Κανένα starter όπλο — ο παίκτης ξεκινά άοπλος, ΟΛΑ αγοράζονται από το
+	# Shop (starter_ids μένει άδειο, βλ. equipment_catalog.gd).
 
 	categories = [
 		"Μαχαίρι", "Σπαθί", "Σφυρί", "Σιδηρομπουνιά", "Τσεκούρι",

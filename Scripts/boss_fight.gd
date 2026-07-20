@@ -246,11 +246,15 @@ func _conclude_fight() -> void:
 		if won:
 			# ΙΔΙΑ ανταμοιβή/καταγραφή με το παλιό στιγμιαίο roll του
 			# mini_boss_popup._do_fight: Χαλκός + (μόνο goblin) το bootstrap
-			# κλειδί, ΜΙΑ φορά — το record_mini_boss_win κλειδώνει το boss.
+			# κλειδί + η πανοπλία-τρόπαιο, ΜΙΑ φορά — το record_mini_boss_win
+			# κλειδώνει το boss.
 			Currency.add(MiniBossScript.REWARD_CURRENCY, int(md.get("reward", 0)))
 			var key_reward: Dictionary = md.get("key_reward", {})
 			if not key_reward.is_empty():
 				KeyInventory.add_key(key_reward["value"], str(key_reward["category"]))
+			var armor_reward := str(md.get("armor_reward", ""))
+			if armor_reward != "":
+				ArmorInventory.grant(armor_reward)
 			GameData.record_mini_boss_win(_boss_id)
 		else:
 			GameData.record_mini_boss_loss(_boss_id)
@@ -687,8 +691,8 @@ func _show_result(won: bool) -> void:
 	overlay.add_child(sub)
 
 	# Γραμμές ανταμοιβής (μόνο mini + νίκη): +Χαλκός και, αν υπάρχει (goblin),
-	# +1 κλειδί — οι ποσότητες ήρθαν από το MiniBossScript.BOSS_DEFS και έχουν
-	# ΗΔΗ πιστωθεί στο _conclude_fight.
+	# +1 κλειδί + η πανοπλία-τρόπαιο — οι ποσότητες ήρθαν από το
+	# MiniBossScript.BOSS_DEFS και έχουν ΗΔΗ πιστωθεί στο _conclude_fight.
 	if not is_morgana and won:
 		var reward_line := "+%d %s  %s" % [int(md.get("reward", 0)),
 			MiniBossScript.REWARD_CURRENCY, Currency.ICONS.get(MiniBossScript.REWARD_CURRENCY, "")]
@@ -696,12 +700,18 @@ func _show_result(won: bool) -> void:
 		if not key_reward.is_empty():
 			reward_line += "\n+1 %s  %s" % [str(key_reward["category"]),
 				Currency.ICONS.get(str(key_reward["category"]), "🔑")]
+		var armor_reward := str(md.get("armor_reward", ""))
+		if armor_reward != "":
+			reward_line += "\n+%s  🛡" % ArmorInventory.get_item_name(armor_reward)
 		var rl := Label.new()
 		rl.text = reward_line
-		rl.position = Vector2(pxr, pyr + 400)
-		rl.size     = Vector2(PW, 100)
+		# Πάνω από το κουμπί (pyr+PH-110) — μέχρι 3 γραμμές πλέον (Χαλκός +
+		# κλειδί + πανοπλία, βλ. goblin), οπότε μικρότερη γραμματοσειρά/πιο
+		# ψηλά από πριν (2 γραμμές max) ώστε να μη μπλέκεται με το κουμπί.
+		rl.position = Vector2(pxr, pyr + 385)
+		rl.size     = Vector2(PW, 130)
 		rl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		rl.add_theme_font_size_override("font_size", 32)
+		rl.add_theme_font_size_override("font_size", 28)
 		rl.add_theme_color_override("font_color", C_OK)
 		rl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		overlay.add_child(rl)

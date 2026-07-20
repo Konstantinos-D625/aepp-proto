@@ -39,25 +39,11 @@ const SLOT_LABELS := {
 # δεν χρειάζεται ξεχωριστό mapping, το slot->category γεφυρώνεται απευθείας
 # μέσω αυτού του ήδη υπάρχοντος dictionary.
 
-# Ένα starter κομμάτι πανοπλίας ανά slot, κατοχυρωμένο σε ένα ολοκαίνουργιο
-# save (βλ. _ready). Οι ίδιες 4 τιμές με το ArmorInventory.starter_ids — δεν
-# γίνεται άμεση αναφορά στο ArmorInventory εδώ γιατί τα field initializers
-# όλων των autoloads τρέχουν πριν καν υπάρχουν τα άλλα autoloads ως
-# αντικείμενα (βλ. σχόλιο στο equipped παρακάτω).
-const ARMOR_STARTER_IDS := {
-	SLOT_HELMET: "Κράνος_1",
-	SLOT_CHEST:  "Θώρακας_1",
-	SLOT_LEGS:   "Παντελόνι_1",
-	SLOT_BOOTS:  "Μπότες_1",
-}
-
 # slot -> item_id (ή "" αν καμία θέση δεν είναι εξοπλισμένη εκεί). Όλα
-# ξεκινούν "" εδώ σκόπιμα — αν έγραφαν κατευθείαν τα πραγματικά starter ids
-# σε αυτό το field initializer θα έτρεχε ΠΡΙΝ καν φτιαχτούν τα
-# WeaponInventory/ArmorInventory autoloads (το Inventory είναι πρώτο στη
-# λίστα αυτοφόρτωσης· τα field initializers τρέχουν στη σειρά κατασκευής των
-# αυτοφορτωμένων, όχι στη σειρά _ready()). Οι πραγματικές τιμές μπαίνουν στο
-# _ready() παρακάτω, όπου ΟΛΑ τα autoloads υπάρχουν ήδη ως αντικείμενα.
+# ξεκινούν "" — ο παίκτης ξεκινά χωρίς κανένα εξοπλισμένο όπλο/πανοπλία (δεν
+# υπάρχουν πια starter items, βλ. weapon_inventory.gd/armor_inventory.gd· ΟΛΑ
+# αγοράζονται από το Shop, το πρώτο αγορασμένο κάθε κατηγορίας εξοπλίζεται
+# αυτόματα — βλ. _on_weapon_bought/_on_armor_bought παρακάτω).
 var equipped: Dictionary = {
 	SLOT_HELMET: "",
 	SLOT_CHEST:  "",
@@ -67,11 +53,6 @@ var equipped: Dictionary = {
 }
 
 func _ready() -> void:
-	if equipped.get(SLOT_WEAPON, "") == "":
-		equipped[SLOT_WEAPON] = WeaponInventory.STARTER_WEAPON_ID
-	for slot in SLOTS:
-		if equipped.get(slot, "") == "":
-			equipped[slot] = ARMOR_STARTER_IDS.get(slot, "")
 	# ΠΡΟΣΟΧΗ σειρά αυτοφόρτωσης: το Inventory είναι ΠΡΩΤΟ στη λίστα autoload
 	# (project.godot), άρα το _ready() του τρέχει πριν καν προστεθούν τα
 	# WeaponInventory/ArmorInventory autoloads — αν καλούνταν εδώ απευθείας,
