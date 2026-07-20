@@ -9,16 +9,18 @@ class_name EquipmentCatalog
 ## τιμολόγηση, αγορά/αναβάθμιση/πώληση, persistence, starter grant) είναι
 ## κοινή και ζει ΜΙΑ φορά εδώ — καμία υποκλάση δεν την ξαναγράφει.
 ##
-## Τα ΠΡΑΓΜΑΤΙΚΑ stats κάθε αντικειμένου είναι ΧΕΙΡΟΚΙΝΗΤΑ — πεδίο "buffs" σε
-## κάθε entry του items[category] (βλ. get_item_buffs παρακάτω), π.χ.
-## {"Damage": 3, "AttackSpeed": 1} για ένα όπλο, {"Shield": 2, "HP": 1} για
-## μία πανοπλία. ΚΑΜΙΑ φόρμουλα/πολλαπλασιαστής — για να αλλάξεις τα stats
-## ενός συγκεκριμένου αντικειμένου, άλλαξε ΑΠΕΥΘΕΙΑΣ τους αριθμούς στο
-## weapon_inventory.gd/armor_inventory.gd.
+## Τα ΠΡΑΓΜΑΤΙΚΑ stats ΚΑΙ η τιμή κάθε αντικειμένου είναι ΧΕΙΡΟΚΙΝΗΤΑ — πεδία
+## "buffs" (βλ. get_item_buffs) και "price" (βλ. get_purchase_cost) σε κάθε
+## entry του items[category], π.χ. {"file": "Level1", "name": "...",
+## "buffs": {"Damage": 3, "AttackSpeed": 1}, "price": {"Χαλκός": 24, "Κέρμα": 2}}
+## για ένα όπλο. ΚΑΜΙΑ φόρμουλα/πολλαπλασιαστής — για να αλλάξεις τα stats ή
+## την τιμή ενός συγκεκριμένου αντικειμένου, άλλαξε ΑΠΕΥΘΕΙΑΣ τους αριθμούς
+## στο weapon_inventory.gd/armor_inventory.gd.
 ##
 ## Για να προστεθεί νέο όπλο/πανοπλία στο μέλλον: αντέγραψε την εικόνα μέσα
-## στον φάκελο της κατηγορίας της και πρόσθεσε ένα {file, name, buffs} entry
-## στο items[category] της αντίστοιχης υποκλάσης — καμία άλλη αλλαγή λογικής.
+## στον φάκελο της κατηγορίας της και πρόσθεσε ένα {file, name, buffs, price}
+## entry στο items[category] της αντίστοιχης υποκλάσης — καμία άλλη αλλαγή
+## λογικής.
 
 signal changed
 ## Εκπέμπεται ΜΟΝΟ σε επιτυχή αγορά (όχι upgrade/sell) — το Inventory
@@ -30,9 +32,8 @@ signal item_bought(id: String)
 
 var item_dir: String = ""
 var categories: Array[String] = []
-var category_multiplier: Dictionary = {}
 var category_labels: Dictionary = {}     # προαιρετικό override εμφάνισης (π.χ. πληθυντικός τύπος)
-var items: Dictionary = {}               # category -> Array[{"file", "name", "buffs": {STAT_KEY: int}}]
+var items: Dictionary = {}               # category -> Array[{"file", "name", "buffs": {STAT_KEY: int}, "price": {ΝΟΜΙΣΜΑ: int}}]
 var stat_label: String = "Επίθεση"
 var stat_icon: String = "⚔"
 var primary_stat_key: String = "Damage"  # ποιο κλειδί του "buffs" είναι το πρωτεύον στατιστικό (π.χ. "Shield" για armor)
@@ -59,7 +60,7 @@ func _ready() -> void:
 	_grant_starters_if_new_save()
 
 ## Υπερφορτώνεται από κάθε υποκλάση για να ορίσει τα δικά της
-## item_dir/categories/category_multiplier/items/stat_label/starter_ids.
+## item_dir/categories/items/stat_label/starter_ids.
 func _configure() -> void:
 	pass
 
@@ -119,35 +120,14 @@ func get_item_buffs(id: String) -> Dictionary:
 	var entry: Dictionary = items[get_category(id)][get_old_level(id) - 1]
 	return (entry.get("buffs", {}) as Dictionary).duplicate()
 
-## Εσωτερική "ισχύς" ανά old_level (old_level × 15) — η βάση πάνω στην οποία
-## υπολογίζεται η τιμή αγοράς (get_base_price). Το ×15 (πριν ×10) είναι
-## σκόπιμη, μέτρια αύξηση της τιμής εξοπλισμού (+50%). ΔΕΝ επηρεάζει τα
-## stats — αυτά είναι χειροκίνητα, βλ. get_item_buffs.
-func _price_power(old_level: int) -> int:
-	return old_level * 15
-
-## Πολλαπλασιαστής τιμής βάσει old_level· επεκτείνει γραμμικά τη σχέση
-## base ×1.0 / ×1.6 / ×2.6 (old_level 1/2/3) ώστε να καλύπτει και τα
-## υπόλοιπα old_level.
-func _level_price_multiplier(old_level: int) -> float:
-	var n := float(old_level - 1)
-	return 1.0 + 0.2 * n * n + 0.4 * n
-
-## Τιμή αγοράς στο Shop (κατηγορία × old_level, χωρίς upgrades).
-func get_base_price(id: String) -> int:
-	var category := get_category(id)
-	var old_level := get_old_level(id)
-	var mult: float = category_multiplier.get(category, 1.0)
-	return int(round(_price_power(old_level) * mult * _level_price_multiplier(old_level)))
-
-## Πλήρες κόστος αγοράς στο Shop: Χαλκός (get_base_price) + Κέρμα. Το Κέρμα
-## είναι πάντα τουλάχιστον 1 (κάθε αντικείμενο κοστίζει σίγουρα λίγο Κέρμα,
-## βλ. currency_manager.gd) και κλιμακώνεται αναλογικά με την τιμή σε Χαλκό
-## (1 Κέρμα ανά ~10 Χαλκός) — η ΙΔΙΑ φόρμουλα δουλεύει αυτόματα και για
-## μελλοντικά, ακριβότερα επίπεδα χωρίς καμία αλλαγή εδώ.
+## ΟΛΟ το κόστος αγοράς ενός αντικειμένου (π.χ. {"Χαλκός": 24, "Κέρμα": 2}) —
+## χειροκίνητο πεδίο "price" στο entry του (ίδιο σχήμα με το
+## Heroes.HERO_DEFS[...]["price"]). Η ΜΟΝΑΔΙΚΗ πηγή αλήθειας — καμία φόρμουλα/
+## πολλαπλασιαστής από πίσω. Για να αλλάξεις την τιμή ενός αντικειμένου,
+## άλλαξε ΑΠΕΥΘΕΙΑΣ τους αριθμούς στο weapon_inventory.gd/armor_inventory.gd.
 func get_purchase_cost(id: String) -> Dictionary:
-	var copper := get_base_price(id)
-	return {"Χαλκός": copper, "Κέρμα": maxi(1, int(round(copper / 10.0)))}
+	var entry: Dictionary = items[get_category(id)][get_old_level(id) - 1]
+	return (entry.get("price", {}) as Dictionary).duplicate()
 
 ## True αν το αντικείμενο είναι ΑΠΟΚΡΥΜΜΕΝΟ από το Shop — π.χ. τρόπαιο boss
 ## (βλ. "Bad Goblin Armor" στο armor_inventory.gd, "Tree Magic Sphere" στο
@@ -196,10 +176,20 @@ func get_total_stat(id: String) -> int:
 func can_upgrade(id: String) -> bool:
 	return upgradable and is_owned(id) and get_tier(id) < UPGRADE_MAX_TIER
 
-## Τιμή πώλησης: 50% της αρχικής τιμής αγοράς + επιστροφή όλων των coins
-## που ξοδεύτηκαν σε upgrades.
-func get_sell_price(id: String) -> int:
-	return int(round(get_base_price(id) * 0.5)) + _upgrade_refund(get_tier(id))
+## Επιστροφή πώλησης: 50% ΚΑΘΕ νομίσματος της τιμής αγοράς (στρογγυλεμένο) —
+## π.χ. αν η τιμή είναι {"Χαλκός": 30, "Σίδερο": 10}, η επιστροφή είναι
+## {"Χαλκός": 15, "Σίδερο": 5}. Ό,τι νόμισμα κι αν έχει το "price" ενός
+## αντικειμένου (βλ. get_purchase_cost) επιστρέφεται αναλογικά, όχι μόνο
+## Χαλκός. Το Χαλκός παίρνει επιπλέον ό,τι ξοδεύτηκε σε upgrades (πάντα 0
+## πλέον — κανένας κατάλογος δεν είναι upgradable — μένει για συμβατότητα).
+func get_sell_refund(id: String) -> Dictionary:
+	var refund := {}
+	for currency in get_purchase_cost(id):
+		refund[currency] = int(round(int(get_purchase_cost(id)[currency]) * 0.5))
+	var upgrade_refund := _upgrade_refund(get_tier(id))
+	if upgrade_refund > 0:
+		refund["Χαλκός"] = int(refund.get("Χαλκός", 0)) + upgrade_refund
+	return refund
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -247,13 +237,16 @@ func upgrade(id: String) -> bool:
 
 ## Πώληση αντικειμένου — καλείται ΜΟΝΟ από το Inventory. Το αντικείμενο
 ## ξανακλειδώνεται (πρέπει να ξανα-αγοραστεί από το Shop για να αποκτηθεί ξανά).
+## Επιστρέφει ΚΑΘΕ νόμισμα που ξοδεύτηκε στην αγορά (βλ. get_sell_refund),
+## όχι μόνο Χαλκός.
 func sell(id: String) -> bool:
 	if not is_owned(id):
 		return false
-	var refund := get_sell_price(id)
+	var refund := get_sell_refund(id)
 	_state[id] = {"owned": false, "tier": 0}
 	_persist(id)
-	Currency.add("Χαλκός", refund)
+	for currency in refund:
+		Currency.add(currency, int(refund[currency]))
 	changed.emit()
 	return true
 

@@ -257,22 +257,57 @@ func _make_upgrade_row(catalog: EquipmentCatalog, id: String) -> Control:
 ## Το Inventory είναι πλέον ΜΟΝΟ προβολή: εικόνα + στατιστικά + πώληση. Καμία
 ## επιλογή/εξοπλισμός εδώ — ο εξοπλισμός ηρώων γίνεται αποκλειστικά στην οθόνη
 ## «Η Ομάδα σου» (HeroSlotPopup -> Heroes.equip_item). Έμεινε μόνο το κουμπί
-## «Πούλησε».
+## «Πούλησε» + η επιστροφή, ΕΝΑ chip (ποσό+εικονίδιο) ανά νόμισμα — η τιμή
+## ενός αντικειμένου μπορεί να έχει πάνω από ένα νόμισμα (βλ.
+## EquipmentCatalog.get_sell_refund), όχι μόνο Χαλκός.
 func _make_sell_row(catalog: EquipmentCatalog, id: String) -> Control:
 	var row := HFlowContainer.new()
 	row.add_theme_constant_override("h_separation", 10)
 	row.add_theme_constant_override("v_separation", 8)
 
 	var sell_btn := Button.new()
-	sell_btn.text = "Πούλησε  +%d" % catalog.get_sell_price(id)
+	sell_btn.text = "Πούλησε"
 	sell_btn.add_theme_font_size_override("font_size", 20)
 	sell_btn.add_theme_color_override("font_color", Color("e2a5a5"))
-	sell_btn.custom_minimum_size = Vector2(220, 44)
-	_set_price_icon(sell_btn)
+	sell_btn.custom_minimum_size = Vector2(120, 44)
 	row.add_child(sell_btn)
 	sell_btn.pressed.connect(func(): catalog.sell(id))
 
+	var refund := catalog.get_sell_refund(id)
+	for currency in Currency.ORDER:
+		if refund.has(currency):
+			row.add_child(_refund_chip(currency, int(refund[currency])))
+
 	return row
+
+## Ένα chip (+ποσό εικονίδιο) για ένα νόμισμα επιστροφής πώλησης — ίδιο ύφος
+## με τα price chips του shop_popup.gd, αλλά μικρό Control αντί για overlay
+## πάνω σε κουμπί (εδώ το κουμπί «Πούλησε» έχει σταθερό, μικρό κείμενο).
+func _refund_chip(currency: String, amount: int) -> Control:
+	var box := HBoxContainer.new()
+	box.add_theme_constant_override("separation", 4)
+
+	var lbl := Label.new()
+	lbl.text = "+%d" % amount
+	lbl.add_theme_font_size_override("font_size", 20)
+	lbl.add_theme_color_override("font_color", Color("e2a5a5"))
+	box.add_child(lbl)
+
+	var tex := Currency.get_icon_texture(currency)
+	if tex == null:
+		var fallback := Label.new()
+		fallback.text = str(Currency.ICONS.get(currency, ""))
+		fallback.add_theme_font_size_override("font_size", 20)
+		box.add_child(fallback)
+		return box
+
+	var icon := TextureRect.new()
+	icon.texture = tex
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.custom_minimum_size = Vector2(24, 24)
+	box.add_child(icon)
+	return box
 
 ## Μία γραμμή κειμένου με ΟΛΑ τα stats ενός buffs Dictionary (π.χ. {"Damage":
 ## 13, "AttackSpeed": 5} -> "⚔ 13   ⚡ 5"), σε σειρά Heroes.STAT_KEYS — ίδιο
