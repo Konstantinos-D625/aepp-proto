@@ -232,53 +232,65 @@ const COMPLETION_REWARD_CURRENCY := {
 #   clauses: λίστα από απαιτήσεις-κλειδιών, βλ. Scripts/condition_key_popup.gd
 #     για την πλήρη περιγραφή των τύπων "range" (προεπιλογή)/"mod"/"sum".
 #
-# Kitchen "k >= 3 ΚΑΙ k <= 5": 2 ΙΔΙΑ range clauses (χρειάζονται 2 αριθμητικά
-# κλειδιά μέσα σε [3, 5], ένα-ένα).
+# Όλες οι εκφωνήσεις παρακάτω χρησιμοποιούν το γενικό "KEY" ως όνομα
+# μεταβλητής (αντί για x/y/ch/k/n/a/b/char/digit/flag/grade/bonus, ό,τι
+# υπήρχε πριν σε κάθε δωμάτιο) — πιο σαφές για τον παίκτη ότι κάθε "KEY" είναι
+# ΕΝΑ κλειδί που πρέπει να ρίξει, χωρίς να χρειάζεται να μαντέψει τι σημαίνει
+# κάθε διαφορετικό γράμμα. Όταν μια συνθήκη χρειάζεται 2 ΔΙΑΦΟΡΕΤΙΚΑ κλειδιά
+# (π.χ. ένα "sum" clause), εμφανίζεται ως "KEY + KEY" — κάθε εμφάνιση είναι
+# ένα ξεχωριστό κλειδί που ρίχνεται ένα-ένα, όχι η ίδια τιμή δύο φορές.
 #
-# Library "(ΑΛΗΘΗΣ ΚΑΙ key) Ή ΨΕΥΔΗΣ = ΨΕΥΔΗΣ": ΑΛΗΘΗΣ ΚΑΙ key ισούται με
-# key, και key Ή ΨΕΥΔΗΣ ισούται επίσης με key, άρα η συνθήκη απλοποιείται σε
-# key = ΨΕΥΔΗΣ.
+# Kitchen "KEY >= 3 ΚΑΙ KEY <= 5": 2 ΙΔΙΑ range clauses (χρειάζονται 2
+# αριθμητικά κλειδιά μέσα σε [3, 5], ένα-ένα).
 #
-# Chapel "(x > 5) ΚΑΙ (ch = 'Κ')": 2 ΔΙΑΦΟΡΕΤΙΚΑ clauses σε 2 διαφορετικές
+# Library "(ΑΛΗΘΗΣ ΚΑΙ KEY) Ή ΨΕΥΔΗΣ = ΨΕΥΔΗΣ": ΑΛΗΘΗΣ ΚΑΙ KEY ισούται με
+# KEY, και KEY Ή ΨΕΥΔΗΣ ισούται επίσης με KEY, άρα η συνθήκη απλοποιείται σε
+# KEY = ΨΕΥΔΗΣ.
+#
+# Chapel "(KEY > 5) ΚΑΙ (KEY = 'Κ')": 2 ΔΙΑΦΟΡΕΤΙΚΑ clauses σε 2 διαφορετικές
 # κατηγορίες — ένα αριθμητικό κλειδί > 5 ΚΑΙ ένα κλειδί χαρακτήρων 'Κ'
 # (βλ. LIBRARY_SPOTS για το πού βρίσκονται αυτά τα δύο κλειδιά).
 #
-# Cellar — Συνθήκη 1 "((x + y) = 20) Ή flag": mode OR — "sum" clause (2
-# αριθμητικά κλειδιά που το άθροισμά τους φτάνει ακριβώς 20, π.χ. 6+14) Ή
-# ένα λογικό κλειδί Αληθής (βλ. CHAPEL_SPOTS — Λύση 1: 6, 14, Αληθής).
+# Cellar — Συνθήκη 1 "((KEY + KEY) = 20) Ή (KEY = ΑΛΗΘΗΣ)": mode OR — "sum"
+# clause (2 αριθμητικά κλειδιά που το άθροισμά τους φτάνει ακριβώς 20, π.χ.
+# 6+14) Ή ένα λογικό κλειδί Αληθής (βλ. CHAPEL_SPOTS — Λύση 1: 6, 14, Αληθής).
+# ΔΙΟΡΘΩΘΗΚΕ: πριν έλειπε το "= ΑΛΗΘΗΣ" (έλεγε απλώς "Ή flag", ημιτελής
+# πρόταση).
 #
-# Great Hall — Συνθήκη 2 "(n MOD 2 = 0) ΚΑΙ (flag = ΑΛΗΘΗΣ)": mode AND —
+# Great Hall — Συνθήκη 2 "(KEY MOD 2 = 0) ΚΑΙ (KEY = ΑΛΗΘΗΣ)": mode AND —
 # ένα αριθμητικό κλειδί άρτιο ΚΑΙ ένα λογικό κλειδί Αληθής (βλ. CELLAR_SPOTS
 # — Λύση 2: 8, Αληθής).
 #
-# Dungeons — Συνθήκη 3 "(grade >= 18) Ή (bonus = TRUE)": mode OR — ένα
+# Dungeons — Συνθήκη 3 "(KEY >= 18) Ή (KEY = ΑΛΗΘΗΣ)": mode OR — ένα
 # αριθμητικό κλειδί >= 18 Ή ένα λογικό κλειδί Αληθής (βλ. GREAT_HALL_SPOTS —
 # Λύση 3: 19, Ψευδής — αρκεί το 19, το bonus=Ψευδής δεν χρειάζεται εδώ).
+# ΔΙΟΡΘΩΘΗΚΕ: πριν έλεγε "= TRUE" (αγγλικά) αντί για "= ΑΛΗΘΗΣ", ασυνεπές με
+# όλες τις άλλες εκφωνήσεις.
 const CONDITIONS := {
 	"armory": {
-		"text": "k <= 8",
+		"text": "KEY <= 8",
 		"clauses": [{"category": CATEGORY_NUMERIC, "min": NO_LOWER_BOUND, "max": 8}],
 	},
 	"kitchen": {
-		"text": "k >= 3 ΚΑΙ k <= 5",
+		"text": "KEY >= 3 ΚΑΙ KEY <= 5",
 		"clauses": [
 			{"category": CATEGORY_NUMERIC, "min": 3, "max": 5},
 			{"category": CATEGORY_NUMERIC, "min": 3, "max": 5},
 		],
 	},
 	"library": {
-		"text": "(ΑΛΗΘΗΣ ΚΑΙ key) Ή ΨΕΥΔΗΣ = ΨΕΥΔΗΣ",
+		"text": "(ΑΛΗΘΗΣ ΚΑΙ KEY) Ή ΨΕΥΔΗΣ = ΨΕΥΔΗΣ",
 		"clauses": [{"category": CATEGORY_LOGICAL, "min": 0, "max": 0}],
 	},
 	"chapel": {
-		"text": "(x > 5) ΚΑΙ (ch = 'Κ')",
+		"text": "(KEY > 5) ΚΑΙ (KEY = 'Κ')",
 		"clauses": [
 			{"category": CATEGORY_NUMERIC, "min": 6, "max": NO_UPPER_BOUND},
 			{"category": CATEGORY_CHARACTER, "min": CHAR_K_CODE, "max": CHAR_K_CODE},
 		],
 	},
 	"cellar": {
-		"text": "((x + y) = 20) Ή flag",
+		"text": "((KEY + KEY) = 20) Ή (KEY = ΑΛΗΘΗΣ)",
 		"mode": "OR",
 		"clauses": [
 			{"category": CATEGORY_NUMERIC, "type": "sum", "target": 20},
@@ -286,14 +298,14 @@ const CONDITIONS := {
 		],
 	},
 	"great_hall": {
-		"text": "(n MOD 2 = 0) ΚΑΙ (flag = ΑΛΗΘΗΣ)",
+		"text": "(KEY MOD 2 = 0) ΚΑΙ (KEY = ΑΛΗΘΗΣ)",
 		"clauses": [
 			{"category": CATEGORY_NUMERIC, "type": "mod", "modulus": 2, "remainder": 0},
 			{"category": CATEGORY_LOGICAL, "min": 1, "max": 1},
 		],
 	},
 	"dungeons": {
-		"text": "(grade >= 18) Ή (bonus = TRUE)",
+		"text": "(KEY >= 18) Ή (KEY = ΑΛΗΘΗΣ)",
 		"mode": "OR",
 		"clauses": [
 			{"category": CATEGORY_NUMERIC, "min": 18, "max": NO_UPPER_BOUND},
@@ -301,36 +313,36 @@ const CONDITIONS := {
 		],
 	},
 
-	# Νέα Συνθήκη 1 "(a + b = 20) ΚΑΙ ('A' <= char <= 'Z')": mode AND — "sum"
-	# clause (2 αριθμητικά κλειδιά που αθροίζουν ακριβώς 20, π.χ. 12+8) ΚΑΙ
-	# ένα κλειδί χαρακτήρων στο ['A','Z'] (βλ. DUNGEONS_SPOTS — Νέα Λύση 1:
+	# Νέα Συνθήκη 1 "(KEY + KEY = 20) ΚΑΙ ('A' <= KEY <= 'Z')": mode AND —
+	# "sum" clause (2 αριθμητικά κλειδιά που αθροίζουν ακριβώς 20, π.χ. 12+8)
+	# ΚΑΙ ένα κλειδί χαρακτήρων στο ['A','Z'] (βλ. DUNGEONS_SPOTS — Νέα Λύση 1:
 	# 12, 8, 'M').
 	"kings_chamber": {
-		"text": "(a + b = 20) ΚΑΙ ('A' <= char <= 'Z')",
+		"text": "(KEY + KEY = 20) ΚΑΙ ('A' <= KEY <= 'Z')",
 		"clauses": [
 			{"category": CATEGORY_NUMERIC, "type": "sum", "target": 20},
 			{"category": CATEGORY_CHARACTER, "min": CHAR_A_CODE, "max": CHAR_Z_CODE},
 		],
 	},
 
-	# Νέα Συνθήκη 2 "(x > 50) ΚΑΙ (k > 0)" (η "Ή vip" εναλλακτική της
-	# εκφώνησης δεν χρειάζεται εδώ αφού η Λύση ικανοποιεί το x>50 απευθείας,
+	# Νέα Συνθήκη 2 "(KEY > 50) ΚΑΙ (KEY > 0)" (η "Ή vip" εναλλακτική της
+	# εκφώνησης δεν χρειάζεται εδώ αφού η Λύση ικανοποιεί το KEY>50 απευθείας,
 	# βλ. KINGS_CHAMBER_SPOTS — Νέα Λύση 2: 60, 1): mode AND — 2 αριθμητικά
 	# κλειδιά, ένα > 50 ΚΑΙ ένα > 0.
 	"throne_room": {
-		"text": "(x > 50) ΚΑΙ (k > 0)",
+		"text": "(KEY > 50) ΚΑΙ (KEY > 0)",
 		"clauses": [
 			{"category": CATEGORY_NUMERIC, "min": 51, "max": NO_UPPER_BOUND},
 			{"category": CATEGORY_NUMERIC, "min": 1, "max": NO_UPPER_BOUND},
 		],
 	},
 
-	# Νέα Συνθήκη 3 "ΟΧΙ(key) ΚΑΙ ('0' <= digit <= '9')": mode AND — ένα
-	# λογικό κλειδί Ψευδής (ΟΧΙ(key) = key ΨΕΥΔΗΣ) ΚΑΙ ένα κλειδί χαρακτήρων
+	# Νέα Συνθήκη 3 "ΟΧΙ(KEY) ΚΑΙ ('0' <= KEY <= '9')": mode AND — ένα
+	# λογικό κλειδί Ψευδής (ΟΧΙ(KEY) = KEY ΨΕΥΔΗΣ) ΚΑΙ ένα κλειδί χαρακτήρων
 	# ψηφίο ['0','9'] (βλ. THRONE_ROOM_SPOTS — Νέα Λύση 3: Ψευδής, '7').
 	# Τελευταίο δωμάτιο της "ανοδικής" αλυσίδας — δεν δίνει άλλα κλειδιά.
 	"main_bailey": {
-		"text": "ΟΧΙ(key) ΚΑΙ ('0' <= digit <= '9')",
+		"text": "ΟΧΙ(KEY) ΚΑΙ ('0' <= KEY <= '9')",
 		"clauses": [
 			{"category": CATEGORY_LOGICAL, "min": 0, "max": 0},
 			{"category": CATEGORY_CHARACTER, "min": CHAR_ZERO_CODE, "max": CHAR_NINE_CODE},
@@ -344,24 +356,33 @@ var _pending_room := ""
 # συνθήκη σε επόμενη είσοδο, πάει κατευθείαν στο δωμάτιο.
 var _unlocked_rooms: Dictionary = {}
 
-# Χτίζεται ΜΙΑ φορά στο _ready() (ίδιο μοτίβο "χτίσε μία φορά, toggle
-# visibility" με τα υπόλοιπα popups του project) — βλ. _build_locked_panel().
+# Χτίζονται ΜΙΑ φορά στο _ready() (ίδιο μοτίβο "χτίσε μία φορά, toggle
+# visibility" με τα υπόλοιπα popups του project) — βλ. _build_locked_panel()/
+# _build_completed_panel().
 var _locked_panel: Control
+var _completed_panel: Control
 
 func _ready() -> void:
 	hide()
 	%Dim.gui_input.connect(_on_dim_input)
 	%ConditionKeyPopup.key_accepted.connect(_on_condition_key_accepted)
 	_locked_panel = _build_locked_panel()
+	_completed_panel = _build_completed_panel()
 
 ## Το κάστρο μένει ΚΛΕΙΔΩΜΕΝΟ (κρυμμένος ο χάρτης, μήνυμα + hint αντ' αυτού)
 ## μέχρι να βρεθεί το bootstrap κλειδί — δηλαδή μέχρι να νικηθεί ο
 ## καλικάντζαρος (βλ. GOBLIN_BOSS_ID). Ελέγχεται ΚΑΘΕ φορά που ανοίγει το
 ## popup, όχι μόνο μία φορά, ώστε να ξεκλειδώνει αμέσως μόλις πετύχει η νίκη.
+## Μόλις ολοκληρωθεί ΟΛΟ το side quest (GameData.is_castle_completed· βλ.
+## main_bailey/_grant_completion_reward), ο χάρτης του κάστρου αντικαθίσταται
+## ΜΟΝΙΜΑ από την οθόνη "Ολοκληρώθηκε" — δεν υπάρχει τίποτα άλλο να κάνει εκεί
+## ο παίκτης (main_bailey ήταν το τελικό δωμάτιο, χωρίς κρυμμένα κλειδιά).
 func open() -> void:
 	var has_key := GameData.is_mini_boss_defeated(GOBLIN_BOSS_ID)
-	%CastleImage.visible = has_key
-	_locked_panel.visible = not has_key
+	var completed := GameData.is_castle_completed()
+	%CastleImage.visible = has_key and not completed
+	_locked_panel.visible = not has_key and not completed
+	_completed_panel.visible = completed
 	show()
 
 func close_popup() -> void:
@@ -444,6 +465,119 @@ func _build_locked_panel() -> Control:
 	var msg := Label.new()
 	msg.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	msg.text = "Η πύλη της Οπλοθήκης χρειάζεται ένα κλειδί για να ανοίξει — και δεν έχεις βρει κανένα ακόμα.\n\nΛένε πως ο καλικάντζαρος που κρύβεται στη σπηλιά του δάσους φυλάει κάτι τέτοιο..."
+	msg.position = Vector2(BX + 60, BY + 300)
+	msg.size     = Vector2(BW - 120, 300)
+	msg.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	msg.vertical_alignment   = VERTICAL_ALIGNMENT_TOP
+	msg.add_theme_font_size_override("font_size", 28)
+	msg.add_theme_color_override("font_color", C_PARCH)
+	msg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(msg)
+
+	var close_btn := Button.new()
+	close_btn.text = "✕  Κλείσιμο"
+	close_btn.position = Vector2(BX + BW / 2.0 - 170, BY + BH - 130)
+	close_btn.size     = Vector2(340, 96)
+	close_btn.add_theme_font_size_override("font_size", 30)
+	var normal_style := StyleBoxFlat.new()
+	normal_style.bg_color = C_WOOD_D
+	normal_style.border_color = C_GOLD.darkened(0.15)
+	normal_style.set_border_width_all(4)
+	normal_style.set_corner_radius_all(10)
+	normal_style.shadow_color = Color(0, 0, 0, 0.68)
+	normal_style.shadow_size = 7
+	close_btn.add_theme_stylebox_override("normal", normal_style)
+	var hover_style := StyleBoxFlat.new()
+	hover_style.bg_color = C_WOOD
+	hover_style.border_color = C_GOLD
+	hover_style.set_border_width_all(5)
+	hover_style.set_corner_radius_all(10)
+	close_btn.add_theme_stylebox_override("hover", hover_style)
+	close_btn.add_theme_stylebox_override("focus", StyleBoxFlat.new())
+	close_btn.add_theme_color_override("font_color", C_GOLD)
+	close_btn.add_theme_color_override("font_hover_color", C_GOLD_S)
+	close_btn.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.92))
+	close_btn.add_theme_constant_override("shadow_offset_x", 2)
+	close_btn.add_theme_constant_override("shadow_offset_y", 3)
+	close_btn.pressed.connect(close_popup)
+	root.add_child(close_btn)
+
+	root.visible = false
+	return root
+
+## Οθόνη «ολοκληρωμένου» κάστρου — εμφανίζεται ΑΝΤΙ για τον χάρτη του κάστρου
+## μόλις ο παίκτης έχει ήδη πάρει την ανταμοιβή ολοκλήρωσης (βλ. open()). Ίδιο
+## μοτίβο/στυλ με _build_locked_panel(), διαφορετικό εικονίδιο/μήνυμα.
+func _build_completed_panel() -> Control:
+	var root := Control.new()
+	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	root.mouse_filter = Control.MOUSE_FILTER_STOP
+	add_child(root)
+
+	const BX := 90.0
+	const BY := 560.0
+	const BW := 900.0
+	const BH := 760.0
+
+	var shadow := Panel.new()
+	shadow.position = Vector2(BX + 8, BY + 8)
+	shadow.size     = Vector2(BW, BH)
+	shadow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var shadow_style := StyleBoxFlat.new()
+	shadow_style.bg_color = Color(0, 0, 0, 0.55)
+	shadow_style.set_corner_radius_all(18)
+	shadow.add_theme_stylebox_override("panel", shadow_style)
+	root.add_child(shadow)
+
+	var panel := Panel.new()
+	panel.position = Vector2(BX, BY)
+	panel.size     = Vector2(BW, BH)
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var panel_style := StyleBoxFlat.new()
+	panel_style.bg_color = C_WOOD
+	panel_style.border_color = C_GOLD
+	panel_style.set_border_width_all(5)
+	panel_style.set_corner_radius_all(18)
+	panel.add_theme_stylebox_override("panel", panel_style)
+	root.add_child(panel)
+
+	var inner := Panel.new()
+	inner.position = Vector2(BX + 10, BY + 10)
+	inner.size     = Vector2(BW - 20, BH - 20)
+	inner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var inner_style := StyleBoxFlat.new()
+	inner_style.bg_color = C0
+	inner_style.border_color = C_GOLD_D.darkened(0.3)
+	inner_style.set_border_width_all(2)
+	inner_style.set_corner_radius_all(14)
+	inner.add_theme_stylebox_override("panel", inner_style)
+	root.add_child(inner)
+
+	var icon := Label.new()
+	icon.text = "🏆"
+	icon.position = Vector2(BX, BY + 50)
+	icon.size     = Vector2(BW, 130)
+	icon.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	icon.add_theme_font_size_override("font_size", 96)
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(icon)
+
+	var title := Label.new()
+	title.text = "Το Κάστρο Ολοκληρώθηκε!"
+	title.position = Vector2(BX + 40, BY + 210)
+	title.size     = Vector2(BW - 80, 70)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 36)
+	title.add_theme_color_override("font_color", C_GOLD)
+	title.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
+	title.add_theme_constant_override("shadow_offset_x", 2)
+	title.add_theme_constant_override("shadow_offset_y", 3)
+	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(title)
+
+	var msg := Label.new()
+	msg.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	msg.text = "Πέρασες όλα τα δωμάτια του Κάστρου και πήρες ήδη την ανταμοιβή ολοκλήρωσης — Χαλκός, Σίδερο, Δέρμα, Κέρμα, και η Χρυσή Πανοπλία περιμένουν στην Αποθήκη σου.\n\nΔεν έχει μείνει τίποτα άλλο να κάνεις εδώ."
 	msg.position = Vector2(BX + 60, BY + 300)
 	msg.size     = Vector2(BW - 120, 300)
 	msg.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -585,3 +719,147 @@ func _grant_completion_reward() -> void:
 		Currency.add(currency, int(COMPLETION_REWARD_CURRENCY[currency]))
 	ArmorInventory.grant(GOLDEN_ARMOR_ID)
 	GameData.record_castle_completed()
+	_show_congrats_overlay()
+
+## Εμφανίζεται ΜΙΑ φορά, πάνω από την εικόνα του Main Bailey, την ΠΡΩΤΗ φορά
+## που ο παίκτης ολοκληρώνει το side quest (βλ. _grant_completion_reward) —
+## διαφορετικό από το _build_completed_panel(), που δείχνεται σε ΕΠΟΜΕΝΑ
+## ανοίγματα του Κάστρου αντί για τον χάρτη. Φτιάχνεται φρέσκο κάθε φορά
+## (όχι "χτίσε μία φορά, toggle visibility") αφού δεν ξαναχρειάζεται ποτέ.
+func _show_congrats_overlay() -> void:
+	var overlay := Control.new()
+	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	add_child(overlay)
+
+	var dim := ColorRect.new()
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	dim.color = Color(0, 0, 0, 0.65)
+	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	overlay.add_child(dim)
+
+	const BX := 90.0
+	const BY := 460.0
+	const BW := 900.0
+	const BH := 960.0
+
+	var shadow := Panel.new()
+	shadow.position = Vector2(BX + 8, BY + 8)
+	shadow.size     = Vector2(BW, BH)
+	shadow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var shadow_style := StyleBoxFlat.new()
+	shadow_style.bg_color = Color(0, 0, 0, 0.55)
+	shadow_style.set_corner_radius_all(18)
+	shadow.add_theme_stylebox_override("panel", shadow_style)
+	overlay.add_child(shadow)
+
+	var panel := Panel.new()
+	panel.position = Vector2(BX, BY)
+	panel.size     = Vector2(BW, BH)
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var panel_style := StyleBoxFlat.new()
+	panel_style.bg_color = C_WOOD
+	panel_style.border_color = C_GOLD
+	panel_style.set_border_width_all(5)
+	panel_style.set_corner_radius_all(18)
+	panel.add_theme_stylebox_override("panel", panel_style)
+	overlay.add_child(panel)
+
+	var inner := Panel.new()
+	inner.position = Vector2(BX + 10, BY + 10)
+	inner.size     = Vector2(BW - 20, BH - 20)
+	inner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var inner_style := StyleBoxFlat.new()
+	inner_style.bg_color = C0
+	inner_style.border_color = C_GOLD_D.darkened(0.3)
+	inner_style.set_border_width_all(2)
+	inner_style.set_corner_radius_all(14)
+	inner.add_theme_stylebox_override("panel", inner_style)
+	overlay.add_child(inner)
+
+	var icon := Label.new()
+	icon.text = "🎉"
+	icon.position = Vector2(BX, BY + 40)
+	icon.size     = Vector2(BW, 130)
+	icon.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	icon.add_theme_font_size_override("font_size", 96)
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	overlay.add_child(icon)
+
+	var title := Label.new()
+	title.text = "Συγχαρητήρια!"
+	title.position = Vector2(BX + 40, BY + 190)
+	title.size     = Vector2(BW - 80, 70)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 40)
+	title.add_theme_color_override("font_color", C_GOLD)
+	title.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
+	title.add_theme_constant_override("shadow_offset_x", 2)
+	title.add_theme_constant_override("shadow_offset_y", 3)
+	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	overlay.add_child(title)
+
+	var msg := Label.new()
+	msg.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	msg.text = "Πέρασες όλα τα δωμάτια του Κάστρου!"
+	msg.position = Vector2(BX + 60, BY + 270)
+	msg.size     = Vector2(BW - 120, 60)
+	msg.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	msg.add_theme_font_size_override("font_size", 28)
+	msg.add_theme_color_override("font_color", C_PARCH)
+	msg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	overlay.add_child(msg)
+
+	var reward_title := Label.new()
+	reward_title.text = "Κέρδισες:"
+	reward_title.position = Vector2(BX + 60, BY + 350)
+	reward_title.size     = Vector2(BW - 120, 44)
+	reward_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	reward_title.add_theme_font_size_override("font_size", 26)
+	reward_title.add_theme_color_override("font_color", C_GOLD_D)
+	reward_title.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	overlay.add_child(reward_title)
+
+	var reward_lines: Array[String] = []
+	for currency in COMPLETION_REWARD_CURRENCY:
+		reward_lines.append("+%d %s" % [int(COMPLETION_REWARD_CURRENCY[currency]), currency])
+	reward_lines.append("+ %s" % ArmorInventory.get_item_name(GOLDEN_ARMOR_ID))
+
+	var reward_list := Label.new()
+	reward_list.text = "\n".join(reward_lines)
+	reward_list.position = Vector2(BX + 60, BY + 400)
+	reward_list.size     = Vector2(BW - 120, 300)
+	reward_list.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	reward_list.vertical_alignment   = VERTICAL_ALIGNMENT_TOP
+	reward_list.add_theme_font_size_override("font_size", 30)
+	reward_list.add_theme_color_override("font_color", C_PARCH)
+	reward_list.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	overlay.add_child(reward_list)
+
+	var ok_btn := Button.new()
+	ok_btn.text = "✔  Ωραία!"
+	ok_btn.position = Vector2(BX + BW / 2.0 - 170, BY + BH - 130)
+	ok_btn.size     = Vector2(340, 96)
+	ok_btn.add_theme_font_size_override("font_size", 30)
+	var normal_style := StyleBoxFlat.new()
+	normal_style.bg_color = C_WOOD_D
+	normal_style.border_color = C_GOLD.darkened(0.15)
+	normal_style.set_border_width_all(4)
+	normal_style.set_corner_radius_all(10)
+	normal_style.shadow_color = Color(0, 0, 0, 0.68)
+	normal_style.shadow_size = 7
+	ok_btn.add_theme_stylebox_override("normal", normal_style)
+	var hover_style := StyleBoxFlat.new()
+	hover_style.bg_color = C_WOOD
+	hover_style.border_color = C_GOLD
+	hover_style.set_border_width_all(5)
+	hover_style.set_corner_radius_all(10)
+	ok_btn.add_theme_stylebox_override("hover", hover_style)
+	ok_btn.add_theme_stylebox_override("focus", StyleBoxFlat.new())
+	ok_btn.add_theme_color_override("font_color", C_GOLD)
+	ok_btn.add_theme_color_override("font_hover_color", C_GOLD_S)
+	ok_btn.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.92))
+	ok_btn.add_theme_constant_override("shadow_offset_x", 2)
+	ok_btn.add_theme_constant_override("shadow_offset_y", 3)
+	ok_btn.pressed.connect(overlay.queue_free)
+	overlay.add_child(ok_btn)

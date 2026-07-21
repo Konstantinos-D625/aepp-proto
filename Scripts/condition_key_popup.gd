@@ -32,6 +32,13 @@ extends Control
 
 signal key_accepted
 
+# Χρώματα μηνύματος ανατροφοδότησης (βλ. _on_key_dropped) — πράσινο για σωστό
+# κλειδί/μερική πρόοδο, κόκκινο ΜΟΝΟ όταν σπάει κλειδί. Το FeedbackLabel έχει
+# σταθερό κόκκινο font_color στο .tscn (ίδια απόχρωση με C_BAD εδώ) — γι' αυτό
+# χρειάζεται ρητό override σε κάθε περίπτωση, όχι μόνο στο λάθος.
+const C_OK  := Color(0.42, 0.78, 0.40)
+const C_BAD := Color(0.86, 0.28, 0.24)
+
 var _clauses: Array = []   # Array of {"category", "type", ..., "satisfied": bool}
 var _mode := "AND"         # "AND" (όλα τα clauses) ή "OR" (αρκεί ένα)
 
@@ -230,6 +237,7 @@ func _on_key_dropped(value, category: String) -> void:
 		else:
 			_save_progress()
 			var done: int = _clauses.filter(func(c): return c["satisfied"]).size()
+			%FeedbackLabel.add_theme_color_override("font_color", C_OK)
 			%FeedbackLabel.text = "Σωστό! (%d/%d κλειδιά) — ρίξε κι άλλο." % [done, _clauses.size()]
 			%FeedbackLabel.show()
 			_refresh_keys()
@@ -237,10 +245,12 @@ func _on_key_dropped(value, category: String) -> void:
 		partial_clause["partial_sum"] = int(partial_clause["partial_sum"]) + numeric_value
 		partial_clause["partial_count"] = int(partial_clause["partial_count"]) + 1
 		_save_progress()
+		%FeedbackLabel.add_theme_color_override("font_color", C_OK)
 		%FeedbackLabel.text = "Καλή αρχή! Κράτησε το %s — ρίξε κι άλλο κλειδί για να ολοκληρώσεις το άθροισμα." % _token_label(value)
 		%FeedbackLabel.show()
 		_refresh_keys()
 	else:
+		%FeedbackLabel.add_theme_color_override("font_color", C_BAD)
 		%FeedbackLabel.text = "Λάθος! Η τιμή %s δεν ικανοποιεί καμία από τις υπόλοιπες συνθήκες — το κλειδί έσπασε." % _token_label(value)
 		%FeedbackLabel.show()
 		_refresh_keys()
