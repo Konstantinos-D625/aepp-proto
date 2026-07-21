@@ -2,8 +2,9 @@ extends Control
 
 # Popup "συνθήκης εισόδου": δείχνει τη συνθήκη (π.χ. "k <= 8", ή σύνθετες
 # συνθήκες με πολλά ΚΑΙ/Ή, πιθανόν σε διαφορετικές κατηγορίες κλειδιών) και
-# τις κατηγορίες κλειδιών που έχει ο παίκτης (KeyInventory autoload). Ο
-# παίκτης σέρνει (drag and drop) ένα κλειδί πάνω στο KeyDropZone:
+# ΟΛΑ τα κλειδιά που κατέχει ο παίκτης μαζί, από όλες τις κατηγορίες
+# (KeyInventory autoload) — χωρίς tabs επιλογής κατηγορίας, βλ. _refresh_keys.
+# Ο παίκτης σέρνει (drag and drop) ένα κλειδί πάνω στο KeyDropZone:
 #   - Αν το κλειδί ικανοποιεί ΚΑΠΟΙΟ ανεκπλήρωτο clause της συνθήκης (βλ.
 #     _clause_matches παρακάτω για τους τύπους clause) -> το κλειδί
 #     καταναλώνεται, το clause γίνεται satisfied.
@@ -33,14 +34,13 @@ signal key_accepted
 
 var _clauses: Array = []   # Array of {"category", "type", ..., "satisfied": bool}
 var _mode := "AND"         # "AND" (όλα τα clauses) ή "OR" (αρκεί ένα)
-var _selected_category := ""
 
 func _ready() -> void:
 	hide()
 	%Dim.gui_input.connect(_on_dim_input)
 	%CloseButton.pressed.connect(close_popup)
 	%DropZone.key_dropped.connect(_on_key_dropped)
-	KeyInventory.changed.connect(_refresh_categories)
+	KeyInventory.changed.connect(_refresh_keys)
 
 ## clauses: Array από Dictionaries — βλ. σχόλιο στην κορυφή του αρχείου για
 ## τους 3 τύπους ("range"/"mod"/"sum"). Ένα clause ανά κλειδί που χρειάζεται
@@ -74,8 +74,7 @@ func open_for(condition_text: String, clauses: Array, mode: String = "AND") -> v
 		_clauses.append(clause)
 	%ConditionLabel.text = _label_for(condition_text)
 	%FeedbackLabel.hide()
-	_selected_category = ""
-	_refresh_categories()
+	_refresh_keys()
 	show()
 
 func _label_for(condition_text: String) -> String:
@@ -92,39 +91,51 @@ func _on_dim_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed:
 		close_popup()
 
-func _refresh_categories() -> void:
-	for c in %CategoryRow.get_children():
-		c.queue_free()
+## Δείχνει ΟΛΑ τα κλειδιά του παίκτη μαζί, από ΟΛΕΣ τις κατηγορίες — δεν
+## χρειάζεται πια να διαλέξει πρώτα κατηγορία (πριν, tabs + ένα KeysGrid ανά
+## επιλεγμένη κατηγορία). Η κατηγορία κάθε token ξεχωρίζει ΜΟΝΟ από το
+## χρωματιστό περίγραμμά του (βλ. _make_key_token) — π.χ. ένα Κλειδί
+## Χαρακτήρων με τιμή "7" και ένα Αριθμητικό Κλειδί με τιμή 7 θα ήταν αλλιώς
+## πανομοιότυπα στην οθόνη.
+func _refresh_keys() -> void:
+	_clear_keys()
 	var categories: Array = KeyInventory.get_categories()
 	if categories.is_empty():
 		%FeedbackLabel.text = "Δεν έχεις κανένα κλειδί ακόμα."
 		%FeedbackLabel.show()
-		_clear_keys()
 		return
 	for cat in categories:
-		var btn := Button.new()
-		btn.text = cat
-		btn.pressed.connect(_on_category_selected.bind(cat))
-		%CategoryRow.add_child(btn)
-	if _selected_category == "" or not categories.has(_selected_category):
-		_selected_category = categories[0]
-	_refresh_keys()
+		for v in KeyInventory.get_keys(cat):
+			%KeysGrid.add_child(_make_key_token(v, cat))
 
-func _on_category_selected(cat: String) -> void:
-	_selected_category = cat
-	_refresh_keys()
+func _make_key_token(v, cat: String) -> Button:
+	var token := Button.new()
+	token.set_script(preload("res://Scripts/key_token.gd"))
+	token.text = _token_label(v)
+	token.value = v
+	token.category = cat
+	token.custom_minimum_size = Vector2(90, 90)
+	token.add_theme_font_size_override("font_size", 28)
 
-func _refresh_keys() -> void:
-	_clear_keys()
-	for v in KeyInventory.get_keys(_selected_category):
-		var token := Button.new()
-		token.set_script(preload("res://Scripts/key_token.gd"))
-		token.text = _token_label(v)
-		token.value = v
-		token.category = _selected_category
-		token.custom_minimum_size = Vector2(90, 90)
-		token.add_theme_font_size_override("font_size", 28)
-		%KeysGrid.add_child(token)
+	# Χρωματιστό περίγραμμα ανά κατηγορία (ίδια χρώματα με Currency.COLORS,
+	# βλ. currency_manager.gd) — δεύτερο, πιο άμεσο οπτικό στοιχείο πέρα από
+	# το εικονίδιο, ώστε να ξεχωρίζουν με μια ματιά μέσα στο ενιαίο πλέγμα.
+	var tint: Color = Currency.COLORS.get(cat, Color(0.94, 0.76, 0.16))
+	var normal := StyleBoxFlat.new()
+	normal.bg_color = Color(0.12, 0.09, 0.05, 0.92)
+	normal.border_color = tint
+	normal.set_border_width_all(3)
+	normal.set_corner_radius_all(10)
+	token.add_theme_stylebox_override("normal", normal)
+	var hover := normal.duplicate() as StyleBoxFlat
+	hover.bg_color = Color(0.18, 0.13, 0.07, 0.92)
+	hover.border_color = tint.lightened(0.2)
+	token.add_theme_stylebox_override("hover", hover)
+	var pressed := normal.duplicate() as StyleBoxFlat
+	pressed.bg_color = Color(0.06, 0.045, 0.025, 0.92)
+	token.add_theme_stylebox_override("pressed", pressed)
+	token.add_theme_stylebox_override("focus", StyleBoxFlat.new())
+	return token
 
 func _token_label(v) -> String:
 	if typeof(v) == TYPE_BOOL:
@@ -201,17 +212,17 @@ func _on_key_dropped(value, category: String) -> void:
 			var done: int = _clauses.filter(func(c): return c["satisfied"]).size()
 			%FeedbackLabel.text = "Σωστό! (%d/%d κλειδιά) — ρίξε κι άλλο." % [done, _clauses.size()]
 			%FeedbackLabel.show()
-			_refresh_categories()
+			_refresh_keys()
 	elif not partial_clause.is_empty():
 		partial_clause["partial_sum"] = int(partial_clause["partial_sum"]) + numeric_value
 		partial_clause["partial_count"] = int(partial_clause["partial_count"]) + 1
 		%FeedbackLabel.text = "Καλή αρχή! Κράτησε το %s — ρίξε κι άλλο κλειδί για να ολοκληρώσεις το άθροισμα." % _token_label(value)
 		%FeedbackLabel.show()
-		_refresh_categories()
+		_refresh_keys()
 	else:
 		%FeedbackLabel.text = "Λάθος! Η τιμή %s δεν ικανοποιεί καμία από τις υπόλοιπες συνθήκες — το κλειδί έσπασε." % _token_label(value)
 		%FeedbackLabel.show()
-		_refresh_categories()
+		_refresh_keys()
 
 func _all_satisfied() -> bool:
 	for c in _clauses:

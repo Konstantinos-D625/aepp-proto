@@ -4,6 +4,18 @@
 [ext_resource type="Texture2D" uid="uid://d21ohe8t4245y" path="res://Εικόνες/board.png" id="2_board"]
 [ext_resource type="Script" uid="uid://br56wqngw0bfr" path="res://Scripts/key_drop_zone.gd" id="3_drop_zone"]
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dropzone"]
+bg_color = Color(0.36, 0.278, 0.058, 0.35)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.94, 0.76, 0.16, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+
 [node name="ConditionKeyPopup" type="Control" unique_id=80480680]
 layout_mode = 3
 anchors_preset = 15
@@ -84,37 +96,6 @@ text = "k <= 8"
 horizontal_alignment = 1
 autowrap_mode = 2
 
-[node name="InstructionLabel" type="Label" parent="Board/Margin/VBox" unique_id=1772779362]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.85, 0.8, 0.7, 1)
-theme_override_colors/font_outline_color = Color(0.05, 0.05, 0.08, 1)
-theme_override_constants/outline_size = 6
-theme_override_font_sizes/font_size = 22
-text = "Η συνθήκη πρέπει να βγει αληθής για να περάσεις"
-horizontal_alignment = 1
-autowrap_mode = 2
-
-[node name="CategoryLabel" type="Label" parent="Board/Margin/VBox" unique_id=947573974]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.85, 0.8, 0.7, 1)
-theme_override_colors/font_outline_color = Color(0.05, 0.05, 0.08, 1)
-theme_override_constants/outline_size = 6
-theme_override_font_sizes/font_size = 24
-text = "Κατηγορίες Κλειδιών"
-
-[node name="CategoryRow" type="HBoxContainer" parent="Board/Margin/VBox" unique_id=1441883762]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="KeysLabel" type="Label" parent="Board/Margin/VBox" unique_id=1171756256]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.85, 0.8, 0.7, 1)
-theme_override_colors/font_outline_color = Color(0.05, 0.05, 0.08, 1)
-theme_override_constants/outline_size = 6
-theme_override_font_sizes/font_size = 24
-text = "Σύρε ένα κλειδί στην πύλη"
-
 [node name="KeysGrid" type="HFlowContainer" parent="Board/Margin/VBox" unique_id=891170137]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 120)
@@ -126,6 +107,7 @@ theme_override_constants/v_separation = 12
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 140)
 layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_dropzone")
 script = ExtResource("3_drop_zone")
 
 [node name="DropLabel" type="Label" parent="Board/Margin/VBox/DropZone" unique_id=1392444167]
@@ -135,9 +117,11 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_colors/font_color = Color(0.94, 0.84, 0.6, 1)
+theme_override_colors/font_outline_color = Color(0.05, 0.05, 0.08, 1)
+theme_override_constants/outline_size = 4
 theme_override_font_sizes/font_size = 26
-text = "Πύλη"
+text = "⬇   Σύρε το κλειδί εδώ   ⬇"
 horizontal_alignment = 1
 vertical_alignment = 1
 
