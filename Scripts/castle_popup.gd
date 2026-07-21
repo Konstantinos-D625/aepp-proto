@@ -128,11 +128,20 @@ const LIBRARY_SPOTS := {
 const CHAPEL_ALTAR_RECT := Rect2(400, 810, 270, 140)
 const CHAPEL_PULPIT_RECT := Rect2(0, 1100, 150, 220)
 const CHAPEL_WINDOW_RECT := Rect2(830, 380, 210, 230)
+# Ράφι κάτω-δεξιά, χωρίς επικάλυψη με τα 3 παραπάνω — ΚΑΤΑ ΠΡΟΣΕΓΓΙΣΗ θέση,
+# δεν έχει επιβεβαιωθεί οπτικά πάνω στο chapel.png· προσάρμοσέ το αν χρειαστεί.
+const CHAPEL_SHELF_RECT := Rect2(850, 1200, 200, 220)
+
+# Το "golden_sword" (Σπαθί_2, βλ. weapon_inventory.gd) δεν είναι στο Shop —
+# παίρνεται ΜΟΝΟ πατώντας αυτό το κρυμμένο σημείο "?" στο Chapel, ΙΔΙΟ μοτίβο
+# hint-mark με τα κλειδιά (βλ. room_image_popup.gd::_add_hint_mark).
+const GOLDEN_SWORD_ID := "Σπαθί_2"
 
 const CHAPEL_SPOTS := {
 	"Chest": {"id": "chapel_altar", "rect": CHAPEL_ALTAR_RECT, "value": 6, "category": CATEGORY_NUMERIC},
 	"Grindstone": {"id": "chapel_pulpit", "rect": CHAPEL_PULPIT_RECT, "value": 14, "category": CATEGORY_NUMERIC},
 	"Basket": {"id": "chapel_window", "rect": CHAPEL_WINDOW_RECT, "value": true, "category": CATEGORY_LOGICAL},
+	"Shelf": {"id": "chapel_golden_sword", "rect": CHAPEL_SHELF_RECT, "item_id": GOLDEN_SWORD_ID, "item_catalog": "weapon"},
 }
 
 # ── Cellar: το χειρόγραφο πάνω στο χαλί (τιμή 8, αριθμητικός) + το κιβώτιο
@@ -204,6 +213,18 @@ const EXERCISE_PATHS := {}
 
 const KEY_CURRENCY := "Κλειδιά"
 const KEY_COST := 1
+
+# ── Ανταμοιβή ολοκλήρωσης του side quest — δίνεται ΜΙΑ φορά, την πρώτη φορά
+# που ο παίκτης φτάνει στο Main Bailey (τελικό δωμάτιο, βλ. _enter_room/
+# _grant_completion_reward). Το "golden_armour" (Θώρακας_3, βλ.
+# armor_inventory.gd) δεν είναι στο Shop — παίρνεται ΜΟΝΟ έτσι.
+const GOLDEN_ARMOR_ID := "Θώρακας_3"
+const COMPLETION_REWARD_CURRENCY := {
+	"Χαλκός": 50,
+	"Σίδερο": 50,
+	"Δέρμα": 50,
+	"Κέρμα": 150,
+}
 
 # Περιοχές που μπαίνουν με το παζλ συνθήκης (ConditionKeyPopup) αντί για το
 # παλιό ExercisePopup+Currency.
@@ -504,7 +525,7 @@ func _open_gate(room_id: String) -> void:
 		return
 	if CONDITIONS.has(room_id):
 		var cfg: Dictionary = CONDITIONS[room_id]
-		%ConditionKeyPopup.open_for(str(cfg["text"]), cfg["clauses"], str(cfg.get("mode", "AND")))
+		%ConditionKeyPopup.open_for(str(cfg["text"]), cfg["clauses"], str(cfg.get("mode", "AND")), room_id)
 	else:
 		%ExercisePopup.open_with(_load_exercise_texture(room_id))
 
@@ -530,6 +551,8 @@ func _enter_room(room_id: String) -> void:
 	var tex: Texture2D = ROOM_TEXTURES.get(room_id)
 	if tex == null:
 		return
+	if room_id == "main_bailey":
+		_grant_completion_reward()
 	match room_id:
 		"armory":
 			%RoomImagePopup.open_with(tex, ARMORY_SPOTS)
@@ -551,3 +574,14 @@ func _enter_room(room_id: String) -> void:
 			%RoomImagePopup.open_with(tex, THRONE_ROOM_SPOTS)
 		_:
 			%RoomImagePopup.open_with(tex)
+
+## Ανταμοιβή ολοκλήρωσης όλου του side quest — ΜΙΑ μόνο φορά συνολικά (βλ.
+## GameData.is_castle_completed/record_castle_completed), ανεξάρτητα από
+## πόσες φορές ξαναμπαίνει ο παίκτης στο Main Bailey μετά.
+func _grant_completion_reward() -> void:
+	if GameData.is_castle_completed():
+		return
+	for currency in COMPLETION_REWARD_CURRENCY:
+		Currency.add(currency, int(COMPLETION_REWARD_CURRENCY[currency]))
+	ArmorInventory.grant(GOLDEN_ARMOR_ID)
+	GameData.record_castle_completed()

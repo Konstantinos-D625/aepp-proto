@@ -227,12 +227,20 @@ func _build_bubble() -> void:
 	_options_box = VBoxContainer.new()
 	_options_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_options_box.add_theme_constant_override("separation", 12)
+	# IGNORE: layout container χωρίς δικό του input — αλλιώς (default STOP) θα
+	# σταματούσε το drag στο ταξίδι του προς το ScrollContainer, και το scroll
+	# θα δούλευε μόνο αν άγγιζες ακριβώς έξω από κάθε κουμπί.
+	_options_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_options_scroll.add_child(_options_box)
 	for i in TOPICS.size():
 		var btn := Button.new()
 		btn.text = TOPICS[i]["label"]
 		btn.custom_minimum_size = Vector2(0, 84)
 		btn.add_theme_font_size_override("font_size", 26)
+		# PASS αντί για STOP: το κουμπί πατιέται κανονικά, αλλά ένα drag πάνω
+		# του φτάνει ΚΑΙ στο ScrollContainer (mobile scroll που ξεκινάει πάνω
+		# σε κουμπί-θέμα).
+		btn.mouse_filter = Control.MOUSE_FILTER_PASS
 		_style_back_btn(btn)   # ίδιο ξύλο/χρυσό στυλ με το «Πίσω στο Χωριό»
 		btn.pressed.connect(_show_topic.bind(i))
 		_options_box.add_child(btn)

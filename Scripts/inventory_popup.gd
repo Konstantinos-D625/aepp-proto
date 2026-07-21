@@ -212,8 +212,13 @@ const CARD_ICON_SIZE := Vector2(220, 220)
 func _make_equipment_card(catalog: EquipmentCatalog, id: String) -> Control:
 	var card := _make_card_panel()
 
+	# Όλα τα Controls εδώ μέσα (row/icon/info/labels) είναι απλά εικόνα/κείμενο
+	# χωρίς δικό τους click — IGNORE σε όλα ώστε ένα drag να φτάνει πάντα στο
+	# ScrollContainer από πάνω, ό,τι σημείο της κάρτας κι αν αγγίξεις (mobile
+	# scroll). Μόνο τα πραγματικά κουμπιά (Αναβάθμιση/Πούλησε) μένουν PASS.
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 24)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card.add_child(row)
 
 	var icon := TextureRect.new()
@@ -224,6 +229,7 @@ func _make_equipment_card(catalog: EquipmentCatalog, id: String) -> Control:
 	# την κάρτα πέρα από το εξωτερικό πλαίσιο του Inventory.
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var icon_path := catalog.get_icon_path(id)
 	if ResourceLoader.exists(icon_path):
 		icon.texture = Inventory.get_item_texture({"avatar_overlay": icon_path})
@@ -233,6 +239,7 @@ func _make_equipment_card(catalog: EquipmentCatalog, id: String) -> Control:
 	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	info.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	info.add_theme_constant_override("separation", 8)
+	info.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(info)
 
 	var name_label := Label.new()
@@ -247,6 +254,7 @@ func _make_equipment_card(catalog: EquipmentCatalog, id: String) -> Control:
 	# κοβόταν στην άκρη αντί να ξεχειλίζει ορατά.
 	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	info.add_child(name_label)
 
 	# Το "Επίπεδο x/3" έχει νόημα μόνο για καταλόγους με αναβαθμίσεις (όπλα) —
@@ -256,6 +264,7 @@ func _make_equipment_card(catalog: EquipmentCatalog, id: String) -> Control:
 		tier_label.text = "Επίπεδο %d/%d" % [catalog.get_tier(id), catalog.UPGRADE_MAX_TIER]
 		tier_label.add_theme_color_override("font_color", C_MUTED)
 		tier_label.add_theme_font_size_override("font_size", 22)
+		tier_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		info.add_child(tier_label)
 
 	# ΟΛΑ τα stats που δίνει το αντικείμενο εξοπλισμένο (όχι μόνο το πρωτεύον
@@ -264,6 +273,7 @@ func _make_equipment_card(catalog: EquipmentCatalog, id: String) -> Control:
 	stat_row_label.text = _stat_line(Heroes.display_item_buffs(id))
 	stat_row_label.add_theme_color_override("font_color", C_GOLD)
 	stat_row_label.add_theme_font_size_override("font_size", 26)
+	stat_row_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	info.add_child(stat_row_label)
 
 	if catalog.upgradable:
@@ -278,12 +288,14 @@ func _make_hero_row(hero: Dictionary) -> Control:
 	var card := _make_card_panel()
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 24)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card.add_child(row)
 
 	var icon := TextureRect.new()
 	icon.custom_minimum_size = CARD_ICON_SIZE
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	icon.texture = Heroes.hero_texture(hero)
 	row.add_child(icon)
 
@@ -291,6 +303,7 @@ func _make_hero_row(hero: Dictionary) -> Control:
 	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	info.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	info.add_theme_constant_override("separation", 8)
+	info.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(info)
 
 	var name_label := Label.new()
@@ -299,6 +312,7 @@ func _make_hero_row(hero: Dictionary) -> Control:
 	name_label.add_theme_font_size_override("font_size", 32)
 	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	info.add_child(name_label)
 
 	var fin := Heroes.get_final_stats(hero)
@@ -310,6 +324,7 @@ func _make_hero_row(hero: Dictionary) -> Control:
 		Heroes.STAT_ICONS["AttackSpeed"], fin["AttackSpeed"]]
 	stats_label.add_theme_color_override("font_color", C_GOLD)
 	stats_label.add_theme_font_size_override("font_size", 26)
+	stats_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	info.add_child(stats_label)
 
 	return card
@@ -318,6 +333,7 @@ func _make_upgrade_row(catalog: EquipmentCatalog, id: String) -> Control:
 	var row := HFlowContainer.new()
 	row.add_theme_constant_override("h_separation", 10)
 	row.add_theme_constant_override("v_separation", 8)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	var tier := catalog.get_tier(id)
 	if tier >= catalog.UPGRADE_MAX_TIER:
@@ -325,12 +341,16 @@ func _make_upgrade_row(catalog: EquipmentCatalog, id: String) -> Control:
 		max_label.text = "MAX"
 		max_label.add_theme_color_override("font_color", C_GOLD)
 		max_label.add_theme_font_size_override("font_size", 22)
+		max_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		row.add_child(max_label)
 	else:
 		var upgrade_btn := Button.new()
 		upgrade_btn.text = "Αναβάθμιση  %d" % catalog.get_upgrade_cost(tier)
 		upgrade_btn.add_theme_font_size_override("font_size", 22)
 		upgrade_btn.custom_minimum_size = Vector2(220, 48)
+		# PASS αντί για STOP: πατιέται κανονικά, αλλά αφήνει ένα drag πάνω του
+		# να φτάσει ΚΑΙ στο ScrollContainer (mobile scroll).
+		upgrade_btn.mouse_filter = Control.MOUSE_FILTER_PASS
 		_set_price_icon(upgrade_btn)
 		row.add_child(upgrade_btn)
 		upgrade_btn.pressed.connect(func(): catalog.upgrade(id))
@@ -347,12 +367,14 @@ func _make_sell_row(catalog: EquipmentCatalog, id: String) -> Control:
 	var row := HFlowContainer.new()
 	row.add_theme_constant_override("h_separation", 10)
 	row.add_theme_constant_override("v_separation", 8)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	var sell_btn := Button.new()
 	sell_btn.text = "Πούλησε"
 	sell_btn.add_theme_font_size_override("font_size", 20)
 	sell_btn.add_theme_color_override("font_color", Color("e2a5a5"))
 	sell_btn.custom_minimum_size = Vector2(120, 44)
+	sell_btn.mouse_filter = Control.MOUSE_FILTER_PASS
 	row.add_child(sell_btn)
 	sell_btn.pressed.connect(func(): catalog.sell(id))
 
@@ -369,11 +391,13 @@ func _make_sell_row(catalog: EquipmentCatalog, id: String) -> Control:
 func _refund_chip(currency: String, amount: int) -> Control:
 	var box := HBoxContainer.new()
 	box.add_theme_constant_override("separation", 4)
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	var lbl := Label.new()
 	lbl.text = "+%d" % amount
 	lbl.add_theme_font_size_override("font_size", 20)
 	lbl.add_theme_color_override("font_color", Color("e2a5a5"))
+	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.add_child(lbl)
 
 	var tex := Currency.get_icon_texture(currency)
@@ -381,6 +405,7 @@ func _refund_chip(currency: String, amount: int) -> Control:
 		var fallback := Label.new()
 		fallback.text = str(Currency.ICONS.get(currency, ""))
 		fallback.add_theme_font_size_override("font_size", 20)
+		fallback.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		box.add_child(fallback)
 		return box
 
@@ -389,6 +414,7 @@ func _refund_chip(currency: String, amount: int) -> Control:
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	icon.custom_minimum_size = Vector2(24, 24)
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.add_child(icon)
 	return box
 
@@ -424,6 +450,9 @@ func _close_confirm() -> void:
 
 func _make_card_panel() -> PanelContainer:
 	var card := PanelContainer.new()
+	# IGNORE: η κάρτα δεν έχει δικό της click — αλλιώς (default STOP) ένα drag
+	# πάνω της δεν φτάνει ποτέ στο ScrollContainer από πάνω (mobile scroll).
+	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Color(0, 0, 0, 0.22)
 	sb.set_corner_radius_all(12)

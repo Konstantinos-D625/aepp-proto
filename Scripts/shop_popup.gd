@@ -275,12 +275,17 @@ func _build_grid_area() -> void:
 	margin.add_theme_constant_override("margin_right", 30)
 	margin.add_theme_constant_override("margin_top", 20)
 	margin.add_theme_constant_override("margin_bottom", 20)
+	# IGNORE: πλαίσιο-layout χωρίς δικό του input, αλλιώς (default STOP) θα
+	# σταματούσε το drag ΠΡΙΝ φτάσει στο ScrollContainer από πάνω — και το
+	# scroll θα δούλευε μόνο αν άγγιζες ακριβώς έξω από κάθε κάρτα.
+	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_scroll.add_child(margin)
 
 	_grid = GridContainer.new()
 	_grid.columns = 2
 	_grid.add_theme_constant_override("h_separation", 20)
 	_grid.add_theme_constant_override("v_separation", 20)
+	_grid.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	margin.add_child(_grid)
 
 # ═══════════════════════════════════════════════════════════════
@@ -340,6 +345,10 @@ func _make_equipment_card(catalog: EquipmentCatalog, id: String) -> Control:
 	# παρακάτω μένουν μέσα, αλλά αν ξεφύγει κάτι κόβεται στην άκρη της κάρτας
 	# αντί να ζωγραφιστεί πάνω στη διπλανή.
 	card.clip_contents = true
+	# IGNORE: η κάρτα δεν έχει δικό της click (μόνο το "buy" παρακάτω) — έτσι
+	# ένα drag πάνω στο φόντο της κάρτας φτάνει κατευθείαν στο ScrollContainer
+	# αντί να «κολλάει» εδώ (mobile scroll).
+	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card.add_theme_stylebox_override("panel", _sb(C_DARK, C_GOLD_D if owned else C_GOLD_D.darkened(0.25), 3, 10))
 
 	var icon := TextureRect.new()
@@ -385,6 +394,10 @@ func _make_equipment_card(catalog: EquipmentCatalog, id: String) -> Control:
 	buy.text     = "ΑΓΟΡΑΣΜΕΝΟ" if owned else ""
 	buy.add_theme_font_size_override("font_size", 34)
 	buy.disabled = owned
+	# PASS αντί για το προεπιλεγμένο STOP: το κουμπί συνεχίζει να πατιέται
+	# κανονικά, αλλά ένα drag πάνω του φτάνει ΚΑΙ στο ScrollContainer (mobile
+	# scroll που ξεκινάει πάνω σε κουμπί).
+	buy.mouse_filter = Control.MOUSE_FILTER_PASS
 	_style_iron(buy, not owned)
 	card.add_child(buy)
 	if not owned:
@@ -410,6 +423,9 @@ func _make_hero_card(def: Dictionary) -> Control:
 	var card := Panel.new()
 	card.custom_minimum_size = Vector2(CARD_W, CARD_H)
 	card.clip_contents = true
+	# IGNORE: βλ. σχόλιο στο _make_equipment_card — αλλιώς μπλοκάρει το mobile
+	# scroll του πλέγματος όποτε το drag ξεκινάει πάνω στην κάρτα.
+	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card.add_theme_stylebox_override("panel", _sb(C_DARK, C_GOLD_D if owned else C_GOLD_D.darkened(0.25), 3, 10))
 
 	var icon := TextureRect.new()
@@ -450,6 +466,7 @@ func _make_hero_card(def: Dictionary) -> Control:
 	buy.text     = "ΣΤΡΑΤΟΛΟΓΗΘΗΚΕ" if owned else ""
 	buy.add_theme_font_size_override("font_size", 30)
 	buy.disabled = owned
+	buy.mouse_filter = Control.MOUSE_FILTER_PASS
 	_style_iron(buy, not owned)
 	card.add_child(buy)
 	if not owned:

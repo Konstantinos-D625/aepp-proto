@@ -133,6 +133,9 @@ func _build_hero_selector(y: float) -> void:
 	_content.add_child(scroll)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 16)
+	# IGNORE: layout container χωρίς δικό του input — αλλιώς (default STOP) ένα
+	# drag πάνω του δεν φτάνει ποτέ στο ScrollContainer (mobile scroll).
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	scroll.add_child(row)
 
 	var current := Heroes.get_slot_uid(_slot)
@@ -146,6 +149,9 @@ func _selector_card(uid: String, name_text: String, tex: Texture2D, selected: bo
 	var card := Button.new()
 	card.custom_minimum_size = Vector2(160, 200)
 	card.flat = true
+	# PASS αντί για STOP: πατιέται κανονικά, αλλά αφήνει ένα drag πάνω του να
+	# φτάσει ΚΑΙ στο ScrollContainer (mobile scroll που ξεκινάει πάνω σε κάρτα).
+	card.mouse_filter = Control.MOUSE_FILTER_PASS
 	var border := C_GOLD if selected else C_GOLD_D
 	card.add_theme_stylebox_override("normal",  _sb(C_MID if selected else C_DARK, border, 3, 8))
 	card.add_theme_stylebox_override("hover",   _sb(C_IRON, C_GOLD, 3, 8))
@@ -293,6 +299,9 @@ func _open_item_picker(hero: Dictionary, item_idx: int) -> void:
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", 12)
 	col.custom_minimum_size = Vector2(QW - 60, 0)
+	# IGNORE: layout container χωρίς δικό του input — αλλιώς (default STOP) ένα
+	# drag πάνω του δεν φτάνει ποτέ στο ScrollContainer (mobile scroll).
+	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	scroll.add_child(col)
 
 	# «Αφαίρεση» (κενό)
@@ -311,6 +320,9 @@ func _picker_row(item_id: String, name_text: String, icon: Texture2D, buffs_text
 	var btn := Button.new()
 	btn.custom_minimum_size = Vector2(0, 130)
 	btn.flat = true
+	# PASS αντί για STOP: πατιέται κανονικά, αλλά αφήνει ένα drag πάνω του να
+	# φτάσει ΚΑΙ στο ScrollContainer (mobile scroll που ξεκινάει πάνω σε γραμμή).
+	btn.mouse_filter = Control.MOUSE_FILTER_PASS
 	btn.add_theme_stylebox_override("normal",  _sb(C_MID, C_BRONZE, 2, 8))
 	btn.add_theme_stylebox_override("hover",   _sb(C_IRON, C_GOLD, 2, 8))
 	btn.add_theme_stylebox_override("pressed", _sb(C_DARK, C_BRONZE, 2, 8))

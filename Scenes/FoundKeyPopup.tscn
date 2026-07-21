@@ -51,6 +51,7 @@ grow_vertical = 2
 theme_override_constants/separation = 16
 
 [node name="KeyImage" type="TextureRect" parent="Panel/VBox"]
+unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 180)
 layout_mode = 2
 expand_mode = 1

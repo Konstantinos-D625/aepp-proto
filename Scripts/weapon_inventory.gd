@@ -61,6 +61,11 @@ func _configure() -> void:
 		],
 		"Σπαθί": [
 			{"file": "Level1", "name": "Winterwing Longsword", "buffs": {"Damage": 2, "AttackSpeed": 2}, "price": {"Χαλκός": 20, "Κέρμα": 2}},
+			# "Σπαθί_2" (golden_sword) — κρυμμένο σημείο "?" μέσα στο Chapel του
+			# side quest του Κάστρου (βλ. castle_popup.gd CHAPEL_SPOTS["Shelf"]),
+			# δίνεται με WeaponInventory.grant() (βλ. room_image_popup.gd
+			# _on_spot_pressed). ΙΔΙΟ μοτίβο "hidden" με το Tree Magic Sphere.
+			{"file": "golden_sword", "name": "Kingsblade of Dawn", "buffs": {"Damage": 8, "AttackSpeed": 7}, "price": {"Χαλκός": 75, "Κέρμα": 8}, "hidden": true},
 		],
 		"Σφυρί": [
 			{"file": "Level1", "name": "Ironbound Warhammer", "buffs": {"Damage": 4, "AttackSpeed": 2}, "price": {"Δέρμα": 24, "Κέρμα": 2}},

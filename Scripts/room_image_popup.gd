@@ -56,8 +56,20 @@ func _setup_spot(btn: Button, spot) -> void:
 	btn.offset_right = rect.position.x + rect.size.x
 	btn.offset_bottom = rect.position.y + rect.size.y
 	btn.set_meta("spot_id", spot["id"])
-	btn.set_meta("key_value", spot["value"])
-	btn.set_meta("key_category", spot["category"])
+	# Δύο ειδών σημεία: κλειδί (value+category, βλ. πάνω) ή αντικείμενο
+	# (item_id — π.χ. το golden_sword στο Chapel, βλ. castle_popup.gd
+	# CHAPEL_SPOTS["Shelf"]). Τα Chest/Grindstone/Basket/Shelf είναι ΚΟΙΝΑ
+	# κουμπιά που ξαναχρησιμοποιούνται σε κάθε δωμάτιο — remove_meta ώστε να
+	# μη μείνει "κολλημένο" παλιό meta από προηγούμενο δωμάτιο/επίσκεψη.
+	if spot.has("item_id"):
+		btn.set_meta("item_id", spot["item_id"])
+		btn.set_meta("item_catalog", spot.get("item_catalog", "weapon"))
+		btn.remove_meta("key_value")
+		btn.remove_meta("key_category")
+	else:
+		btn.set_meta("key_value", spot["value"])
+		btn.set_meta("key_category", spot["category"])
+		btn.remove_meta("item_id")
 	btn.visible = true
 	_add_hint_mark(btn)
 
@@ -87,6 +99,19 @@ func _add_hint_mark(btn: Button) -> void:
 	tw.tween_property(mark, "modulate:a", 1.0, 0.6).set_trans(Tween.TRANS_SINE)
 
 func _on_spot_pressed(btn: Button) -> void:
+	if btn.has_meta("item_id"):
+		var item_id: String = btn.get_meta("item_id")
+		# "weapon" ή "armor" — ποιο catalog κρατά αυτό το αντικείμενο (ορίζεται
+		# στο spot config, βλ. castle_popup.gd CHAPEL_SPOTS["Shelf"]).
+		var catalog: EquipmentCatalog = WeaponInventory if btn.get_meta("item_catalog") == "weapon" else ArmorInventory
+		catalog.grant(item_id)
+		# Ίδιο auto-crop pipeline με Shop/Inventory (Inventory.get_item_texture)
+		# ώστε να δείχνει την πραγματική εικόνα του αντικειμένου (π.χ. το σπαθί),
+		# ΟΧΙ το γενικό εικονίδιο κλειδιού.
+		var icon_tex := Inventory.get_item_texture({"avatar_overlay": catalog.get_icon_path(item_id)})
+		%FoundKeyPopup.open_item(catalog.get_item_name(item_id), icon_tex)
+		_collect(btn)
+		return
 	var value = btn.get_meta("key_value")
 	var category: String = btn.get_meta("key_category")
 	KeyInventory.add_key(value, category)

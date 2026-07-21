@@ -131,6 +131,13 @@ var party: Dictionary = {}
 # achievements.gd (ίδιο μοτίβο με currencies/party).
 var achievements: Dictionary = {}
 
+# ── Side quest του Κάστρου (castle_popup.gd) — μόνιμο ορόσημο ─────────────────
+# true μόλις ο παίκτης φτάσει ΜΙΑ φορά στο Main Bailey (τελικό δωμάτιο) —
+# monotonic, ίδιο μοτίβο με boss_defeated. Εμποδίζει να ξαναδοθεί η ανταμοιβή
+# ολοκλήρωσης (50 Χαλκός/Σίδερο/Δέρμα, 150 Κέρμα, Golden Armor) σε κάθε
+# επόμενη επίσκεψη στο ίδιο δωμάτιο.
+var castle_completed: bool = false
+
 
 func _ready() -> void:
 	_load()
@@ -332,6 +339,22 @@ func record_mini_boss_win(boss_id: String) -> void:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
+# ΔΗΜΟΣΙΟ API — SIDE QUEST ΚΑΣΤΡΟΥ (persistence μόνο· λογική στο castle_popup.gd)
+# ═══════════════════════════════════════════════════════════════════════════
+
+## True αν ο παίκτης έχει ήδη φτάσει στο Main Bailey (έχει πάρει την ανταμοιβή
+## ολοκλήρωσης) — τότε δεν ξαναδίνεται.
+func is_castle_completed() -> bool:
+	return castle_completed
+
+## Καλείται ΜΙΑ φορά, την πρώτη φορά που ο παίκτης φτάνει στο Main Bailey.
+func record_castle_completed() -> void:
+	castle_completed = true
+	_save()
+	progress_changed.emit()
+
+
+# ═══════════════════════════════════════════════════════════════════════════
 # ΔΗΜΟΣΙΟ API — ΦΥΛΟ ΒΑΣΙΚΟΥ ΗΡΩΑ (επιλέγεται μία φορά στην αρχή του παιχνιδιού)
 # ═══════════════════════════════════════════════════════════════════════════
 
@@ -482,6 +505,7 @@ func _load() -> void:
 	keys                        = config.get_value("keys", "state", {})
 	party                       = config.get_value("party", "data", {})
 	achievements                = config.get_value("achievements", "unlocked", {})
+	castle_completed            = config.get_value("castle", "completed", false)
 
 func _save() -> void:
 	if not SAVE_ENABLED:
@@ -500,4 +524,5 @@ func _save() -> void:
 	config.set_value("keys", "state", keys)
 	config.set_value("party", "data", party)
 	config.set_value("achievements", "unlocked", achievements)
+	config.set_value("castle", "completed", castle_completed)
 	config.save(SAVE_PATH)

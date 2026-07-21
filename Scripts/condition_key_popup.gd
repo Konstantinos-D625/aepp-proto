@@ -35,6 +35,17 @@ signal key_accepted
 var _clauses: Array = []   # Array of {"category", "type", ..., "satisfied": bool}
 var _mode := "AND"         # "AND" (όλα τα clauses) ή "OR" (αρκεί ένα)
 
+# room_id -> Array (ίδιο σχήμα με _clauses) — η πρόοδος clauses που έχει ήδη
+# ικανοποιηθεί σε μια ΠΡΟΗΓΟΥΜΕΝΗ επίσκεψη στο ΙΔΙΟ gate, πριν κλειστεί το
+# popup χωρίς να ολοκληρωθεί η συνθήκη. Χωρίς αυτό, κάθε open_for() έχτιζε
+# πάντα ΚΑΙΝΟΥΡΓΙΑ clauses (όλα satisfied=false) — αν ο παίκτης είχε ήδη
+# ρίξει ένα κλειδί (που καταναλώνεται αμέσως, βλ. _on_key_dropped) και μετά
+# έκλεινε το popup πριν βρει το δεύτερο, η πρόοδος χανόταν ΚΑΙ το κλειδί ήταν
+# ήδη φαγωμένο — αδιέξοδο (βλ. συζήτηση bug). Καθαρίζεται μόλις η συνθήκη
+# ολοκληρωθεί πλήρως (βλ. _on_key_dropped) αφού το gate δεν ξαναζητείται.
+var _saved_clauses: Dictionary = {}
+var _current_room_id := ""
+
 func _ready() -> void:
 	hide()
 	%Dim.gui_input.connect(_on_dim_input)
@@ -50,28 +61,35 @@ func _ready() -> void:
 ## κατηγορίες (π.χ. Chapel: αριθμητικό > 5 ΚΑΙ χαρακτήρας = 'Κ') απλά
 ## προστίθενται 2 διαφορετικά clauses.
 ## mode: "AND" (προεπιλογή, χρειάζονται ΟΛΑ τα clauses) ή "OR" (αρκεί ΕΝΑ).
-func open_for(condition_text: String, clauses: Array, mode: String = "AND") -> void:
+## room_id: κλειδί για την αποθηκευμένη πρόοδο (βλ. _saved_clauses) — ίδιο
+## room_id σε ξαναπάτημα του ΙΔΙΟΥ gate συνεχίζει από εκεί που έμεινε αντί να
+## ξαναρχίσει από το μηδέν.
+func open_for(condition_text: String, clauses: Array, mode: String = "AND", room_id: String = "") -> void:
 	_mode = mode
-	_clauses = []
-	for c in clauses:
-		var type: String = str(c.get("type", "range"))
-		var clause := {
-			"category": str(c["category"]),
-			"type": type,
-			"satisfied": false,
-		}
-		match type:
-			"mod":
-				clause["modulus"] = int(c["modulus"])
-				clause["remainder"] = int(c["remainder"])
-			"sum":
-				clause["target"] = int(c["target"])
-				clause["partial_sum"] = 0
-				clause["partial_count"] = 0
-			_:
-				clause["min"] = int(c["min"])
-				clause["max"] = int(c["max"])
-		_clauses.append(clause)
+	_current_room_id = room_id
+	if room_id != "" and _saved_clauses.has(room_id):
+		_clauses = (_saved_clauses[room_id] as Array).duplicate(true)
+	else:
+		_clauses = []
+		for c in clauses:
+			var type: String = str(c.get("type", "range"))
+			var clause := {
+				"category": str(c["category"]),
+				"type": type,
+				"satisfied": false,
+			}
+			match type:
+				"mod":
+					clause["modulus"] = int(c["modulus"])
+					clause["remainder"] = int(c["remainder"])
+				"sum":
+					clause["target"] = int(c["target"])
+					clause["partial_sum"] = 0
+					clause["partial_count"] = 0
+				_:
+					clause["min"] = int(c["min"])
+					clause["max"] = int(c["max"])
+			_clauses.append(clause)
 	%ConditionLabel.text = _label_for(condition_text)
 	%FeedbackLabel.hide()
 	_refresh_keys()
@@ -205,10 +223,12 @@ func _on_key_dropped(value, category: String) -> void:
 			satisfied_clause["partial_count"] = int(satisfied_clause["partial_count"]) + 1
 		satisfied_clause["satisfied"] = true
 		if _mode == "OR" or _all_satisfied():
+			_saved_clauses.erase(_current_room_id)   # ολοκληρώθηκε — δεν ξαναχρειάζεται
 			%FeedbackLabel.hide()
 			close_popup()
 			key_accepted.emit()
 		else:
+			_save_progress()
 			var done: int = _clauses.filter(func(c): return c["satisfied"]).size()
 			%FeedbackLabel.text = "Σωστό! (%d/%d κλειδιά) — ρίξε κι άλλο." % [done, _clauses.size()]
 			%FeedbackLabel.show()
@@ -216,6 +236,7 @@ func _on_key_dropped(value, category: String) -> void:
 	elif not partial_clause.is_empty():
 		partial_clause["partial_sum"] = int(partial_clause["partial_sum"]) + numeric_value
 		partial_clause["partial_count"] = int(partial_clause["partial_count"]) + 1
+		_save_progress()
 		%FeedbackLabel.text = "Καλή αρχή! Κράτησε το %s — ρίξε κι άλλο κλειδί για να ολοκληρώσεις το άθροισμα." % _token_label(value)
 		%FeedbackLabel.show()
 		_refresh_keys()
@@ -229,3 +250,11 @@ func _all_satisfied() -> bool:
 		if not c["satisfied"]:
 			return false
 	return true
+
+## Θυμάται την τρέχουσα (ημιτελή) πρόοδο clauses γι' αυτό το room_id, ώστε αν
+## ο παίκτης κλείσει το popup τώρα (πάτημα Χ/Dim) και το ξανανοίξει αργότερα
+## (π.χ. αφού βρει το επόμενο κλειδί), να συνεχίσει από εδώ αντί να ξαναρχίσει
+## από το μηδέν — βλ. σχόλιο στο _saved_clauses παραπάνω.
+func _save_progress() -> void:
+	if _current_room_id != "":
+		_saved_clauses[_current_room_id] = _clauses.duplicate(true)

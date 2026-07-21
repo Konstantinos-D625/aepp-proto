@@ -64,17 +64,22 @@ func _configure() -> void:
 	# "price" μένει ορισμένο για αναφορά/αν αφαιρεθεί ποτέ το "hidden").
 	items = {
 		"Θώρακας": [
-			{"file": "Γήινος", "name": "Wildroot Bark Plate", "buffs": {"Shield": 3, "HP": 3}, "price": {"Χαλκός": 30, "Κέρμα": 3}},
-			{"file": "goblin_armour", "name": "Bad Goblin Armor", "buffs": {"Shield": 8, "HP": 1}, "price": {"Χαλκός": 96, "Κέρμα": 10}, "hidden": true},
+			{"file": "Γήινος", "name": "Wildroot Bark Plate", "buffs": {"Shield": 3, "HP": 7}, "price": {"Χαλκός": 30, "Κέρμα": 3}},
+			{"file": "goblin_armour", "name": "Bad Goblin Armor", "buffs": {"Shield": 9, "HP": 3}, "price": {"Χαλκός": 96, "Κέρμα": 10}, "hidden": true},
+			# "Θώρακας_3" (Golden Armor) — ανταμοιβή ολοκλήρωσης του side quest του
+			# Κάστρου (βλ. castle_popup.gd::_grant_completion_reward, δίνεται με
+			# ArmorInventory.grant() όταν ο παίκτης φτάσει στο Main Bailey). ΙΔΙΟ
+			# μοτίβο "hidden" με το Bad Goblin Armor παραπάνω.
+			{"file": "golden_armour", "name": "Sovereign's Golden Plate", "buffs": {"Shield": 13, "HP": 9}, "price": {"Χαλκός": 130, "Κέρμα": 13}, "hidden": true},
 		],
 		"Κράνος": [
-			{"file": "Γήινο", "name": "Antlerwood Wildhelm", "buffs": {"Shield": 3, "HP": 2}, "price": {"Χαλκός": 24, "Κέρμα": 2}},
+			{"file": "Γήινο", "name": "Antlerwood Wildhelm", "buffs": {"Shield": 6, "HP": 4}, "price": {"Χαλκός": 24, "Κέρμα": 2}},
 		],
 		"Παντελόνι": [
-			{"file": "Γήινο", "name": "Bramblewood Legguards", "buffs": {"Shield": 3, "HP": 1}, "price": {"Σίδερο": 20, "Κέρμα": 2}},
+			{"file": "Γήινο", "name": "Bramblewood Legguards", "buffs": {"Shield": 4, "HP": 3}, "price": {"Σίδερο": 20, "Κέρμα": 2}},
 		],
 		"Μπότες": [
-			{"file": "Γήινες", "name": "Rootbound Treads", "buffs": {"Shield": 1, "HP": 2}, "price": {"Δέρμα": 15, "Κέρμα": 2}},
+			{"file": "Γήινες", "name": "Rootbound Treads", "buffs": {"Shield": 2, "HP": 5}, "price": {"Δέρμα": 15, "Κέρμα": 2}},
 		],
 	}
 
