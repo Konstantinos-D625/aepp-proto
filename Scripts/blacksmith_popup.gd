@@ -6,19 +6,17 @@ const CHAR_PATH   := "res://Εικόνες/blacksmith.png"
 const BOARD_PATH  := "res://Εικόνες/board.png"
 
 # ── Σύστημα ασκήσεων ──────────────────────────────────────────────────────
-# Οι 20 ασκήσεις ΑΕΠΠ, με τη σειρά. Ο παίκτης γράφει την απάντηση με το
-# πληκτρολόγιο οθόνης (βλ. _build_keyboard) — δεν είναι πολλαπλής επιλογής,
-# εκτός από την τελευταία ("mode": "choice" στο JSON).
+# Οι 20 ασκήσεις ΑΕΠΠ. Ο παίκτης γράφει την απάντηση με το πληκτρολόγιο
+# οθόνης (βλ. _build_keyboard) — δεν είναι πολλαπλής επιλογής, εκτός από την
+# τελευταία ("mode": "choice" στο JSON).
 #
 # ΠΡΟΣΟΧΗ: το παλιό blacksmith_quiz.json (A-F) ΔΕΝ διαγράφηκε — το
 # χρησιμοποιεί ακόμη το Level 2 του daily_quest_exercises.gd.
 const QUIZ_PATH := "res://blacksmith_exercises.json"
 
-# 0 = όλες οι ασκήσεις, με τη σειρά του αρχείου (1 → 20).
-const QUESTIONS_PER_ROUND := 0
-
-# Πόσες λάθος απαντήσεις πριν αποκαλυφθεί η λύση και προχωρήσουμε.
-const MAX_ATTEMPTS := 2
+# 5 τυχαίες ασκήσεις από τις 20 ανά επίσκεψη (βλ. _quiz.start πιο κάτω,
+# shuffle=true) — ίδιο μοτίβο με τη Δερματού (cotton_popup.gd).
+const QUESTIONS_PER_ROUND := 5
 
 # Loot: μόνο σίδερο. Η ποσότητα εξαρτάται από τη ΔΥΣΚΟΛΙΑ των ερωτήσεων που
 # απαντήθηκαν σωστά. Δίνεται όταν φεύγεις, αρκεί να απάντησες ≥1 ερώτηση.
@@ -588,8 +586,8 @@ func _start_quiz() -> void:
 	_quiz.question_changed.connect(_on_question_changed)
 	_quiz.answer_result.connect(_on_answer_result)
 	_quiz.quiz_completed.connect(_on_quiz_completed)
-	# shuffle=false: οι ασκήσεις πρέπει να έρθουν με τη σειρά, 1 → 20.
-	_quiz.start(false, QUESTIONS_PER_ROUND)
+	# shuffle=true: διαφορετικές 5 ασκήσεις (από τις 20) σε κάθε επίσκεψη.
+	_quiz.start(true, QUESTIONS_PER_ROUND)
 
 func _on_question_changed(index: int, total: int, question_text: String) -> void:
 	if _loot_given:
@@ -663,24 +661,10 @@ func _on_answer_result(correct: bool) -> void:
 		_advance_later(0.9)
 		return
 
-	# Λάθος: ο παίκτης ξαναπροσπαθεί. Η σωστή απάντηση ΔΕΝ αποκαλύπτεται ποτέ
-	# — το παιχνίδι είναι για εξάσκηση, οπότε η λύση πρέπει να βρεθεί, όχι να
-	# δοθεί. Μετά από MAX_ATTEMPTS αποτυχίες απλώς προχωράμε στην επόμενη,
-	# ώστε να μην κολλήσει ο παίκτης σε άσκηση που δεν ξέρει.
+	# Λάθος: καμία δεύτερη ευκαιρία — η σωστή απάντηση ΔΕΝ αποκαλύπτεται ποτέ
+	# (το παιχνίδι είναι για εξάσκηση, η λύση πρέπει να βρεθεί, όχι να δοθεί),
+	# και μία λάθος απάντηση προχωράει κατευθείαν στην επόμενη άσκηση.
 	_feedback.add_theme_color_override("font_color", C_BAD)
-	if _quiz.get_attempts() < MAX_ATTEMPTS:
-		_feedback.text = "✘  Λάθος, προσπάθησε ξανά"
-		var t := get_tree().create_timer(0.9)
-		t.timeout.connect(func():
-			if _loot_given or _state != 2:
-				return
-			_feedback.text = ""
-			_set_answer("")
-			_input_locked = false
-			_set_keyboard_enabled(true)
-		)
-		return
-
 	_feedback.text = "✘  Λάθος — πάμε στην επόμενη"
 	_advance_later(1.4)
 

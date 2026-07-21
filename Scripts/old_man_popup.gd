@@ -167,7 +167,10 @@ func _build_bubble() -> void:
 	const BX := 32.0
 	const BY := 200.0
 	const BW := 600.0
-	const BH := 640.0
+	# +54 σε σχέση με το παλιό (640) ώστε να χωράει το μισό-ορατό 4ο κουμπί
+	# παρακάτω (βλ. OPTIONS_SCROLL_H) — αλλιώς η scrollable λίστα δεν φαινόταν
+	# scrollable, αφού έδειχνε ακριβώς 3 πλήρη κουμπιά και τίποτα άλλο.
+	const BH := 694.0
 
 	# Σκιά
 	_shadow(root, Vector2(BX + 8, BY + 8), Vector2(BW, BH), 18)
@@ -212,9 +215,12 @@ func _build_bubble() -> void:
 	# 9 θέματα (πάνω από όσα χωράνε στο σταθερό ύψος της φούσκας) — μέσα σε
 	# ScrollContainer, ΙΔΙΟ footprint (θέση/μέγεθος) με το παλιό VBoxContainer
 	# ώστε να μην αλλάζει το layout της φούσκας.
+	# Ύψος = 3 πλήρη κουμπιά (84 + 12 separation) + μισό ακόμα (42) — έτσι το
+	# 4ο κουμπί «κόβεται» στη μέση και φαίνεται καθαρά ότι η λίστα scrollάρει.
+	const OPTIONS_SCROLL_H := 3 * (84.0 + 12.0) + 42.0
 	_options_scroll = ScrollContainer.new()
-	_options_scroll.position = Vector2(BX + 30, BY + BH - 312)
-	_options_scroll.size     = Vector2(BW - 60, 276)
+	_options_scroll.position = Vector2(BX + 30, BY + BH - OPTIONS_SCROLL_H - 36)
+	_options_scroll.size     = Vector2(BW - 60, OPTIONS_SCROLL_H)
 	_options_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	add_child(_options_scroll)
 	_options_box = VBoxContainer.new()
