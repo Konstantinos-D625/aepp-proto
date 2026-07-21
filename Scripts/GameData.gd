@@ -100,12 +100,6 @@ var boss_defeated: bool = false
 # καμία αλλαγή εδώ — αρκεί το entry του στο BOSS_DEFS.
 var mini_bosses: Dictionary = {}
 
-# ── Φύλο βασικού ήρωα (GenderSelect, βλ. Scripts/gender_select.gd) ───────────
-# "" = δεν έχει επιλεγεί ακόμα (πρώτη εκκίνηση -> εμφανίζεται η οθόνη επιλογής
-# φύλου). "boy" ή "girl" -> ο αντίστοιχος χαρακτήρας εμφανίζεται στην οθόνη
-# Χαρακτήρων (βλ. Scripts/CharacterSelect.gd, boy.png/girl.png).
-var hero_gender: String = ""
-
 # ── Νομίσματα/υλικά (Currency autoload, βλ. Scripts/currency_manager.gd) ─────
 # currency_name -> ποσό. Το GameData είναι ΜΟΝΟ ο persistence layer· η λογική
 # (κατάλογος, χρώματα, spend/add) ζει στο currency_manager.gd, ίδιο μοτίβο με
@@ -355,32 +349,11 @@ func record_castle_completed() -> void:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# ΔΗΜΟΣΙΟ API — ΦΥΛΟ ΒΑΣΙΚΟΥ ΗΡΩΑ (επιλέγεται μία φορά στην αρχή του παιχνιδιού)
+# ΔΗΜΟΣΙΟ API — ΕΙΚΟΝΕΣ ΗΡΩΩΝ
 # ═══════════════════════════════════════════════════════════════════════════
 
-## True αν ο παίκτης έχει ήδη επιλέξει φύλο ήρωα — τότε η οθόνη επιλογής φύλου
-## παρακάμπτεται και μπαίνει κατευθείαν στην πρώτη περιοχή (βλ. gender_select.gd).
-func has_hero_gender() -> bool:
-	return hero_gender != ""
-
-## "boy" ή "girl" (ή "" αν δεν έχει επιλεγεί ακόμα).
-func get_hero_gender() -> String:
-	return hero_gender
-
-func set_hero_gender(gender: String) -> void:
-	hero_gender = gender
-	_save()
-
-# ── Εικόνα ήρωα (κοινή για ΟΛΕΣ τις οθόνες) ─────────────────────────────────
 # Cache ώστε το ακριβό crop να γίνεται μία φορά ανά εικόνα.
 var _cropped_tex_cache: Dictionary = {}
-
-## Η εικόνα του βασικού ήρωα (boy.png/girl.png ανάλογα με το φύλο), κομμένη στο
-## πραγματικό της περιεχόμενο. Προεπιλογή "girl" όσο δεν έχει επιλεγεί φύλο.
-## Επιστρέφει null αν λείπει η εικόνα (ο caller βάζει fallback).
-func get_hero_texture() -> Texture2D:
-	var path := HERO_BOY_PATH if hero_gender == "boy" else HERO_GIRL_PATH
-	return get_cropped_texture(path)
 
 ## Φορτώνει μια εικόνα και την κόβει στο πραγματικό (ορατό) περιεχόμενό της με
 ## κατώφλι alpha (>0.25). ΔΕΝ χρησιμοποιείται το Image.get_used_rect() γιατί
@@ -500,7 +473,6 @@ func _load() -> void:
 	boss_lost_once              = config.get_value("boss", "lost_once", false)
 	boss_defeated               = config.get_value("boss", "defeated", false)
 	mini_bosses                 = config.get_value("mini_bosses", "state", {})
-	hero_gender                 = config.get_value("hero", "gender", "")
 	currencies                  = config.get_value("currencies", "amounts", {})
 	keys                        = config.get_value("keys", "state", {})
 	party                       = config.get_value("party", "data", {})
@@ -519,7 +491,6 @@ func _save() -> void:
 	config.set_value("boss", "lost_once", boss_lost_once)
 	config.set_value("boss", "defeated", boss_defeated)
 	config.set_value("mini_bosses", "state", mini_bosses)
-	config.set_value("hero", "gender", hero_gender)
 	config.set_value("currencies", "amounts", currencies)
 	config.set_value("keys", "state", keys)
 	config.set_value("party", "data", party)

@@ -104,26 +104,15 @@ func _load_saved() -> void:
 	_persist()
 	changed.emit()
 
-## Δημόσιο: καλείται από το GenderSelect ΜΟΛΙΣ επιλεγεί φύλο, ώστε ο starter
-## ήρωας να δημιουργηθεί ΤΗΝ ΙΔΙΑ στιγμή (το Heroes autoload έχει ήδη φορτώσει
-## πριν επιλεγεί φύλο στην πρώτη εκκίνηση, οπότε δεν αρκεί μόνο το _load_saved).
-## Idempotent — δεν κάνει τίποτα αν υπάρχει ήδη ήρωας.
-func ensure_starter_hero() -> void:
-	if _roster.is_empty():
-		_ensure_starter_hero()
-		_persist()
-		changed.emit()
-
-## Πρώτη εκκίνηση με επιλεγμένο φύλο αλλά κενό roster: ο χαρακτήρας που
-## διάλεξε ο παίκτης (boy/girl) γίνεται ο ΠΡΩΤΟΣ ήρωας, με ΟΛΑ τα stats = 1,
-## και μπαίνει στη θέση 0. Idempotent — τρέχει μία μόνο φορά.
+## Πρώτη εκκίνηση με κενό roster: ο βασικός ήρωας (Άλντρικ) γίνεται ο ΠΡΩΤΟΣ
+## ήρωας, με ΟΛΑ τα stats = 1, και μπαίνει στη θέση 0. Idempotent — τρέχει
+## μία μόνο φορά. Καμία επιλογή φύλου πια — ο παίκτης ξεκινά πάντα με τον
+## ίδιο χαρακτήρα (Area1 είναι πλέον η main scene, βλ. project.godot).
 func _ensure_starter_hero() -> void:
 	if not _roster.is_empty():
 		return
-	if not GameData.has_hero_gender():
-		return
-	var avatar := GameData.HERO_BOY_PATH if GameData.get_hero_gender() == "boy" else GameData.HERO_GIRL_PATH
-	var hero_name := "Άλντρικ" if GameData.get_hero_gender() == "boy" else "Λύρα"
+	var avatar := GameData.HERO_BOY_PATH
+	var hero_name := "Άλντρικ"
 	var base := {}
 	for k in STAT_KEYS:
 		base[k] = 1
