@@ -67,6 +67,7 @@ var _loot_given   := false
 var _answer_text  := ""
 var _answer_label : Label
 var _keyboard     : Control   # πλήρες πληκτρολόγιο (ασκήσεις 1-19)
+var _extra_actions: Control   # κενό/Σβήσε/Καθαρισμός — ξεχωριστά απ' το πληκτρολόγιο
 var _choices      : Control   # 4 κουμπιά επιλογής (άσκηση 20)
 var _keys         : Array[Button] = []   # όλα τα πλήκτρα, για enable/disable
 
@@ -299,10 +300,13 @@ func _build_board() -> Control:
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(root)
 
+	# Πιο ψηλά και πιο κοντό απ' ό,τι πριν (BRD_Y 70→20, BRD_H 990→880) ώστε να
+	# ελευθερωθεί χώρος για το πληκτρολόγιο από κάτω να σπάσει σε περισσότερες,
+	# πιο φαρδιές (άρα πιο εύκολα πατήσιμες σε κινητό) σειρές.
 	const BRD_X := 60.0
-	const BRD_Y := 70.0
+	const BRD_Y := 20.0
 	const BRD_W := 960.0
-	const BRD_H := 990.0
+	const BRD_H := 880.0
 
 	var brd_tex : Texture2D = load(BOARD_PATH)
 	var brd := TextureRect.new()
@@ -319,18 +323,20 @@ func _build_board() -> Control:
 	pad.position = Vector2(BRD_X, BRD_Y)
 	pad.size     = Vector2(BRD_W, BRD_H)
 	# Το board.png έχει διάφανο περιθώριο γύρω από το ξύλινο πλαίσιο: το ίδιο
-	# το χρυσό πλαίσιο ξεκινά ~190px κάτω από την κορυφή του TextureRect και
-	# τελειώνει ~120px πάνω από τη βάση του. Με μικρότερα margins η γραμμή
-	# προόδου έβγαινε ΠΑΝΩ από τον πίνακα, στο φόντο.
+	# το χρυσό πλαίσιο ξεκινά στο ~19.2% του ύψους του TextureRect και τελειώνει
+	# ~12.3% πριν τη βάση του (μετρημένο στο παλιό BRD_H=990 ως 190/122px) — τα
+	# margins είναι κλιμακωμένα ανάλογα με το ΝΕΟ BRD_H=880 (190·0.889≈169,
+	# 122·0.889≈108) ώστε να παραμείνουν ευθυγραμμισμένα με το ξύλινο πλαίσιο
+	# της εικόνας. Αν αλλάξει ξανά το BRD_H, ξανά-κλιμάκωσε αναλογικά.
 	pad.add_theme_constant_override("margin_left",   110)
 	pad.add_theme_constant_override("margin_right",  110)
-	pad.add_theme_constant_override("margin_top",    190)
-	pad.add_theme_constant_override("margin_bottom", 122)
+	pad.add_theme_constant_override("margin_top",    169)
+	pad.add_theme_constant_override("margin_bottom", 108)
 	pad.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(pad)
 
 	var col := VBoxContainer.new()
-	col.add_theme_constant_override("separation", 16)
+	col.add_theme_constant_override("separation", 12)
 	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	pad.add_child(col)
 
@@ -349,7 +355,7 @@ func _build_board() -> Control:
 	_q_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_q_label.vertical_alignment   = VERTICAL_ALIGNMENT_CENTER
 	_q_label.size_flags_vertical  = Control.SIZE_EXPAND_FILL
-	_q_label.custom_minimum_size  = Vector2(0, 380)
+	_q_label.custom_minimum_size  = Vector2(0, 350)
 	_q_label.add_theme_font_size_override("font_size", 30)
 	_q_label.add_theme_color_override("font_color", C_PARCH)
 	_q_label.add_theme_color_override("font_shadow_color", Color(0,0,0,0.85))
@@ -364,10 +370,11 @@ func _build_board() -> Control:
 	_feedback = Label.new()
 	_feedback.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_feedback.vertical_alignment   = VERTICAL_ALIGNMENT_CENTER
-	# Autowrap + ύψος για 2-3 γραμμές: η αποκάλυψη της λύσης είναι συχνά μεγάλη
-	# (π.χ. "5   (45789 div 1000 = 45,  45 mod 10 = 5)").
+	# Autowrap σαν προφύλαξη, αλλά το feedback είναι πάντα μία σύντομη γραμμή
+	# ("✔ Σωστό!" / "✘ Λάθος — πάμε στην επόμενη") — η σωστή απάντηση δεν
+	# αποκαλύπτεται πια, οπότε δεν χρειάζεται ύψος για πολλαπλές γραμμές.
 	_feedback.autowrap_mode        = TextServer.AUTOWRAP_WORD_SMART
-	_feedback.custom_minimum_size  = Vector2(0, 90)
+	_feedback.custom_minimum_size  = Vector2(0, 55)
 	_feedback.add_theme_font_size_override("font_size", 23)
 	_feedback.add_theme_color_override("font_shadow_color", Color(0,0,0,0.85))
 	_feedback.add_theme_constant_override("shadow_offset_x", 1)
@@ -375,14 +382,31 @@ func _build_board() -> Control:
 	_feedback.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	col.add_child(_feedback)
 
-	# ── Πληκτρολόγιο / κουμπιά επιλογής, ΚΑΤΩ από τον πίνακα ──────────────
-	# Τελειώνουν στο 1755, πάνω από το κουμπί "Πίσω στο Χωριό" (H-138 = 1782).
+	# ── Μπάρα κενό/Σβήσε/Καθαρισμός, ΠΑΝΩ από το πληκτρολόγιο ─────────────
+	# Ξεχωριστά απ' τα υπόλοιπα πλήκτρα (δεν είναι κουμπιά συμπλήρωσης, είναι
+	# ενέργειες πάνω στην ήδη γραμμένη απάντηση) — δικό τους πλαίσιο με
+	# κόκκινο (C_CRIMSON) περίγραμμα αντί για χρυσό, ώστε να ξεχωρίζουν οπτικά.
+	const EXTRA_X := 30.0
+	const EXTRA_Y := BRD_Y + BRD_H + 8.0
+	const EXTRA_W := 1020.0
+	const EXTRA_H := 76.0
+
+	# ── Πληκτρολόγιο / κουμπιά επιλογής, ΚΑΤΩ από τη μπάρα ────────────────
+	# Τελειώνουν στο 1776, πάνω από το κουμπί "Πίσω στο Χωριό" (H-138 = 1782) —
+	# όλα τα κενά γύρω (μετά το board, πριν το πληκτρολόγιο, πριν το "Πίσω")
+	# σφίχτηκαν στο ελάχιστο ώστε όσο περισσότερο ύψος να πάει στις ίδιες τις
+	# σειρές πλήκτρων (βλ. _build_keyboard) — ~68px ανά σειρά.
 	const KB_X := 30.0
-	const KB_Y := 1075.0
+	const KB_Y := EXTRA_Y + EXTRA_H + 10.0
 	const KB_W := 1020.0
-	const KB_H := 680.0
+	const KB_H := 782.0
 
 	_keys.clear()
+
+	_extra_actions = _build_extra_actions()
+	_extra_actions.position = Vector2(EXTRA_X, EXTRA_Y)
+	_extra_actions.size     = Vector2(EXTRA_W, EXTRA_H)
+	root.add_child(_extra_actions)
 
 	_keyboard = _build_keyboard()
 	_keyboard.position = Vector2(KB_X, KB_Y)
@@ -432,14 +456,26 @@ func _build_keyboard() -> Control:
 	var frame := _steel_frame()
 
 	var vcol := VBoxContainer.new()
-	vcol.add_theme_constant_override("separation", 8)
+	# separation ανάμεσα στις σειρές: αρκετό ώστε να μη γίνονται λάθος
+	# πατήματα σε γειτονική σειρά, αλλά όχι παραπάνω — κάθε px εδώ είναι px
+	# που δεν πάει στο ύψος του ίδιου του πλήκτρου.
+	vcol.add_theme_constant_override("separation", 10)
 	vcol.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_frame_body(frame, 12).add_child(vcol)
+	_frame_body(frame, 8).add_child(vcol)
 
-	vcol.add_child(_key_row(DIGIT_KEYS, 30))
-	vcol.add_child(_key_row(GREEK_KEYS, 30))
-	vcol.add_child(_key_row(OPER_KEYS, 28))
-	vcol.add_child(_build_control_row())
+	# Οι σειρές των 10 πλήκτρων (ψηφία/γράμματα/τελεστές) έσπασαν η καθεμία σε
+	# 2 σειρές των 5-6 — τα πλήκτρα σχεδόν διπλασιάζουν πλάτος, πολύ πιο
+	# εύκολα στο άγγιγμα σε κινητό, με το κόστος λίγο παραπάνω σειρών (γι'
+	# αυτό και το KB_H μεγάλωσε παραπάνω στο _build_board).
+	vcol.add_child(_key_row(DIGIT_KEYS.slice(0, 5), 30))
+	vcol.add_child(_key_row(DIGIT_KEYS.slice(5, 10), 30))
+	vcol.add_child(_key_row(GREEK_KEYS.slice(0, 5), 30))
+	vcol.add_child(_key_row(GREEK_KEYS.slice(5, 10), 30))
+	# "<>" (διάφορο) και "←" (ανάθεση) μαζί με τους υπόλοιπους τελεστές — είναι
+	# επίσης σύμβολα-συμπλήρωσης, όχι ενέργειες, οπότε μένουν στο πληκτρολόγιο
+	# (σε αντίθεση με το κενό/Σβήσε/Καθαρισμός, βλ. _build_extra_actions).
+	vcol.add_child(_key_row(OPER_KEYS.slice(0, 6), 28))
+	vcol.add_child(_key_row(OPER_KEYS.slice(6, 10) + ["<>", "←"], 28))
 	vcol.add_child(_key_row(WORD_KEYS_A, 26))
 	vcol.add_child(_key_row(WORD_KEYS_B, 22))
 	vcol.add_child(_key_row(WORD_KEYS_C, 22))
@@ -447,32 +483,42 @@ func _build_keyboard() -> Control:
 
 	return frame
 
-## Σειρά όπου κάθε πλήκτρο γράφει ακριβώς την ετικέτα του.
-func _key_row(labels: Array[String], font_size: int) -> Control:
+## Σειρά πλήκτρων: κάθε στοιχείο του items γίνεται ένα πλήκτρο-κουμπί.
+func _key_row(items: Array, font_size: int) -> Control:
 	var row := _kb_row()
-	for t in labels:
-		row.add_child(_make_key(t, t, font_size))
+	for t in items:
+		var s := str(t)
+		row.add_child(_make_key(s, s, font_size))
 	return row
 
-## <>  ←  κενό  ⌫  Καθαρισμός
-func _build_control_row() -> Control:
-	var row := _kb_row()
-	row.add_child(_make_key("<>", "<>", 28))
-	row.add_child(_make_key("←", "←", 28))
+## Κενό / Σβήσε / Καθαρισμός — ενέργειες πάνω στην απάντηση, ΟΧΙ πλήκτρα
+## συμπλήρωσης· γι' αυτό ζουν στη δική τους μπάρα, πάνω απ' το πληκτρολόγιο,
+## με ξεχωριστό (κόκκινο) στυλ ώστε να ξεχωρίζουν αμέσως οπτικά.
+func _build_extra_actions() -> Control:
+	var frame := _steel_frame()
+	(frame.get_theme_stylebox("panel") as StyleBoxFlat).border_color = C_CRIMSON
 
-	var space := _make_key("κενό", " ", 22)
+	var row := _kb_row()
+	_frame_body(frame, 10).add_child(row)
+
+	var space := _make_key("κενό", " ", 26)
 	space.size_flags_stretch_ratio = 1.6
+	_style_action_btn(space)
 	row.add_child(space)
 
 	# "Σβήσε" αντί για το σύμβολο ⌫: η γραμματοσειρά του παιχνιδιού δεν έχει
 	# glyph για το U+232B και έβγαινε άδειο τετραγωνάκι στην οθόνη.
-	var bs := _make_action_key("Σβήσε", 22, _on_backspace)
+	var bs := _make_action_key("Σβήσε", 26, _on_backspace)
 	bs.size_flags_stretch_ratio = 1.3
-	var clr := _make_action_key("Καθαρισμός", 20, _on_clear)
-	clr.size_flags_stretch_ratio = 1.8
+	_style_action_btn(bs)
 	row.add_child(bs)
+
+	var clr := _make_action_key("Καθαρισμός", 24, _on_clear)
+	clr.size_flags_stretch_ratio = 1.8
+	_style_action_btn(clr)
 	row.add_child(clr)
-	return row
+
+	return frame
 
 func _build_submit_row() -> Control:
 	var row := _kb_row()
@@ -546,7 +592,9 @@ func _frame_body(frame: Panel, margin: int) -> MarginContainer:
 
 func _kb_row() -> HBoxContainer:
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 8)
+	# 8→10: λίγο παραπάνω χώρος ανάμεσα στα πλήκτρα ώστε να μειωθούν τα λάθος
+	# πατήματα σε γειτονικό πλήκτρο στο κινητό.
+	row.add_theme_constant_override("separation", 10)
 	row.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return row
@@ -600,8 +648,9 @@ func _on_question_changed(index: int, total: int, question_text: String) -> void
 	# Η τελευταία άσκηση είναι πολλαπλής επιλογής ("mode": "choice" στο JSON):
 	# τότε το πληκτρολόγιο δίνει τη θέση του στα 4 κουμπιά 1-4.
 	var is_choice := _quiz.get_current_mode() == "choice"
-	_keyboard.visible = not is_choice
-	_choices.visible  = is_choice
+	_keyboard.visible      = not is_choice
+	_extra_actions.visible = not is_choice
+	_choices.visible       = is_choice
 	_set_keyboard_enabled(true)
 
 # ── Είσοδος από τα πλήκτρα ────────────────────────────────────────────────
@@ -853,6 +902,36 @@ func _style_key_btn(btn: Button, font_size: int = 30) -> void:
 	btn.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
 	btn.add_theme_constant_override("shadow_offset_x", 1)
 	btn.add_theme_constant_override("shadow_offset_y", 2)
+
+# ── Στυλ κουμπιού-ενέργειας (κενό/Σβήσε/Καθαρισμός — κόκκινο αντί για χρυσό
+# περίγραμμα, ίδια βάση με το _style_key_btn ώστε να ξεχωρίζουν οπτικά από τα
+# πλήκτρα συμπλήρωσης χωρίς να σπάνε το γενικό μεταλλικό στυλ) ────────────
+func _style_action_btn(btn: Button) -> void:
+	var n := StyleBoxFlat.new()
+	n.bg_color = C_IRON
+	n.border_color = C_CRIMSON
+	n.set_border_width_all(4)
+	n.set_corner_radius_all(10)
+	n.shadow_color = Color(0, 0, 0, 0.60)
+	n.shadow_size = 5
+	btn.add_theme_stylebox_override("normal", n)
+
+	var h := n.duplicate() as StyleBoxFlat
+	h.bg_color = C_IRON.lightened(0.10)
+	h.border_color = C_CRIMSON.lightened(0.25)
+	h.shadow_color = C_CRIMSON.lightened(0.15)
+	h.shadow_size = 14
+	btn.add_theme_stylebox_override("hover", h)
+
+	var pr := n.duplicate() as StyleBoxFlat
+	pr.bg_color = Color(0.06, 0.055, 0.045)
+	pr.border_color = C_CRIMSON.darkened(0.20)
+	btn.add_theme_stylebox_override("pressed", pr)
+
+	var dis := n.duplicate() as StyleBoxFlat
+	dis.bg_color = C_IRON.darkened(0.30)
+	dis.border_color = C_CRIMSON.darkened(0.45)
+	btn.add_theme_stylebox_override("disabled", dis)
 
 # ── Hint ──────────────────────────────────────────────────────────────────
 func _build_hint() -> Label:
