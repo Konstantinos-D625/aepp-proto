@@ -5,6 +5,7 @@
 [ext_resource type="AudioStream" uid="uid://cac8h8ntb6eux" path="res://Music/Medieval Trumpet Sound Effects.mp3" id="8_5asjm"]
 [ext_resource type="Script" uid="uid://cphs277dyi43y" path="res://Music/charsfx.gd" id="13_87y4o"]
 [ext_resource type="AudioStream" uid="uid://b4b6wbhi3jy4p" path="res://Music/Bäring.mp3" id="19_87y4o"]
+[ext_resource type="Script" uid="uid://gwoekbj5q0ba" path="res://Scripts/bat_swarm_decoration.gd" id="bat_swarm_script"]
 [ext_resource type="Texture2D" uid="uid://dyudc04ugy6ka" path="res://Εικόνες/bg1.png" id="bg"]
 [ext_resource type="PackedScene" uid="uid://blacksmith001" path="res://Scenes/BlacksmithPopup.tscn" id="blacksmith_scene"]
 [ext_resource type="PackedScene" uid="uid://b7c08r38qo3h7" path="res://Scenes/BossFight.tscn" id="boss_fight_scene"]
@@ -15,7 +16,7 @@
 [ext_resource type="PackedScene" uid="uid://cotton001" path="res://Scenes/CottonPopup.tscn" id="cotton_scene"]
 [ext_resource type="PackedScene" uid="uid://doi3j0i6x8yld" path="res://Scenes/DailyQuestExercises.tscn" id="dailyquest_exercises_scene"]
 [ext_resource type="PackedScene" uid="uid://b4i3ybrjf1ngw" path="res://Scenes/DailyQuestPopup.tscn" id="dailyquest_popup_scene"]
-[ext_resource type="Script" uid="uid://19tsxt08ovfgl" path="res://Scripts/daily_streak_icon.gd" id="daily_streak_icon_script"]
+[ext_resource type="Script" uid="uid://d3elfiiqbn5v0" path="res://Scripts/daily_streak_icon.gd" id="daily_streak_icon_script"]
 [ext_resource type="Texture2D" uid="uid://dyc3hy1mvk2fn" path="res://Εικόνες/dq.png" id="dq"]
 [ext_resource type="Texture2D" uid="uid://b5yo74otw82i0" path="res://Εικόνες/friends.png" id="friends"]
 [ext_resource type="PackedScene" uid="uid://gnome001" path="res://Scenes/GnomePopup.tscn" id="gnome_popup_scene"]
@@ -156,6 +157,17 @@ texture_normal = SubResource("oldman_btn")
 ignore_texture_size = true
 stretch_mode = 5
 flip_h = true
+
+[node name="BatSwarm" type="TextureRect" parent="Houses" unique_id=224439527]
+layout_mode = 1
+offset_left = 560.0
+offset_top = 1384.0
+offset_right = 940.0
+offset_bottom = 1715.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+script = ExtResource("bat_swarm_script")
 
 [node name="HUD" type="Control" parent="." unique_id=1411813244]
 layout_mode = 1

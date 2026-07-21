@@ -9,8 +9,7 @@ res://Scenes/CottonPopup.tscn::dde266cea1bd5b8793510c412305bdc3::1782980446::res
 res://Scenes/DailyQuestExercises.tscn::895139c61300fb332ce97ee730472650::1783588468::res://.godot/exported/133200997/export-0d6c6afb8040a3501577f13a419e4153-DailyQuestExercises.scn
 res://Scenes/DailyQuestPopup.tscn::cf86e2e3bf3917309ac4f976d16938b6::1782980430::res://.godot/exported/133200997/export-af91f4ad7dc3826e733b87cdf3fbf7e3-DailyQuestPopup.scn
 res://Scenes/ExercisePopup.tscn::c09fa2b2867677abd163fd1b652d5e15::1783430072::res://.godot/exported/133200997/export-f432bec5a16e6f094d753ea6aed8f6d5-ExercisePopup.scn
-res://Scenes/FoundKeyPopup.tscn::dd544793bf6da4e9e5acc4b3d251c738::1783429359::res://.godot/exported/133200997/export-d219f396ee09a73d012b7dfbc5dd1d98-FoundKeyPopup.scn
-res://Scenes/GenderSelect.tscn::21ccea133738564eae1f84069638380d::1784025309::res://.godot/exported/133200997/export-68fb2f902977d95c2541420e8527d1a8-GenderSelect.scn
+res://Scenes/FoundKeyPopup.tscn::c870d7bcf57ed1980c2d58988fb2056b::1784635119::res://.godot/exported/133200997/export-d219f396ee09a73d012b7dfbc5dd1d98-FoundKeyPopup.scn
 res://Scenes/GnomePopup.tscn::21fdb45b0a74b836bcd5ebaa76bdb5df::1784016905::res://.godot/exported/133200997/export-25a4df1f6e9f65d335c4a8eb49014022-GnomePopup.scn
 res://Scenes/HeroSlotPopup.tscn::71abd9c38f8df39f9acc9b616f15dfa7::1784110176::res://.godot/exported/133200997/export-e32f1a49c6d1f8516331cd1c37f01926-HeroSlotPopup.scn
 res://Scenes/InventoryPopup.tscn::c3931f28babeda7c5222da5ffb4fe292::1784630427::res://.godot/exported/133200997/export-98635f1f8d378724614a624e8238dd84-InventoryPopup.scn
