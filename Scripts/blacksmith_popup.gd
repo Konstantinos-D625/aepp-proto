@@ -6,15 +6,15 @@ const CHAR_PATH   := "res://Εικόνες/blacksmith.png"
 const BOARD_PATH  := "res://Εικόνες/board.png"
 
 # ── Σύστημα ασκήσεων ──────────────────────────────────────────────────────
-# Οι 20 ασκήσεις ΑΕΠΠ. Ο παίκτης γράφει την απάντηση με το πληκτρολόγιο
-# οθόνης (βλ. _build_keyboard) — δεν είναι πολλαπλής επιλογής, εκτός από την
-# τελευταία ("mode": "choice" στο JSON).
+# Οι 19 ασκήσεις ΑΕΠΠ. Ο παίκτης γράφει ΠΑΝΤΑ την απάντηση με το πληκτρολόγιο
+# οθόνης (βλ. _build_keyboard) — καμία πολλαπλής επιλογής (η παλιά τελευταία
+# άσκηση, "mode": "choice", αφαιρέθηκε μαζί με το _choices UI).
 #
 # ΠΡΟΣΟΧΗ: το παλιό blacksmith_quiz.json (A-F) ΔΕΝ διαγράφηκε — το
 # χρησιμοποιεί ακόμη το Level 2 του daily_quest_exercises.gd.
 const QUIZ_PATH := "res://blacksmith_exercises.json"
 
-# 5 τυχαίες ασκήσεις από τις 20 ανά επίσκεψη (βλ. _quiz.start πιο κάτω,
+# 5 τυχαίες ασκήσεις από τις 19 ανά επίσκεψη (βλ. _quiz.start πιο κάτω,
 # shuffle=true) — ίδιο μοτίβο με τη Δερματού (cotton_popup.gd).
 const QUESTIONS_PER_ROUND := 5
 
@@ -66,9 +66,8 @@ var _loot_given   := false
 # πληκτρολόγιο του κινητού — που είναι ακριβώς ό,τι θέλουμε να αποφύγουμε.
 var _answer_text  := ""
 var _answer_label : Label
-var _keyboard     : Control   # πλήρες πληκτρολόγιο (ασκήσεις 1-19)
+var _keyboard     : Control   # πλήρες πληκτρολόγιο (όλες οι ασκήσεις)
 var _extra_actions: Control   # κενό/Σβήσε/Καθαρισμός — ξεχωριστά απ' το πληκτρολόγιο
-var _choices      : Control   # 4 κουμπιά επιλογής (άσκηση 20)
 var _keys         : Array[Button] = []   # όλα τα πλήκτρα, για enable/disable
 
 # Λέξεις-κουμπιά: ένα πάτημα = όλη η λέξη.
@@ -238,7 +237,7 @@ func _build_bubble() -> Control:
 
 	_styled_panel(root, Vector2(BX+22, BY+22), Vector2(BW-44, 58),
 		C_WOOD_D, C_GOLD_D, 2, 8)
-	_label(root, "⚒  Γκάρεθ ο Σιδηρουργός",
+	_label(root, "⚒  Σήφης ο Μεταλλουργός",
 		Vector2(BX+22, BY+22), Vector2(BW-44, 58),
 		22, C_GOLD, HORIZONTAL_ALIGNMENT_CENTER,
 		Color(0,0,0,0.80), 1, 2)
@@ -413,12 +412,6 @@ func _build_board() -> Control:
 	_keyboard.size     = Vector2(KB_W, KB_H)
 	root.add_child(_keyboard)
 
-	_choices = _build_choices()
-	_choices.position = Vector2(KB_X, KB_Y)
-	_choices.size     = Vector2(KB_W, KB_H)
-	_choices.visible  = false
-	root.add_child(_choices)
-
 	return root
 
 # ── Πεδίο απάντησης (readonly) ────────────────────────────────────────────
@@ -525,47 +518,7 @@ func _build_submit_row() -> Control:
 	row.add_child(_make_action_key("✔   ΥΠΟΒΟΛΗ", 30, _on_submit))
 	return row
 
-# ── Άσκηση 20: 4 κουμπιά επιλογής αντί για πληκτρολόγιο ───────────────────
-func _build_choices() -> Control:
-	var frame := _steel_frame()
-
-	var vcol := VBoxContainer.new()
-	vcol.add_theme_constant_override("separation", 14)
-	vcol.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_frame_body(frame, 20).add_child(vcol)
-
-	var title := Label.new()
-	title.text = "Διάλεξε τη σωστή απάντηση"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 26)
-	title.add_theme_color_override("font_color", C_GOLD_S)
-	title.add_theme_color_override("font_shadow_color", Color(0,0,0,0.85))
-	title.add_theme_constant_override("shadow_offset_x", 1)
-	title.add_theme_constant_override("shadow_offset_y", 2)
-	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	vcol.add_child(title)
-
-	var grid := GridContainer.new()
-	grid.columns = 2
-	grid.add_theme_constant_override("h_separation", 14)
-	grid.add_theme_constant_override("v_separation", 14)
-	grid.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	grid.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	vcol.add_child(grid)
-
-	for i in range(1, 5):
-		var btn := Button.new()
-		btn.text = str(i)
-		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		btn.size_flags_vertical   = Control.SIZE_EXPAND_FILL
-		_style_key_btn(btn, 56)
-		btn.pressed.connect(_on_choice_pressed.bind(str(i)))
-		_keys.append(btn)
-		grid.add_child(btn)
-
-	return frame
-
-# ── Κοινά δομικά κομμάτια πληκτρολογίου / κουμπιών επιλογής ───────────────
+# ── Κοινά δομικά κομμάτια πληκτρολογίου ───────────────────────────────────
 func _steel_frame() -> Panel:
 	var frame := Panel.new()
 	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -645,12 +598,6 @@ func _on_question_changed(index: int, total: int, question_text: String) -> void
 	_progress.text = "Άσκηση %d / %d   •   Σκορ %d" % [index + 1, total, _quiz.get_score()]
 	_feedback.text = ""
 	_set_answer("")
-	# Η τελευταία άσκηση είναι πολλαπλής επιλογής ("mode": "choice" στο JSON):
-	# τότε το πληκτρολόγιο δίνει τη θέση του στα 4 κουμπιά 1-4.
-	var is_choice := _quiz.get_current_mode() == "choice"
-	_keyboard.visible      = not is_choice
-	_extra_actions.visible = not is_choice
-	_choices.visible       = is_choice
 	_set_keyboard_enabled(true)
 
 # ── Είσοδος από τα πλήκτρα ────────────────────────────────────────────────
@@ -680,13 +627,6 @@ func _on_submit() -> void:
 		return
 	_answered += 1
 	_quiz.submit_answer(_answer_text)
-
-## Τα κουμπιά 1-4 της άσκησης 20 υποβάλλουν κατευθείαν.
-func _on_choice_pressed(value: String) -> void:
-	if _input_locked or _quiz == null or _state != 2:
-		return
-	_set_answer(value)
-	_on_submit()
 
 func _set_answer(text: String) -> void:
 	_answer_text = text

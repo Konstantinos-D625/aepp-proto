@@ -15,3 +15,4 @@ res://Scenes/Area1.tscn
 res://Scripts/map_popup.gd
 res://bakery_quiz.json
 res://Scripts/mini_boss_popup.gd
+res://Scripts/cotton_popup.gd

@@ -216,7 +216,7 @@ func _build_bubble() -> Control:
 	# Τίτλος NPC
 	_styled_panel(root, Vector2(BX+22, BY+22), Vector2(BW-44, 58),
 		C_WOOD_D, C_GOLD_D, 2, 8)
-	_label(root, "🧵  Η Δερματού",
+	_label(root, "🧵  Άντα η Δερματού",
 		Vector2(BX+22, BY+22), Vector2(BW-44, 58),
 		22, C_GOLD, HORIZONTAL_ALIGNMENT_CENTER,
 		Color(0,0,0,0.80), 1, 2)
