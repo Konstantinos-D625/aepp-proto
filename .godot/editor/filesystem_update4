@@ -14,3 +14,4 @@ res://Scripts/heroes.gd
 res://Scenes/Area1.tscn
 res://Scripts/map_popup.gd
 res://bakery_quiz.json
+res://Scripts/mini_boss_popup.gd

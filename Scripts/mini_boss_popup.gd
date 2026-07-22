@@ -314,19 +314,34 @@ func _build_board() -> Control:
 	var brd := TextureRect.new()
 	brd.expand_mode  = TextureRect.EXPAND_IGNORE_SIZE
 	brd.stretch_mode = TextureRect.STRETCH_SCALE
-	if ResourceLoader.exists(BOARD_PATH):
-		brd.texture = load(BOARD_PATH)
+	var brd_tex : Texture2D = load(BOARD_PATH) if ResourceLoader.exists(BOARD_PATH) else null
+	if brd_tex:
+		# Το board.png (441×565) έχει διάφανα περιθώρια — το ξύλο ζει στο
+		# x 16-424, y 84-512 (opaque bbox από το alpha, ΙΔΙΑ μέτρηση με το
+		# board του boss_popup.gd/miner_popup.gd). Χωρίς αυτό το crop, το
+		# TextureRect τεντώνει ΟΛΟΚΛΗΡΟ τον καμβά (μαζί με το διάφανο περιθώριο)
+		# μέσα στο BRD_W×BRD_H, οπότε ένα σταθερό offset σαν το παλιό +130
+		# κατέληγε να "πατάει" στο χρυσό γείσο του πλαισίου αντί να είναι μέσα
+		# στο ξύλο — αυτό ήταν το "πέφτει λίγο πιο πάνω" bug.
+		var atlas := AtlasTexture.new()
+		atlas.atlas  = brd_tex
+		atlas.region = Rect2(16, 84, 409, 429)
+		brd.texture = atlas
 	brd.position     = Vector2(BRD_X, BRD_Y)
 	brd.size         = Vector2(BRD_W, BRD_H)
 	brd.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(brd)
 
+	# Με το board πλέον cropped, το BRD_W×BRD_H αντιστοιχεί ακριβώς στο ορατό
+	# ξύλο (γωνία-σε-γωνία) — το ResultBox χρειάζεται μόνο ένα μικρό εσωτερικό
+	# περιθώριο ώστε να μην πατάει στο χρυσό γείσο. ~9% συμμετρικό περιθώριο
+	# πάνω/κάτω (ίδια αναλογία με το +120/1320 του boss_popup.gd) = 80px εδώ.
 	# Ύψος 560: όσο ακριβώς χρειάζεται η ΜΕΓΑΛΥΤΕΡΗ όψη (αποτέλεσμα νίκης:
 	# εικονίδιο + τίτλος + ατάκα + ανταμοιβή + κουμπί ≈ 490) — έτσι δεν μένει
-	# κενό κουτί, και το ξύλο του board φαίνεται πάνω/κάτω σαν πλαίσιο.
+	# μεγάλο κενό κουτί, και το ξύλο του board φαίνεται γύρω σαν πλαίσιο.
 	var box := Panel.new()
 	box.name     = "ResultBox"
-	box.position = Vector2(BRD_X + 80.0, BRD_Y + 130.0)
+	box.position = Vector2(BRD_X + 80.0, BRD_Y + 80.0)
 	box.size     = Vector2(BRD_W - 160.0, 560.0)
 	root.add_child(box)
 	return root
