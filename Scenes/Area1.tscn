@@ -32,6 +32,10 @@
 [ext_resource type="PackedScene" uid="uid://yo5qmvew6urw" path="res://Scenes/OptionsMenu.tscn" id="options_menu_scene"]
 [ext_resource type="Texture2D" uid="uid://c8lk87dnegeer" path="res://Εικόνες/profile.png" id="profile"]
 [ext_resource type="PackedScene" uid="uid://cx1buum4vntnk" path="res://Scenes/ProfilePopup.tscn" id="profile_popup_scene"]
+[ext_resource type="PackedScene" uid="uid://opveruw8oaux" path="res://Scenes/AuthPopup.tscn" id="auth_popup_scene"]
+[ext_resource type="PackedScene" path="res://Scenes/FriendsPopup.tscn" id="friends_popup_scene"]
+[ext_resource type="PackedScene" path="res://Scenes/ClansPopup.tscn" id="clans_popup_scene"]
+[ext_resource type="PackedScene" path="res://Scenes/ChatPopup.tscn" id="chat_popup_scene"]
 [ext_resource type="PackedScene" uid="uid://boywbmrd7cmun" path="res://Scenes/ShopPopup.tscn" id="shop_scene"]
 [ext_resource type="Texture2D" uid="uid://cmex2ibj3lcm1" path="res://Εικόνες/sidebar.png" id="sidebar"]
 [ext_resource type="Texture2D" uid="uid://dric4kdeffx15" path="res://Εικόνες/sideq.png" id="sideq"]
@@ -347,6 +351,22 @@ stretch_mode = 5
 visible = false
 layout_mode = 1
 
+[node name="AuthPopup" parent="." unique_id=1672126618 instance=ExtResource("auth_popup_scene")]
+visible = false
+layout_mode = 1
+
+[node name="FriendsPopup" parent="." unique_id=1672126619 instance=ExtResource("friends_popup_scene")]
+visible = false
+layout_mode = 1
+
+[node name="ClansPopup" parent="." unique_id=1672126620 instance=ExtResource("clans_popup_scene")]
+visible = false
+layout_mode = 1
+
+[node name="ChatPopup" parent="." unique_id=1672126621 instance=ExtResource("chat_popup_scene")]
+visible = false
+layout_mode = 1
+
 [node name="MapPopup" parent="." unique_id=1756905309 instance=ExtResource("map_popup_scene")]
 visible = false
 layout_mode = 1
@@ -416,6 +436,15 @@ bus = &"Music"
 [connection signal="pressed" from="Houses/ForestPathButton" to="WitchMapPopup" method="show_popup"]
 [connection signal="pressed" from="Houses/OldMan" to="OldManPopup" method="show_popup"]
 [connection signal="pressed" from="HUD/Profile" to="ProfilePopup" method="show_popup"]
+[connection signal="login_requested" from="ProfilePopup" to="AuthPopup" method="open_from_profile"]
+[connection signal="pressed" from="HUD/Sidebar/Buttons/Friends" to="FriendsPopup" method="open"]
+[connection signal="login_requested" from="FriendsPopup" to="AuthPopup" method="open_from_profile"]
+[connection signal="clan_requested" from="FriendsPopup" to="ClansPopup" method="open"]
+[connection signal="dm_requested" from="FriendsPopup" to="ChatPopup" method="open_dm"]
+[connection signal="friends_requested" from="ClansPopup" to="FriendsPopup" method="open"]
+[connection signal="login_requested" from="ClansPopup" to="AuthPopup" method="open_from_profile"]
+[connection signal="clan_chat_requested" from="ClansPopup" to="ChatPopup" method="open_clan"]
+[connection signal="login_requested" from="ChatPopup" to="AuthPopup" method="open_from_profile"]
 [connection signal="pressed" from="HUD/SideQuest" to="CastlePopup" method="open"]
 [connection signal="pressed" from="HUD/Sidebar/Buttons/Characters" to="HUD/Sidebar/Buttons/Characters/AudioStreamPlayer" method="on_pressed"]
 [connection signal="pressed" from="HUD/Sidebar/Buttons/Characters" to="CharacterSelect" method="show_screen"]

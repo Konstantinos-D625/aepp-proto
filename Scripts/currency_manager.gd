@@ -63,7 +63,10 @@ const ICONS := {
 # Τα Κλειδιά ξεκινούν από 0 — τα χορηγούν συγκεκριμένα NPC/side quest (βλ.
 # cotton_popup.gd + Scripts/room_image_popup.gd για Κλειδιά)· απλά υπάρχουν
 # έτοιμα στο Αποθήκη.
-var _amounts := {
+# Τα ΑΡΧΙΚΑ ποσά «πρώτης εκκίνησης» — const ώστε το _load_saved να μπορεί να
+# ΕΠΑΝΑΦΕΡΕΙ πλήρως σε αυτά (π.χ. μετά από reset στο logout, βλ.
+# GameData.reset_to_new_game), όχι μόνο να κάνει overlay.
+const STARTING_AMOUNTS := {
 	"Χαλκός":           5000,
 	"Δέρμα":            5000,
 	"Σίδερο":           5000,
@@ -72,6 +75,7 @@ var _amounts := {
 	"Λογικό Κλειδί":      0,
 	"Κλειδί Χαρακτήρων":  0,
 }
+var _amounts := STARTING_AMOUNTS.duplicate()
 
 # Το Currency είναι 2ο στη λίστα autoload (project.godot), ΠΡΙΝ το GameData
 # (3ο) — άρα στο _ready() το GameData δεν έχει φορτώσει ακόμα το save. Γι' αυτό
@@ -80,12 +84,18 @@ var _amounts := {
 # Scripts/inventory_data.gd).
 func _ready() -> void:
 	call_deferred("_load_saved")
+	# Φάση 4 (cloud restore): ξαναδιάβασε τα ποσά όταν αντικατασταθεί το save.
+	GameData.save_reloaded.connect(_load_saved)
 
 ## Αντικαθιστά τα αρχικά ποσά με ό,τι είχε αποθηκευτεί (GameData.currencies).
 ## Σε ολοκαίνουργιο save δεν υπάρχει τίποτα αποθηκευμένο, οπότε κρατιούνται τα
 ## αρχικά ποσά — και αμέσως σώζονται ώστε το save file να αντικατοπτρίζει την
 ## πραγματική αρχική κατάσταση.
 func _load_saved() -> void:
+	# ΕΠΑΝΑΦΟΡΑ στα αρχικά ΠΡΩΤΑ: αλλιώς ένα άδειο save (reset στο logout) θα
+	# άφηνε τα ξοδεμένα ποσά του προηγούμενου παίκτη στη μνήμη (το overlay από
+	# κάτω γράφει μόνο όσα κλειδιά υπάρχουν στο save). Έτσι γίνεται idempotent.
+	_amounts = STARTING_AMOUNTS.duplicate()
 	var saved: Dictionary = GameData.get_saved_currencies()
 	# Μόνο για ΓΝΩΣΤΑ νομίσματα (ήδη υπάρχουν στο _amounts) — παλιά save files
 	# μπορεί ακόμα να κουβαλάνε κλειδιά καταργημένων πόρων (π.χ. το Κασμίρ),

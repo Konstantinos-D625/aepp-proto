@@ -87,6 +87,9 @@ var _next_uid := 0
 
 func _ready() -> void:
 	call_deferred("_load_saved")
+	# Φάση 4 (cloud restore): ξαναδιάβασε το roster/slots όταν αντικατασταθεί το
+	# save — αλλιώς θα έμεναν με το παλιό (προ-restore) party στη μνήμη.
+	GameData.save_reloaded.connect(_load_saved)
 
 func _load_saved() -> void:
 	var data: Dictionary = GameData.get_saved_party()

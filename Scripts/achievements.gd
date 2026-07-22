@@ -58,6 +58,13 @@ func _load_and_bind() -> void:
 	Heroes.changed.connect(check_all)
 	WeaponInventory.changed.connect(check_all)
 	ArmorInventory.changed.connect(check_all)
+	# Φάση 4 (cloud restore): ξαναδιάβασε τα ξεκλειδωμένα όταν αντικατασταθεί το
+	# save (χωρίς να ξανασυνδέσουμε τα παραπάνω σήματα).
+	GameData.save_reloaded.connect(_on_save_reloaded)
+	check_all()
+
+func _on_save_reloaded() -> void:
+	_unlocked = GameData.get_saved_achievements().duplicate(true)
 	check_all()
 
 func _on_streak_changed(_new_streak: int) -> void:

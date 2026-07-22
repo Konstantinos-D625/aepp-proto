@@ -52,12 +52,23 @@ var _state: Dictionary = {}
 
 func _ready() -> void:
 	_configure()
+	_load_state()
+	_grant_starters_if_new_save()
+	# Φάση 4 (cloud restore): ξαναδιάβασε την ιδιοκτησία/tier όταν αντικατασταθεί
+	# το save — αλλιώς το _state θα έμενε με το παλιό (προ-restore) στη μνήμη.
+	GameData.save_reloaded.connect(_on_save_reloaded)
+
+func _load_state() -> void:
 	for category in categories:
 		for old_level in range(1, _level_count(category) + 1):
 			var id := _make_id(category, old_level)
 			var saved: Dictionary = GameData.get_weapon_state(id)
 			_state[id] = saved if not saved.is_empty() else {"owned": false, "tier": 0}
+
+func _on_save_reloaded() -> void:
+	_load_state()
 	_grant_starters_if_new_save()
+	changed.emit()
 
 ## Υπερφορτώνεται από κάθε υποκλάση για να ορίσει τα δικά της
 ## item_dir/categories/items/stat_label/starter_ids.

@@ -26,6 +26,7 @@ ArmorInventory="*res://Scripts/armor_inventory.gd"
 Heroes="*res://Scripts/heroes.gd"
 Achievements="*res://Scripts/achievements.gd"
 PlayerProfile="*res://Scripts/player_profile.gd"
+Net="*res://Scripts/net.gd"
 
 [display]
 

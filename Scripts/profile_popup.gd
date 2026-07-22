@@ -11,15 +11,19 @@ extends Control
 #                      και ποιους boss έχει νικήσει.
 #   • «Επιτεύγματα»  — ο κατάλογος Achievements.get_all() με ξεκλείδωτα/κλειδωμένα.
 #
-# USERNAME: δεν υπάρχει ακόμα σύστημα λογαριασμών (Φάση 3 του online πλάνου) —
-# προς το παρόν δείχνει placeholder. Μόλις μπει το auth, ο caller καλεί απλώς
-# set_username(<το όνομα του account>) και το UI ενημερώνεται.
+# USERNAME (Φάση 3 auth): το ίδιο το popup ακούει το Net.auth_changed και
+# ενημερώνει το εμφανιζόμενο όνομα. Ο caller μπορεί επίσης να καλέσει ρητά
+# set_username(...). Ένα κουμπί «Σύνδεση/Αποσύνδεση» στην κεφαλίδα εκπέμπει το
+# login_requested (το πιάνει το AuthPopup) ή κάνει Net.logout().
 #
 # Δουλεύει 100% offline — διαβάζει μόνο από τα τοπικά autoloads (PlayerProfile/
 # Achievements). Ίδιο navigation μοτίβο (show_popup/close_popup + fade) και ίδιο
 # ύφος κάρτας (σκούρο panel + χρυσό) με το InventoryPopup.
 
 const EMBLEM_PATH := "res://Εικόνες/profile.png"
+
+## Ο παίκτης πάτησε «Σύνδεση» — το AuthPopup ανοίγει την οθόνη λογαριασμού.
+signal login_requested
 
 # ── Παλέτα (ίδιο ύφος με inventory_popup.gd) ─────────────────────────────────
 const C_PARCH := Color("f3e6c4")
@@ -28,6 +32,7 @@ const C_GOLD  := Color("f2c84b")
 const C_GOLD_D:= Color(0.360, 0.278, 0.058)
 const C_OK    := Color(0.560, 0.900, 0.460)
 const C_LOCK  := Color(0.45, 0.42, 0.36)
+const C_ERR   := Color(0.92, 0.45, 0.42)   # ζώνη κινδύνου (διαγραφή λογαριασμού)
 
 # username: γεμίζει από το σύστημα λογαριασμών (Φάση 3). Placeholder ως τότε.
 var _username := "Ταξιδιώτης"
@@ -37,21 +42,38 @@ var _list: VBoxContainer
 var _stats_btn: Button
 var _ach_btn: Button
 var _name_label: Label
+var _account_btn: Button
+
+# ── GDPR: overlay επιβεβαίωσης διαγραφής λογαριασμού (Φάση 8) ─────────────────
+var _delete_overlay: Control
+var _delete_input: LineEdit
+var _delete_confirm_btn: Button
+var _delete_status: Label
+var _deleting := false
 
 
 func _ready() -> void:
 	mouse_filter = MOUSE_FILTER_STOP
 	visible = false
 	_build()
+	# Φάση 3: το popup συγχρονίζεται μόνο του με την κατάσταση σύνδεσης.
+	Net.auth_changed.connect(_on_auth_changed)
+	if Net.is_logged_in():
+		set_username(Net.get_username())
 
-## Μελλοντικό hook (Φάση 3 auth): θέτει το εμφανιζόμενο username.
+## Θέτει το εμφανιζόμενο username (καλείται και εσωτερικά από το Net.auth_changed).
 func set_username(name: String) -> void:
 	_username = name if name != "" else "Ταξιδιώτης"
 	if is_instance_valid(_name_label):
 		_name_label.text = _username
 
+func _on_auth_changed(logged_in: bool) -> void:
+	set_username(Net.get_username() if logged_in else "")
+	_refresh_account_btn()
+
 func show_popup() -> void:
 	visible = true
+	_refresh_account_btn()
 	_refresh()
 	modulate.a = 0.0
 	var tw := create_tween()
@@ -131,6 +153,15 @@ func _build() -> void:
 	sub.add_theme_font_size_override("font_size", 26)
 	name_col.add_child(sub)
 
+	# ── Κουμπί λογαριασμού (Σύνδεση / Αποσύνδεση) ──
+	_account_btn = Button.new()
+	_account_btn.custom_minimum_size = Vector2(0, 60)
+	_account_btn.add_theme_font_size_override("font_size", 24)
+	_account_btn.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	_account_btn.pressed.connect(_on_account_pressed)
+	name_col.add_child(_account_btn)
+	_refresh_account_btn()
+
 	# ── Tabs ──
 	var tabs := HBoxContainer.new()
 	tabs.add_theme_constant_override("separation", 14)
@@ -163,6 +194,148 @@ func _build() -> void:
 	close_btn.pressed.connect(close_popup)
 	card.add_child(close_btn)
 
+	# GDPR: το overlay επιβεβαίωσης μπαίνει ΤΕΛΕΥΤΑΙΟ ώστε να ζωγραφίζεται πάνω απ' όλα.
+	_build_delete_overlay()
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# GDPR — overlay επιβεβαίωσης διαγραφής λογαριασμού (Φάση 8)
+# ═══════════════════════════════════════════════════════════════════════════
+# Μη αναστρέψιμη ενέργεια: ζητά να πληκτρολογηθεί ξανά το username πριν ενεργοποιηθεί
+# το κουμπί διαγραφής. Καλεί Net.delete_account() (cascade στον server + reset τοπικά).
+func _build_delete_overlay() -> void:
+	_delete_overlay = Control.new()
+	_delete_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_delete_overlay.visible = false
+	_delete_overlay.mouse_filter = MOUSE_FILTER_STOP
+	add_child(_delete_overlay)
+
+	var dim := ColorRect.new()
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	dim.color = Color(0, 0, 0, 0.78)
+	dim.mouse_filter = MOUSE_FILTER_STOP
+	_delete_overlay.add_child(dim)
+
+	var card := Panel.new()
+	card.anchor_left = 0.5; card.anchor_top = 0.5
+	card.anchor_right = 0.5; card.anchor_bottom = 0.5
+	card.offset_left = -400.0; card.offset_top = -300.0
+	card.offset_right = 400.0; card.offset_bottom = 300.0
+	var csb := StyleBoxFlat.new()
+	csb.bg_color = Color(0.14, 0.07, 0.07, 0.99)   # σκούρο κόκκινο = ζώνη κινδύνου
+	csb.set_corner_radius_all(16)
+	csb.set_border_width_all(3)
+	csb.border_color = C_ERR
+	card.add_theme_stylebox_override("panel", csb)
+	_delete_overlay.add_child(card)
+
+	var margin := MarginContainer.new()
+	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	margin.add_theme_constant_override("margin_left", 44)
+	margin.add_theme_constant_override("margin_right", 44)
+	margin.add_theme_constant_override("margin_top", 40)
+	margin.add_theme_constant_override("margin_bottom", 40)
+	card.add_child(margin)
+
+	var vb := VBoxContainer.new()
+	vb.add_theme_constant_override("separation", 20)
+	margin.add_child(vb)
+
+	var title := Label.new()
+	title.text = "⚠  Διαγραφή λογαριασμού"
+	title.add_theme_color_override("font_color", C_ERR)
+	title.add_theme_font_size_override("font_size", 40)
+	vb.add_child(title)
+
+	var warn := Label.new()
+	warn.text = ("Η ενέργεια είναι ΟΡΙΣΤΙΚΗ και δεν αναιρείται.\n\n"
+		+ "Θα σβηστούν από τον server: το προφίλ σου, το αποθηκευμένο παιχνίδι στο "
+		+ "cloud, οι φίλοι, η συμμετοχή σε συντεχνία και ΟΛΑ τα μηνύματά σου. "
+		+ "Η τοπική πρόοδος θα μηδενιστεί και θα ξεκινήσεις από την αρχή.")
+	warn.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	warn.add_theme_color_override("font_color", C_PARCH)
+	warn.add_theme_font_size_override("font_size", 24)
+	vb.add_child(warn)
+
+	var prompt := Label.new()
+	prompt.text = "Για επιβεβαίωση, πληκτρολόγησε το όνομά σου:"
+	prompt.add_theme_color_override("font_color", C_MUTED)
+	prompt.add_theme_font_size_override("font_size", 22)
+	vb.add_child(prompt)
+
+	_delete_input = LineEdit.new()
+	_delete_input.placeholder_text = "username"
+	_delete_input.custom_minimum_size = Vector2(0, 64)
+	_delete_input.add_theme_font_size_override("font_size", 28)
+	_delete_input.text_changed.connect(func(_t): _refresh_delete_btn())
+	vb.add_child(_delete_input)
+
+	_delete_status = Label.new()
+	_delete_status.text = ""
+	_delete_status.add_theme_color_override("font_color", C_ERR)
+	_delete_status.add_theme_font_size_override("font_size", 22)
+	_delete_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	vb.add_child(_delete_status)
+
+	var btn_row := HBoxContainer.new()
+	btn_row.add_theme_constant_override("separation", 16)
+	btn_row.alignment = BoxContainer.ALIGNMENT_END
+	vb.add_child(btn_row)
+
+	var cancel := Button.new()
+	cancel.text = "Άκυρο"
+	cancel.custom_minimum_size = Vector2(160, 64)
+	cancel.add_theme_font_size_override("font_size", 26)
+	cancel.pressed.connect(_close_delete_overlay)
+	btn_row.add_child(cancel)
+
+	_delete_confirm_btn = Button.new()
+	_delete_confirm_btn.text = "Διαγραφή οριστικά"
+	_delete_confirm_btn.custom_minimum_size = Vector2(260, 64)
+	_delete_confirm_btn.add_theme_font_size_override("font_size", 26)
+	_delete_confirm_btn.add_theme_color_override("font_color", C_ERR)
+	_delete_confirm_btn.disabled = true
+	_delete_confirm_btn.pressed.connect(_on_delete_confirmed)
+	btn_row.add_child(_delete_confirm_btn)
+
+
+func _open_delete_overlay() -> void:
+	if not Net.is_logged_in():
+		return
+	_delete_input.text = ""
+	_delete_status.text = ""
+	_deleting = false
+	_refresh_delete_btn()
+	_delete_overlay.visible = true
+	_delete_input.grab_focus()
+
+func _close_delete_overlay() -> void:
+	if _deleting:
+		return
+	_delete_overlay.visible = false
+
+## Το κουμπί διαγραφής ενεργοποιείται μόνο όταν το κείμενο ταιριάζει με το username
+## (case-insensitive) — «γραφειοκρατικό» φρένο ενάντια σε κατά λάθος διαγραφή.
+func _refresh_delete_btn() -> void:
+	var typed := _delete_input.text.strip_edges().to_lower()
+	_delete_confirm_btn.disabled = _deleting or typed == "" or typed != _username.to_lower()
+
+func _on_delete_confirmed() -> void:
+	if _deleting or not Net.is_logged_in():
+		return
+	_deleting = true
+	_delete_confirm_btn.disabled = true
+	_delete_status.add_theme_color_override("font_color", C_MUTED)
+	_delete_status.text = "Διαγραφή…"
+	var res := await Net.delete_account()
+	# Επιτυχία: το Net.delete_account() κάνει logout+reset και αλλάζει scene — αυτό το
+	# popup παύει να υπάρχει, οπότε δεν χρειάζεται άλλη ενέργεια εδώ.
+	if not res["ok"]:
+		_deleting = false
+		_delete_status.add_theme_color_override("font_color", C_ERR)
+		_delete_status.text = "Η διαγραφή απέτυχε. Έλεγξε τη σύνδεση και δοκίμασε ξανά."
+		_refresh_delete_btn()
+
 
 func _make_tab(text: String, id: String) -> Button:
 	var b := Button.new()
@@ -177,6 +350,24 @@ func _make_tab(text: String, id: String) -> Button:
 func _select_tab(id: String) -> void:
 	_tab = id
 	_refresh()
+
+## Ενημερώνει το κείμενο/χρώμα του κουμπιού λογαριασμού βάσει κατάστασης Net.
+func _refresh_account_btn() -> void:
+	if not is_instance_valid(_account_btn):
+		return
+	if Net.is_logged_in():
+		_account_btn.text = "🚪  Αποσύνδεση"
+		_account_btn.add_theme_color_override("font_color", C_MUTED)
+	else:
+		_account_btn.text = "🔑  Σύνδεση"
+		_account_btn.add_theme_color_override("font_color", C_GOLD)
+
+func _on_account_pressed() -> void:
+	if Net.is_logged_in():
+		Net.logout()   # το auth_changed(false) θα ενημερώσει το UI
+	else:
+		login_requested.emit()
+		close_popup()
 
 func _on_dim_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed:
@@ -211,6 +402,25 @@ func _populate_stats() -> void:
 	_list.add_child(_bool_row("👺", "Ζούμπας ο Καλικάντζαρος", bool(p["goblin_defeated"])))
 	_list.add_child(_bool_row("🌳", "Στοιχειωμένο Δέντρο", bool(p["tree_defeated"])))
 	_list.add_child(_bool_row("🔮", "Μόργκανα η Μάγισσα", bool(p["morgana_defeated"])))
+
+	# GDPR (Φάση 8): σημείωση απορρήτου + διαγραφή λογαριασμού — μόνο αν είσαι συνδεδεμένος.
+	if Net.is_logged_in():
+		_list.add_child(_section_label("— Απόρρητο & Λογαριασμός —"))
+		var note := Label.new()
+		note.text = ("Αποθηκεύουμε μόνο το όνομά σου, την πρόοδο του παιχνιδιού και τα "
+			+ "μηνύματά σου — ΚΑΝΕΝΑ email. Μπορείς να διαγράψεις τα πάντα όποτε θέλεις.")
+		note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		note.add_theme_color_override("font_color", C_MUTED)
+		note.add_theme_font_size_override("font_size", 20)
+		_list.add_child(note)
+
+		var del_btn := Button.new()
+		del_btn.text = "🗑  Διαγραφή λογαριασμού"
+		del_btn.custom_minimum_size = Vector2(0, 66)
+		del_btn.add_theme_font_size_override("font_size", 26)
+		del_btn.add_theme_color_override("font_color", C_ERR)
+		del_btn.pressed.connect(_open_delete_overlay)
+		_list.add_child(del_btn)
 
 func _populate_achievements() -> void:
 	for a in Achievements.get_all():

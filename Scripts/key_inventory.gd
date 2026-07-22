@@ -29,9 +29,24 @@ var _keys: Dictionary = {
 # να καλέσουμε Currency.add — το πλήθος στην Αποθήκη επαναφέρεται ξεχωριστά από
 # το ίδιο το Currency (GameData.currencies), ώστε να μη διπλομετρηθεί.
 func _ready() -> void:
+	_load_keys()
+	# Φάση 4 (cloud restore): ξαναδιάβασε τα κλειδιά όταν αντικατασταθεί το save.
+	GameData.save_reloaded.connect(_on_save_reloaded)
+
+func _load_keys() -> void:
 	var saved: Dictionary = GameData.get_saved_keys()
 	if not saved.is_empty():
 		_keys = saved.duplicate(true)
+	else:
+		_keys = {
+			CATEGORY_NUMERIC: [],
+			CATEGORY_LOGICAL: [],
+			CATEGORY_CHARACTER: [],
+		}
+
+func _on_save_reloaded() -> void:
+	_load_keys()
+	changed.emit()
 
 func _persist() -> void:
 	GameData.save_keys(_keys)

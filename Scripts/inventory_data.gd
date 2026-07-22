@@ -61,6 +61,10 @@ func _ready() -> void:
 	# ΚΑΘΕ μη-κενό αποθηκευμένο slot. call_deferred το αναβάλλει για μετά
 	# την ολοκλήρωση του _ready() όλων των autoloads.
 	call_deferred("_apply_saved_loadout")
+	# Φάση 4 (cloud restore): ξαναεφάρμοσε τον αποθηκευμένο εξοπλισμό όταν
+	# αντικατασταθεί το save (deferred, ώστε Weapon/Armor να έχουν ήδη ξαναφορτώσει
+	# την ιδιοκτησία — αλλιώς κάθε εξοπλισμένο item θα απορριπτόταν ως «μη κατεχόμενο»).
+	GameData.save_reloaded.connect(_on_save_reloaded)
 	# Αν ένα εξοπλισμένο αντικείμενο πουληθεί (WeaponInventory.sell /
 	# ArmorInventory.sell) από το Αποθήκη, αδειάζει αυτόματα η αντίστοιχη
 	# θέση εδώ αντί να μείνει "εξοπλισμένο" κάτι που δεν ανήκει πια στον
@@ -87,6 +91,18 @@ func _apply_saved_loadout() -> void:
 		elif SLOTS.has(slot):
 			if id == "" or ArmorInventory.is_owned(id):
 				equipped[slot] = id
+
+## Φάση 4: το save αντικαταστάθηκε (cloud restore). Αναβάλλουμε ώστε τα
+## Weapon/Armor autoloads να έχουν ήδη ξαναφορτώσει την ιδιοκτησία τους.
+func _on_save_reloaded() -> void:
+	call_deferred("_reapply_loadout_after_restore")
+
+func _reapply_loadout_after_restore() -> void:
+	for slot in equipped.keys():
+		equipped[slot] = ""
+	_apply_saved_loadout()
+	for slot in equipped.keys():
+		equipment_changed.emit(slot, equipped[slot])
 
 func _persist_equipped() -> void:
 	GameData.save_equipped_loadout(equipped.duplicate())

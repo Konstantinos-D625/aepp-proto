@@ -47,6 +47,17 @@ signal streak_changed(new_streak: int)
 ## (που αφορά ΜΟΝΟ το streak).
 signal progress_changed
 
+## Εκπέμπεται στο ΤΕΛΟΣ κάθε _save() (και κάθε αποθήκευσης εξοπλισμού). Το Net
+## autoload (Φάση 4) συνδέεται εδώ για debounced auto-push του save στο cloud,
+## χωρίς να χρειάζεται κάθε call site να ξέρει για δίκτυο. Καθαρά «κάτι σώθηκε».
+signal saved
+
+## Εκπέμπεται όταν το save ΑΝΤΙΚΑΤΑΣΤΑΘΗΚΕ ολόκληρο απ' έξω (import_save μετά από
+## cloud pull, Φάση 4). Τα caching autoloads (Currency/Heroes/Key/Achievements/
+## Inventory/Weapon/Armor) συνδέονται εδώ για να ξαναδιαβάσουν την in-memory
+## κατάστασή τους — αλλιώς θα έμεναν με το παλιό (προ-restore) save στη μνήμη.
+signal save_reloaded
+
 # ── Streak ────────────────────────────────────────────────────────────────
 var streak: int = 0
 var last_streak_date: String = ""              # "YYYY-MM-DD" — τελευταία μέρα που ανανεώθηκε το streak
@@ -131,6 +142,12 @@ var achievements: Dictionary = {}
 # ολοκλήρωσης (50 Χαλκός/Σίδερο/Δέρμα, 150 Κέρμα, Golden Armor) σε κάθε
 # επόμενη επίσκεψη στο ίδιο δωμάτιο.
 var castle_completed: bool = false
+
+# ── Meta (Φάση 4 cloud sync) ─────────────────────────────────────────────────
+# Unix seconds της τελευταίας τοπικής αποθήκευσης. Ενημερώνεται σε κάθε _save()/
+# αποθήκευση εξοπλισμού. Ταξιδεύει ΜΕΣΑ στο export_save() blob (πληροφοριακά)·
+# η απόφαση σύγκρουσης cloud/local γίνεται με το progress_score(), όχι μ' αυτό.
+var save_updated_at: int = 0
 
 
 func _ready() -> void:
@@ -265,7 +282,12 @@ func save_equipped_loadout(equipped: Dictionary) -> void:
 	var config := ConfigFile.new()
 	config.load(SAVE_PATH) # αγνόησε σφάλμα — μπορεί να μην υπάρχει ακόμα το αρχείο
 	config.set_value("equipment", "equipped", equipped)
+	# Ο εξοπλισμός γράφεται απευθείας (χωρίς _save), οπότε ενημερώνουμε ΚΑΙ εδώ το
+	# meta timestamp και εκπέμπουμε `saved` ώστε να «πιάσει» το cloud auto-push.
+	save_updated_at = int(Time.get_unix_time_from_system())
+	config.set_value("meta", "updated_at", save_updated_at)
 	config.save(SAVE_PATH)
+	saved.emit()
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -478,11 +500,15 @@ func _load() -> void:
 	party                       = config.get_value("party", "data", {})
 	achievements                = config.get_value("achievements", "unlocked", {})
 	castle_completed            = config.get_value("castle", "completed", false)
+	save_updated_at             = int(config.get_value("meta", "updated_at", 0))
 
 func _save() -> void:
 	if not SAVE_ENABLED:
 		return
+	save_updated_at = int(Time.get_unix_time_from_system())
 	var config := ConfigFile.new()
+	config.load(SAVE_PATH) # διατήρησε sections που δεν ξαναγράφονται εδώ (π.χ. equipment)
+	config.set_value("meta", "updated_at", save_updated_at)
 	config.set_value("streak", "count", streak)
 	config.set_value("streak", "last_date", last_streak_date)
 	config.set_value("daily_quest", "completed_date", daily_quest_completed_date)
@@ -497,3 +523,121 @@ func _save() -> void:
 	config.set_value("achievements", "unlocked", achievements)
 	config.set_value("castle", "completed", castle_completed)
 	config.save(SAVE_PATH)
+	saved.emit()
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# CLOUD SYNC (Φάση 4) — serialize/deserialize ΟΛΟΚΛΗΡΟΥ του save + progress score
+# ═══════════════════════════════════════════════════════════════════════════
+# Το Net autoload καλεί export_save() για push και import_save() για restore.
+# Το GameData παραμένει η ΜΟΝΑΔΙΚΗ πηγή αλήθειας — εδώ απλώς μπαίνει/βγαίνει σαν
+# ενιαίο Dictionary (ό,τι ακριβώς σώζεται στο game_data.cfg, μαζί με τον εξοπλισμό).
+
+## Ολόκληρο το save ως Dictionary — έτοιμο για JSON.stringify και ανέβασμα.
+func export_save() -> Dictionary:
+	return {
+		"version": 1,
+		"updated_at": save_updated_at,
+		"streak": streak,
+		"last_streak_date": last_streak_date,
+		"daily_quest_completed_date": daily_quest_completed_date,
+		"daily_quest_levels_completed": daily_quest_levels_completed,
+		"weapons": weapons,
+		"boss_lost_once": boss_lost_once,
+		"boss_defeated": boss_defeated,
+		"mini_bosses": mini_bosses,
+		"currencies": currencies,
+		"keys": keys,
+		"party": party,
+		"achievements": achievements,
+		"castle_completed": castle_completed,
+		"equipment": get_equipped_loadout(),
+	}
+
+## Αντικαθιστά ΟΛΟΚΛΗΡΟ το τοπικό save με ένα εισερχόμενο Dictionary (από cloud
+## pull), το σώζει, και ειδοποιεί (save_reloaded) τα caching autoloads να
+## ξαναδιαβάσουν την in-memory κατάστασή τους. Αγνοεί άγνωστα/απόντα κλειδιά.
+func import_save(data: Dictionary) -> void:
+	if not SAVE_ENABLED or data.is_empty():
+		return
+	streak                       = int(data.get("streak", 0))
+	last_streak_date             = str(data.get("last_streak_date", ""))
+	daily_quest_completed_date   = str(data.get("daily_quest_completed_date", ""))
+	daily_quest_levels_completed = int(data.get("daily_quest_levels_completed", 0))
+	weapons                      = data.get("weapons", {})
+	boss_lost_once               = bool(data.get("boss_lost_once", false))
+	boss_defeated                = bool(data.get("boss_defeated", false))
+	mini_bosses                  = data.get("mini_bosses", {})
+	currencies                   = data.get("currencies", {})
+	keys                         = data.get("keys", {})
+	party                        = data.get("party", {})
+	achievements                 = data.get("achievements", {})
+	castle_completed             = bool(data.get("castle_completed", false))
+	save_equipped_loadout(data.get("equipment", {}))  # γράφει [equipment] + meta
+	_save()                                           # γράφει τα υπόλοιπα sections
+	_check_streak_expiry()
+	save_reloaded.emit()                              # → autoloads ξαναδιαβάζουν
+
+## Επαναφέρει ΟΛΟ το τοπικό save στην κατάσταση «πρώτης εκκίνησης» και ειδοποιεί
+## τα caching autoloads να ξαναδιαβάσουν (μέσω save_reloaded). Καλείται στο
+## Net.logout (anti-cheat): αλλιώς το save του αποσυνδεδεμένου παίκτη έμενε
+## τοπικά και ο ΕΠΟΜΕΝΟΣ (νέος ή χαμηλότερης προόδου) το κληρονομούσε — και το
+## «κερδίζει το μεγαλύτερο score» το ανέβαζε στο cloud του νέου.
+func reset_to_new_game() -> void:
+	if not SAVE_ENABLED:
+		return
+	streak = 0
+	last_streak_date = ""
+	daily_quest_completed_date = ""
+	daily_quest_levels_completed = 0
+	weapons = {}
+	boss_lost_once = false
+	boss_defeated = false
+	mini_bosses = {}
+	currencies = {}
+	keys = {}
+	party = {}
+	achievements = {}
+	castle_completed = false
+	save_equipped_loadout({})  # καθαρίζει το [equipment] section + meta
+	_save()                    # γράφει fresh τα υπόλοιπα sections
+	save_reloaded.emit()       # → autoloads επανέρχονται σε defaults
+
+## Δείκτης «πόσο προχωρημένο» είναι το save — η βάση της απόφασης σύγκρουσης
+## cloud/local (κερδίζει το μεγαλύτερο, ο παίκτης δεν χάνει ποτέ το καλύτερό του).
+##
+## ΚΡΙΣΙΜΟ: μετράμε ΜΟΝΟ μονότονα-αυξανόμενους δείκτες προόδου (streak, νίκες,
+## επιτεύγματα, ΚΑΤΕΧΟΜΕΝΟΣ εξοπλισμός, μέγεθος ομάδας). ΔΕΝ μετράμε το τρέχον
+## υπόλοιπο νομισμάτων: ξεκινά στα 5000/είδος και ΞΟΔΕΥΕΤΑΙ με τις αγορές, οπότε
+## θα έκανε ένα φρέσκο save (γεμάτο αρχικά λεφτά) να φαίνεται «πιο προχωρημένο»
+## από ένα save με πραγματική πρόοδο — και το restore μετά από reset θα αποτύγχανε.
+func progress_score() -> int:
+	return score_of({
+		"streak": streak,
+		"boss_defeated": boss_defeated,
+		"mini_bosses": mini_bosses,
+		"achievements": achievements,
+		"weapons": weapons,
+		"party": party,
+	})
+
+## Ίδιος τύπος με το progress_score(), αλλά πάνω σε ΟΠΟΙΟΔΗΠΟΤΕ save-dict (π.χ. το
+## cloud blob). Το Net το χρησιμοποιεί ώστε η απόφαση σύγκρουσης να ΥΠΟΛΟΓΙΖΕΤΑΙ
+## από το blob και να μην εξαρτάται από το αποθηκευμένο `score` πεδίο — έτσι μια
+## μελλοντική αλλαγή στον τύπο δεν «μπαγιατεύει» παλιά records.
+func score_of(d: Dictionary) -> int:
+	var s := 0
+	s += int(d.get("streak", 0)) * 5
+	s += 50 if bool(d.get("boss_defeated", false)) else 0
+	var mb: Dictionary = d.get("mini_bosses", {})
+	for bid in mb:
+		if bool((mb[bid] as Dictionary).get("defeated", false)):
+			s += 30
+	s += (d.get("achievements", {}) as Dictionary).size() * 20
+	var w: Dictionary = d.get("weapons", {})
+	for id in w:
+		if bool((w[id] as Dictionary).get("owned", false)):
+			s += 10 + int((w[id] as Dictionary).get("tier", 0))
+	var roster: Array = (d.get("party", {}) as Dictionary).get("roster", [])
+	s += roster.size() * 15
+	return s
