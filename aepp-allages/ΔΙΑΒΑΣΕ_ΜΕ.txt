@@ -1,0 +1,56 @@
+AEPP PROTO — αρχεία που άλλαξαν ή δημιουργήθηκαν
+=================================================
+
+Πώς να τα βάλεις πίσω
+---------------------
+Αντέγραψε τους φακέλους Scenes/ και Scripts/ πάνω στον φάκελο του project
+(c:\Users\30690\Desktop\aepp-proto), κρατώντας τη δομή. Μετά άνοιξε το project
+στο Godot μία φορά ώστε να ξαναγίνει import.
+
+ΠΡΟΣΟΧΗ: οι εικόνες ΔΕΝ περιλαμβάνονται (είναι ~42 MB και είναι δικές σου).
+Οι σκηνές τις χρειάζονται για να δουλέψουν. Πρέπει να υπάρχουν στο
+Εικόνες/ του project:
+  de.area.bg.png, ep.area.bg.png, map vertical (2).png,
+  alch.bg.png, alch.bg2.png, bakery.bg.png, bakery.bg2.png,
+  bota.bg.png, bota.bg2.png, charto.bg.png, charto.bg2.png,
+  library.bg.png, library.bg2.png, pand.bg.png, pand.bg2.png
+
+
+ΤΡΟΠΟΠΟΙΗΜΕΝΑ
+-------------
+Scenes/MapPopup.tscn
+    Δείχνει τώρα τον κάθετο χάρτη "map vertical (2).png" αντί για το map1.png.
+    Διαστάσεις 940x1410 — ίδια αναλογία 2:3 με την εικόνα, ώστε τα κλικ να
+    πέφτουν ακριβώς εκεί που δείχνει το art.
+
+Scripts/map_popup.gd
+    Η περιοχή ΔΕ οδηγεί στο Area2.tscn και η ΕΠ στο Area3.tscn.
+    Ξαναμετρημένα τα σημεία-άγκυρες και των 6 περιοχών πάνω στον νέο χάρτη.
+    ΠΙΝ, ΥΠ, ΕΚ οδηγούν ακόμα προσωρινά στην Area1.
+
+
+ΝΕΑ ΑΡΧΕΙΑ
+----------
+Scenes/Area2.tscn        Περιοχή ΔΕ (Δομή Επιλογής) — κρυστάλλινο χωριό.
+Scenes/Area3.tscn        Περιοχή ΕΠ (Δομή Επανάληψης) — ιπτάμενα νησιά.
+    Και οι δύο έχουν το ίδιο HUD/sidebar με την Area1, ώστε να μπορείς να
+    ξαναανοίξεις τον χάρτη και να φύγεις.
+
+Popups των μαγαζιών (σκηνή + script το καθένα):
+Scenes/BakeryPopup.tscn        + Scripts/bakery_popup.gd         ΦΟΥΡΝΟΣ
+Scenes/LibraryPopup.tscn       + Scripts/library_popup.gd        ΒΙΒΛΙΟΘΗΚΗ
+Scenes/AlchemyPopup.tscn       + Scripts/alchemy_popup.gd        ΑΛΧΗΜΕΙΟ
+Scenes/BotanistPopup.tscn      + Scripts/botanist_popup.gd       ΒΟΤΑΝΟΠΩΛΕΙΟ
+Scenes/InnkeeperPopup.tscn     + Scripts/innkeeper_popup.gd      ΠΑΝΔΟΧΕΙΟ
+Scenes/CartographerPopup.tscn  + Scripts/cartographer_popup.gd   ΧΑΡΤΟΓΡΑΦΕΙΟ
+
+Τα .uid αρχεία δίπλα στα scripts τα φτιάχνει το Godot — κράτα τα, αλλιώς
+σπάνε οι αναφορές των σκηνών.
+
+
+ΔΕΝ ΠΕΡΙΛΑΜΒΑΝΕΤΑΙ
+------------------
+Scenes/Area1.tscn — εμφανίζεται ως "modified" στο git, αλλά είναι μόνο
+αλλαγή line endings (LF/CRLF). Το περιεχόμενο είναι ίδιο με το commit.
+
+project.godot — αμετάβλητο.

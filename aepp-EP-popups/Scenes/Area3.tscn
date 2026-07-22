@@ -1,0 +1,313 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://Εικόνες/ep.area.bg.png" id="bg"]
+[ext_resource type="Texture2D" uid="uid://bfxx88hsb0mcd" path="res://Εικόνες/char.png" id="char"]
+[ext_resource type="Texture2D" uid="uid://cgwkqgjbrbim0" path="res://Εικόνες/Inventory1.png" id="inv"]
+[ext_resource type="Texture2D" uid="uid://n0onwcivmsln" path="res://Εικόνες/map.png" id="map"]
+[ext_resource type="Texture2D" uid="uid://dyc3hy1mvk2fn" path="res://Εικόνες/dq.png" id="dq"]
+[ext_resource type="Texture2D" uid="uid://b5yo74otw82i0" path="res://Εικόνες/friends.png" id="friends"]
+[ext_resource type="Texture2D" uid="uid://cmex2ibj3lcm1" path="res://Εικόνες/sidebar.png" id="sidebar"]
+[ext_resource type="Texture2D" uid="uid://c8lk87dnegeer" path="res://Εικόνες/profile.png" id="profile"]
+[ext_resource type="Texture2D" uid="uid://bk5ukyemg4ah0" path="res://Εικόνες/options.png" id="options"]
+[ext_resource type="Texture2D" uid="uid://btco643jaw1wo" path="res://Εικόνες/streak_flame.png" id="streak_flame"]
+[ext_resource type="Script" uid="uid://19tsxt08ovfgl" path="res://Scripts/daily_streak_icon.gd" id="daily_streak_icon_script"]
+[ext_resource type="Script" uid="uid://cphs277dyi43y" path="res://Music/charsfx.gd" id="13_87y4o"]
+[ext_resource type="AudioStream" uid="uid://cac8h8ntb6eux" path="res://Music/Medieval Trumpet Sound Effects.mp3" id="8_5asjm"]
+[ext_resource type="AudioStream" uid="uid://b4b6wbhi3jy4p" path="res://Music/Bäring.mp3" id="19_87y4o"]
+[ext_resource type="PackedScene" uid="uid://dwsc6lgu1bbrx" path="res://Scenes/MapPopup.tscn" id="map_popup_scene"]
+[ext_resource type="PackedScene" uid="uid://cx1buum4vntnk" path="res://Scenes/ProfilePopup.tscn" id="profile_popup_scene"]
+[ext_resource type="PackedScene" uid="uid://yo5qmvew6urw" path="res://Scenes/OptionsMenu.tscn" id="options_menu_scene"]
+[ext_resource type="PackedScene" uid="uid://charselect001" path="res://Scenes/CharacterSelect.tscn" id="char_select_scene"]
+[ext_resource type="PackedScene" uid="uid://inventorypopup001" path="res://Scenes/InventoryPopup.tscn" id="inventory_popup_scene"]
+[ext_resource type="PackedScene" uid="uid://b4i3ybrjf1ngw" path="res://Scenes/DailyQuestPopup.tscn" id="dailyquest_popup_scene"]
+[ext_resource type="PackedScene" uid="uid://doi3j0i6x8yld" path="res://Scenes/DailyQuestExercises.tscn" id="dailyquest_exercises_scene"]
+[ext_resource type="PackedScene" uid="uid://botanist001" path="res://Scenes/BotanistPopup.tscn" id="botanist_popup_scene"]
+[ext_resource type="PackedScene" uid="uid://cartogr001" path="res://Scenes/CartographerPopup.tscn" id="cartographer_popup_scene"]
+[ext_resource type="PackedScene" uid="uid://innkeep001" path="res://Scenes/InnkeeperPopup.tscn" id="innkeeper_popup_scene"]
+
+[sub_resource type="AtlasTexture" id="icon_char"]
+atlas = ExtResource("char")
+region = Rect2(21, 80, 899, 943)
+
+[sub_resource type="AtlasTexture" id="icon_inv"]
+atlas = ExtResource("inv")
+region = Rect2(53, 80, 396, 407)
+
+[sub_resource type="AtlasTexture" id="icon_map"]
+atlas = ExtResource("map")
+region = Rect2(369, 40, 655, 682)
+
+[sub_resource type="AtlasTexture" id="icon_dq"]
+atlas = ExtResource("dq")
+region = Rect2(399, 77, 621, 594)
+
+[sub_resource type="AtlasTexture" id="icon_friends"]
+atlas = ExtResource("friends")
+region = Rect2(407, 54, 588, 654)
+
+[node name="Area3" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("bg")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Houses" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Botanist" type="TextureButton" parent="Houses"]
+layout_mode = 1
+offset_left = 0.0
+offset_top = 416.0
+offset_right = 388.0
+offset_bottom = 964.0
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="Cartographer" type="TextureButton" parent="Houses"]
+layout_mode = 1
+offset_left = 31.0
+offset_top = 976.0
+offset_right = 487.0
+offset_bottom = 1455.0
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="Innkeeper" type="TextureButton" parent="Houses"]
+layout_mode = 1
+offset_left = 646.0
+offset_top = 625.0
+offset_right = 1080.0
+offset_bottom = 1132.0
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="HUD" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Profile" type="TextureButton" parent="HUD"]
+layout_mode = 1
+offset_left = 809.0
+offset_top = 25.0
+offset_right = 1095.0
+offset_bottom = 216.0
+scale = Vector2(1.0188805, 0.96313596)
+texture_normal = ExtResource("profile")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="DailyStreak" type="Control" parent="HUD"]
+layout_mode = 1
+anchors_preset = 0
+offset_left = 119.0
+offset_top = 144.0
+offset_right = 232.0
+offset_bottom = 280.0
+mouse_filter = 2
+script = ExtResource("daily_streak_icon_script")
+
+[node name="Flame" type="TextureRect" parent="HUD/DailyStreak"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("streak_flame")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CountLabel" type="Label" parent="HUD/DailyStreak"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.12
+anchor_top = 0.47
+anchor_right = 0.88
+anchor_bottom = 0.73
+offset_left = 0.44000244
+offset_top = 6.079994
+offset_right = 0.44000244
+offset_bottom = 15.719994
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.867, 0.765, 0.553, 1)
+theme_override_colors/font_shadow_color = Color(0.059, 0.051, 0.027, 0.85)
+theme_override_colors/font_outline_color = Color(0.059, 0.051, 0.027, 1)
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 3
+theme_override_constants/outline_size = 11
+theme_override_font_sizes/font_size = 32
+text = "0"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Sidebar" type="Control" parent="HUD"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 1.0
+offset_top = 18.0
+offset_right = 1.0
+offset_bottom = 18.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Board" type="TextureRect" parent="HUD/Sidebar"]
+layout_mode = 1
+offset_left = 407.0
+offset_top = 1261.0
+offset_right = 636.0261
+offset_bottom = 2293.3381
+rotation = -1.5707963
+scale = Vector2(3.1436813, 1.1959586)
+pivot_offset = Vector2(120, 500)
+mouse_filter = 2
+texture = ExtResource("sidebar")
+expand_mode = 1
+
+[node name="Buttons" type="HBoxContainer" parent="HUD/Sidebar"]
+layout_mode = 1
+offset_left = 70.0
+offset_top = 1682.0
+offset_right = 1015.0
+offset_bottom = 1872.0
+mouse_filter = 2
+theme_override_constants/separation = 28
+alignment = 1
+
+[node name="Characters" type="TextureButton" parent="HUD/Sidebar/Buttons"]
+custom_minimum_size = Vector2(164, 172)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+texture_normal = SubResource("icon_char")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="HUD/Sidebar/Buttons/Characters"]
+stream = ExtResource("8_5asjm")
+bus = &"SFX"
+script = ExtResource("13_87y4o")
+
+[node name="Inventory" type="TextureButton" parent="HUD/Sidebar/Buttons"]
+custom_minimum_size = Vector2(167, 172)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+texture_normal = SubResource("icon_inv")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="Map" type="TextureButton" parent="HUD/Sidebar/Buttons"]
+custom_minimum_size = Vector2(165, 172)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+texture_normal = SubResource("icon_map")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="DailyQuest" type="TextureButton" parent="HUD/Sidebar/Buttons"]
+custom_minimum_size = Vector2(180, 172)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+texture_normal = SubResource("icon_dq")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="Friends" type="TextureButton" parent="HUD/Sidebar/Buttons"]
+custom_minimum_size = Vector2(155, 172)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+texture_normal = SubResource("icon_friends")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="Options" type="TextureButton" parent="HUD"]
+layout_mode = 1
+offset_left = 3.000001
+offset_top = 26.0
+offset_right = 133.53543
+offset_bottom = 137.09543
+scale = Vector2(1.0188805, 0.96313596)
+texture_normal = ExtResource("options")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="ProfilePopup" parent="." instance=ExtResource("profile_popup_scene")]
+visible = false
+
+[node name="MapPopup" parent="." instance=ExtResource("map_popup_scene")]
+visible = false
+
+[node name="OptionsPanel" parent="." instance=ExtResource("options_menu_scene")]
+visible = false
+
+[node name="CharacterSelect" parent="." instance=ExtResource("char_select_scene")]
+visible = false
+
+[node name="InventoryPopup" parent="." instance=ExtResource("inventory_popup_scene")]
+visible = false
+
+[node name="DailyQuestPopup" parent="." instance=ExtResource("dailyquest_popup_scene")]
+visible = false
+
+[node name="DailyQuestExercises" parent="." instance=ExtResource("dailyquest_exercises_scene")]
+visible = false
+
+[node name="BotanistPopup" parent="." instance=ExtResource("botanist_popup_scene")]
+visible = false
+
+[node name="CartographerPopup" parent="." instance=ExtResource("cartographer_popup_scene")]
+visible = false
+
+[node name="InnkeeperPopup" parent="." instance=ExtResource("innkeeper_popup_scene")]
+visible = false
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("19_87y4o")
+autoplay = true
+bus = &"Music"
+
+[connection signal="pressed" from="Houses/Botanist" to="BotanistPopup" method="show_popup"]
+[connection signal="pressed" from="Houses/Cartographer" to="CartographerPopup" method="show_popup"]
+[connection signal="pressed" from="Houses/Innkeeper" to="InnkeeperPopup" method="show_popup"]
+[connection signal="pressed" from="HUD/Profile" to="ProfilePopup" method="show_popup"]
+[connection signal="pressed" from="HUD/Sidebar/Buttons/Characters" to="HUD/Sidebar/Buttons/Characters/AudioStreamPlayer" method="on_pressed"]
+[connection signal="pressed" from="HUD/Sidebar/Buttons/Characters" to="CharacterSelect" method="show_screen"]
+[connection signal="pressed" from="HUD/Sidebar/Buttons/Inventory" to="InventoryPopup" method="open"]
+[connection signal="pressed" from="HUD/Sidebar/Buttons/Map" to="MapPopup" method="open"]
+[connection signal="pressed" from="HUD/Sidebar/Buttons/DailyQuest" to="DailyQuestPopup" method="open"]
+[connection signal="pressed" from="HUD/Options" to="OptionsPanel" method="_on_options_pressed"]
+[connection signal="go_pressed" from="DailyQuestPopup" to="DailyQuestExercises" method="open"]

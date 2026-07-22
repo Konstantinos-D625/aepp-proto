@@ -12,3 +12,5 @@ res://Scripts/room_image_popup.gd
 res://Scripts/weapon_inventory.gd
 res://Scripts/heroes.gd
 res://Scenes/Area1.tscn
+res://Scripts/map_popup.gd
+res://bakery_quiz.json
