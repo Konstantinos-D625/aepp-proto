@@ -1,3 +1,5 @@
 res://Scripts/friends_popup.gd
 res://Scripts/player_profile.gd
 res://Scripts/profile_popup.gd
+res://Scripts/blacksmith_popup.gd
+res://Scripts/QuizManager.gd

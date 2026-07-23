@@ -36,6 +36,10 @@ extends RefCounted
 ##              Περιμένει 4 αριθμούς: οι 2 πρώτοι μέσα στο [min,max] και
 ##              διαφορετικοί μεταξύ τους, οι 2 επόμενοι εκτός και επίσης
 ##              διαφορετικοί μεταξύ τους.
+##
+## Πολλαπλή επιλογή: πρόσθεσε "options": ["...","..."] και "answer": "<σωστή>".
+## Το UI παίρνει τις επιλογές με get_current_options() και χτίζει ένα κουμπί ανά
+## επιλογή· η υποβολή γίνεται με το ΚΕΙΜΕΝΟ της επιλογής (ελέγχεται όπως answer).
 
 signal question_changed(index: int, total: int, question_text: String)
 signal answer_result(correct: bool)
@@ -94,6 +98,12 @@ func load_from_file(path: String) -> bool:
 		if item.has("params") and typeof(item["params"]) == TYPE_DICTIONARY:
 			params = item["params"]
 
+		# Πολλαπλή επιλογή: οι επιλογές που θα δείξει το UI (κενό αν δεν είναι MC).
+		var options: Array = []
+		if item.has("options") and typeof(item["options"]) == TYPE_ARRAY:
+			for o in item["options"]:
+				options.append(str(o))
+
 		_pool.append({
 			"question": str(item["question"]),
 			"answers": answers,
@@ -102,6 +112,7 @@ func load_from_file(path: String) -> bool:
 			"rule": rule,
 			"params": params,
 			"mode": str(item.get("mode", "")),
+			"options": options,
 		})
 	return not _pool.is_empty()
 
@@ -158,6 +169,13 @@ func get_current_mode() -> String:
 	if not _has_current():
 		return ""
 	return str(_questions[_index].get("mode", ""))
+
+## Οι επιλογές πολλαπλής επιλογής της τρέχουσας ερώτησης (κενό αν δεν είναι MC).
+## Το UI χτίζει ένα κουμπί ανά επιλογή και υποβάλλει το κείμενό της.
+func get_current_options() -> Array:
+	if not _has_current():
+		return []
+	return _questions[_index].get("options", [])
 
 ## Υποβολή απάντησης για την τρέχουσα ερώτηση.
 ## Επιστρέφει true αν είναι σωστή και εκπέμπει answer_result.

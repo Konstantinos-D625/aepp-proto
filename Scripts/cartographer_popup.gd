@@ -28,6 +28,14 @@ const C_GOLD   := Color(0.870, 0.700, 0.330)   # μπρούντζος πυξίδ
 const C_WOOD   := Color(0.125, 0.140, 0.185)
 const C_WOOD_D := Color(0.072, 0.082, 0.115)
 const C_TEXT   := Color(0.085, 0.105, 0.150)
+const C_OK     := Color(0.560, 0.900, 0.460)   # πράσινο «Σωστό!»
+const C_BAD    := Color(0.960, 0.450, 0.400)   # κόκκινο «Λάθος»
+
+# ── Σύστημα ασκήσεων ──────────────────────────────────────────────────────
+# Ασκήσεις Σωστό/Λάθος για τη Δομή Επανάληψης (ίδιος engine με bakery_popup.gd
+# — QuizManager). Αντικατέστησε ΜΟΝΟ το JSON για άλλες ερωτήσεις.
+const QUIZ_PATH := "res://cartographer_quiz.json"
+const QUESTIONS_PER_ROUND := 5
 
 const W := 1080.0
 const H := 1920.0
@@ -44,6 +52,18 @@ var _hint   : Label
 ## _build_board). Γέμισμα → _populate_board().
 var _board_content : VBoxContainer
 
+# ── Κατάσταση quiz ─────────────────────────────────────────────────────────
+var _quiz         : QuizManager
+var _q_label      : Label
+var _progress     : Label
+var _feedback     : Label
+var _btn_true     : Button
+var _btn_false    : Button
+var _input_locked := false
+var _answered     := 0
+var _finished     := false
+var _completion   : Control
+
 # ═══════════════════════════════════════════════════════════════════════════
 func _ready() -> void:
 	mouse_filter = MOUSE_FILTER_STOP
@@ -56,6 +76,12 @@ func show_popup() -> void:
 	_state  = 1
 	# Καθάρισμα κατάστασης από προηγούμενη επίσκεψη (replay).
 	_clear_board()
+	if is_instance_valid(_completion):
+		_completion.queue_free()
+	_completion = null
+	_input_locked = false
+	_answered = 0
+	_finished = false
 	_char.visible      = true
 	_char.modulate.a   = 1.0
 	_bubble.visible    = true
@@ -103,31 +129,170 @@ func _go_to_state2() -> void:
 # ΠΕΡΙΕΧΟΜΕΝΟ ΠΙΝΑΚΑ
 # ═══════════════════════════════════════════════════════════════════════════
 ## Καλείται κάθε φορά που ο πίνακας εμφανίζεται (Κατάσταση 2), αφού πρώτα
-## έχει αδειάσει από την προηγούμενη επίσκεψη.
+## έχει αδειάσει από την προηγούμενη επίσκεψη. Χτίζει το UI του quiz Σωστό/Λάθος
+## (Δομή Επανάληψης) και ξεκινά έναν νέο γύρο.
 func _populate_board() -> void:
-	# ─────────────────────────────────────────────────────────────────────
-	# TODO: εδώ μπαίνουν οι ασκήσεις της ΕΠ (Δομή Επανάληψης).
-	#
-	# Πρόσθεσε τα Control σου στο _board_content (VBoxContainer) — στοιχίζονται
-	# μόνα τους μέσα στο ξύλινο πλαίσιο, με σωστά περιθώρια:
-	#
-	#     _board_content.add_child(<το Control σου>)
-	#
-	# Έτοιμα βοηθητικά για συνεπές στυλ με τα άλλα σπιτάκια:
-	#     _make_board_label(text, font_size, color)  → Label πάνω στο ξύλο
-	#     _make_answer_button(text, accent)          → κουμπί απάντησης
-	#
-	# Πλήρες, λειτουργικό παράδειγμα σύνδεσης με τον QuizManager (φόρτωση
-	# JSON, ΣΩΣΤΟ/ΛΑΘΟΣ, δείκτης προόδου, ανατροφοδότηση, οθόνη σκορ):
-	# βλ. Scripts/bakery_popup.gd → _start_quiz() / _on_question_changed().
-	# ─────────────────────────────────────────────────────────────────────
+	_build_quiz_ui()
+	_start_quiz()
 
-	# Προσωρινό placeholder ώστε ο πίνακας να μη φαίνεται χαλασμένος όσο
-	# είναι άδειος — ΣΒΗΣΕ ΤΟ μόλις μπουν οι πραγματικές ασκήσεις.
-	var ph := _make_board_label("[ΕΔΩ ΜΠΑΙΝΟΥΝ ΟΙ ΑΣΚΗΣΕΙΣ]", 32, C_PARCH_D)
-	ph.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	ph.vertical_alignment  = VERTICAL_ALIGNMENT_CENTER
-	_board_content.add_child(ph)
+# ── UI ασκήσεων μέσα στον πίνακα (πρόοδος, εκφώνηση, ΣΩΣΤΟ/ΛΑΘΟΣ, feedback) ──
+func _build_quiz_ui() -> void:
+	_progress = Label.new()
+	_progress.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_progress.add_theme_font_size_override("font_size", 26)
+	_progress.add_theme_color_override("font_color", C_AZ_S)
+	_progress.add_theme_color_override("font_shadow_color", Color(0,0,0,0.85))
+	_progress.add_theme_constant_override("shadow_offset_x", 1)
+	_progress.add_theme_constant_override("shadow_offset_y", 2)
+	_progress.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_board_content.add_child(_progress)
+
+	_q_label = _make_board_label("", 34, C_PARCH)
+	_q_label.vertical_alignment  = VERTICAL_ALIGNMENT_CENTER
+	_q_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_q_label.custom_minimum_size = Vector2(0, 470)
+	_board_content.add_child(_q_label)
+
+	var btn_row := HBoxContainer.new()
+	btn_row.add_theme_constant_override("separation", 28)
+	btn_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_board_content.add_child(btn_row)
+
+	_btn_true = _make_answer_button("ΣΩΣΤΟ", C_OK)
+	_btn_true.pressed.connect(_on_answer_button.bind("ΣΩΣΤΟ"))
+	btn_row.add_child(_btn_true)
+
+	_btn_false = _make_answer_button("ΛΑΘΟΣ", C_BAD)
+	_btn_false.pressed.connect(_on_answer_button.bind("ΛΑΘΟΣ"))
+	btn_row.add_child(_btn_false)
+
+	_feedback = Label.new()
+	_feedback.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_feedback.custom_minimum_size  = Vector2(0, 46)
+	_feedback.add_theme_font_size_override("font_size", 30)
+	_feedback.add_theme_color_override("font_shadow_color", Color(0,0,0,0.85))
+	_feedback.add_theme_constant_override("shadow_offset_x", 1)
+	_feedback.add_theme_constant_override("shadow_offset_y", 2)
+	_feedback.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_board_content.add_child(_feedback)
+
+# ═══════════════════════════════════════════════════════════════════════════
+# ΣΥΣΤΗΜΑ ΑΣΚΗΣΕΩΝ — η λογική ζει στον QuizManager (βλ. bakery_popup.gd)
+# ═══════════════════════════════════════════════════════════════════════════
+func _start_quiz() -> void:
+	_quiz = QuizManager.new()
+	if not _quiz.load_from_file(QUIZ_PATH):
+		_progress.text = ""
+		_q_label.text  = "⚠  Δεν ήταν δυνατή η φόρτωση των ασκήσεων."
+		_set_answer_buttons_enabled(false)
+		return
+	_quiz.question_changed.connect(_on_question_changed)
+	_quiz.answer_result.connect(_on_answer_result)
+	_quiz.quiz_completed.connect(_on_quiz_completed)
+	_quiz.start(true, QUESTIONS_PER_ROUND)
+
+func _on_question_changed(index: int, total: int, question_text: String) -> void:
+	if _finished:
+		return
+	_input_locked = false
+	_q_label.text = question_text
+	_progress.text = "Ερώτηση %d / %d" % [index + 1, total]
+	_feedback.text = ""
+	_set_answer_buttons_enabled(true)
+
+func _on_answer_button(value: String) -> void:
+	if _input_locked or _quiz == null:
+		return
+	_answered += 1
+	_set_answer_buttons_enabled(false)
+	_quiz.submit_answer(value)
+
+func _on_answer_result(correct: bool) -> void:
+	_input_locked = true
+	_set_answer_buttons_enabled(false)
+	if correct:
+		_feedback.add_theme_color_override("font_color", C_OK)
+		_feedback.text = "✔  Σωστό!"
+	else:
+		_feedback.add_theme_color_override("font_color", C_BAD)
+		_feedback.text = "✘  Λάθος!"
+	var t := get_tree().create_timer(0.9)
+	t.timeout.connect(func():
+		if is_instance_valid(_quiz) and not _finished:
+			_quiz.advance()
+	)
+
+func _on_quiz_completed(_score: int, _total: int) -> void:
+	_finish()
+
+func _set_answer_buttons_enabled(enabled: bool) -> void:
+	if _btn_true:
+		_btn_true.disabled = not enabled
+	if _btn_false:
+		_btn_false.disabled = not enabled
+
+# ── Ολοκλήρωση γύρου → οθόνη σκορ, μετά κλείνει το χαρτογραφείο ────────────
+func _finish() -> void:
+	if _finished:
+		return
+	_finished = true
+	_input_locked = true
+	_set_answer_buttons_enabled(false)
+	if _answered <= 0:
+		_close()
+		return
+	var score := _quiz.get_score() if _quiz else 0
+	_show_completion("Ο Χαρτογράφος σε ευχαριστεί!", score)
+
+func _show_completion(title_text: String, score: int) -> void:
+	var overlay := Control.new()
+	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	add_child(overlay)
+	_completion = overlay
+
+	var dim := ColorRect.new()
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	dim.color = Color(0, 0, 0, 0.55)
+	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	overlay.add_child(dim)
+
+	const PW := 820.0
+	const PH := 560.0
+	var px := (W - PW) / 2.0
+	var py := (H - PH) / 2.0
+	_shadow(overlay, Vector2(px + 8, py + 10), Vector2(PW, PH), 20)
+	_styled_panel(overlay, Vector2(px, py), Vector2(PW, PH), C_PARCH, C_AZ, 5, 20)
+	_styled_panel(overlay, Vector2(px + 12, py + 12), Vector2(PW - 24, PH - 24), C0, C_AZ_D, 2, 16)
+
+	var title := Label.new()
+	title.text = title_text
+	title.position = Vector2(px + 40, py + 70)
+	title.size     = Vector2(PW - 80, 190)
+	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.vertical_alignment   = VERTICAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 40)
+	title.add_theme_color_override("font_color", C_TEXT)
+	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	overlay.add_child(title)
+
+	var header := Label.new()
+	header.text = "Σωστές απαντήσεις: %d" % score
+	header.position = Vector2(px + 40, py + 290)
+	header.size     = Vector2(PW - 80, 130)
+	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	header.vertical_alignment   = VERTICAL_ALIGNMENT_TOP
+	header.add_theme_font_size_override("font_size", 30)
+	header.add_theme_color_override("font_color", C_AZ_D)
+	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	overlay.add_child(header)
+
+	overlay.modulate.a = 0.0
+	var tw := create_tween()
+	tw.tween_property(overlay, "modulate:a", 1.0, 0.40)
+	tw.tween_interval(1.9)
+	tw.tween_callback(_close)
 
 ## Αδειάζει τον πίνακα (κάθε νέα επίσκεψη ξεκινά από καθαρό πίνακα).
 func _clear_board() -> void:
