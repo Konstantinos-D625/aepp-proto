@@ -38,8 +38,9 @@ const CONFIG_PATH := "user://net.cfg"
 ## Χρόνος «ηρεμίας» πριν το auto-push στο cloud — συγκεντρώνει πολλές διαδοχικές
 ## τοπικές αποθηκεύσεις (π.χ. αγορές) σε ένα αίτημα δικτύου.
 const PUSH_DEBOUNCE := 4.0
-## Ο τοπικός dev server. Άλλαξέ τον με set_base_url() για το Oracle (Φάση deploy).
-const DEFAULT_BASE_URL := "http://127.0.0.1:8090"
+## Ο online server (Oracle + Caddy auto-TLS). Για τοπικό dev άλλαξέ τον με
+## set_base_url("http://127.0.0.1:8090").
+const DEFAULT_BASE_URL := "https://aepparistoteleio.duckdns.org"
 ## Χρονικό όριο κάθε κανονικού αιτήματος — να μην κρεμάει το UI αν πέσει ο server.
 const REQUEST_TIMEOUT := 15.0
 ## Ανώτατο όριο αναμονής για το flush-on-quit: όσο κι αν αργεί το τελευταίο push,
@@ -81,11 +82,9 @@ func _flush_and_quit() -> void:
 	get_tree().create_timer(FLUSH_TIMEOUT).timeout.connect(get_tree().quit)
 	if is_logged_in():
 		await push_save()
-		# ΧΩΡΙΣ αυτό, ένα Daily Quest που μόλις ολοκληρώθηκε και το παιχνίδι
-		# έκλεισε πριν προλάβει το debounced auto-push (_on_local_saved, 4s)
-		# θα άφηνε το daily_quest_done_today ΠΑΛΙΟ (false) στον server — ο
-		# φίλος θα έβλεπε το κουμπί 🎁 απενεργοποιημένο παρόλο που το Daily
-		# Quest όντως έγινε.
+		# Και το ΔΗΜΟΣΙΟ προφίλ: αλλιώς κλείσιμο μέσα στα 4s του debounce μετά την
+		# ολοκλήρωση του Daily Quest θα άφηνε το daily_quest_done_today μπαγιάτικο
+		# στον server, χαλώντας την ανταλλαγή Κέρματος Φιλίας με τους φίλους.
 		await push_profile()
 	get_tree().quit()
 
@@ -167,9 +166,9 @@ func refresh_auth() -> Dictionary:
 ## Αποσύνδεση — σβήνει το τοπικό session (το token του PocketBase είναι stateless).
 ##  • flush=true: ανεβάζει πρώτα την τελευταία αποθήκευση (πριν χαθεί το token),
 ##    ώστε μια αγορά μέσα στο παράθυρο debounce να μη χαθεί στην αποσύνδεση.
-##  • reset_local=true (Φάση 5, anti-cheat): μηδενίζει το ΤΟΠΙΚΟ save και γυρνά
-##    στην οθόνη «πρώτης εκκίνησης», ώστε ο επόμενος παίκτης να ΜΗΝ κληρονομεί
-##    τα δεδομένα του αποσυνδεδεμένου (βλ. GameData.reset_to_new_game).
+##  • reset_local=true (Φάση 5, anti-cheat): μηδενίζει το ΤΟΠΙΚΟ save και
+##    ξαναφορτώνει το τρέχον scene από την αρχή, ώστε ο επόμενος παίκτης να ΜΗΝ
+##    κληρονομεί τα δεδομένα του αποσυνδεδεμένου (βλ. GameData.reset_to_new_game).
 ## Το refresh-failure στην εκκίνηση καλεί logout(false, false): άκυρο token ή
 ## προσωρινά offline server ΔΕΝ πρέπει ΠΟΤΕ να σβήνει την τοπική πρόοδο.
 func logout(flush := true, reset_local := true) -> void:
@@ -181,10 +180,10 @@ func logout(flush := true, reset_local := true) -> void:
 	_save_session()
 	auth_changed.emit(false)
 	if reset_local:
-		# Καθάρισε το save ΠΡΙΝ την αλλαγή scene· το token έχει ήδη σβηστεί, οπότε
-		# οι `saved` εκπομπές του reset δεν θα κάνουν push (auto-push guard).
+		# Καθάρισε το save ΠΡΙΝ το reload· το token έχει ήδη σβηστεί, οπότε οι
+		# `saved` εκπομπές του reset δεν θα κάνουν push (auto-push guard).
 		GameData.reset_to_new_game()
-		get_tree().change_scene_to_file("res://Scenes/GenderSelect.tscn")
+		get_tree().reload_current_scene()
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -306,22 +305,26 @@ func remove_friend(friendship_id: String) -> Dictionary:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# ΚΕΡΜΑΤΑ ΦΙΛΙΑΣ (Φάση 9) — 1 δωρεάν Κέρμα Φιλίας/μέρα ανά φίλο, πάνω από τη
-# συλλογή `friendship_gifts` (βλ. server/pb_migrations/…add_friendship_gifts…).
-# Το UI (FriendsPopup) αποφασίζει ΠΟΤΕ να δείξει το κουμπί (και οι δύο έκαναν
-# Daily Quest σήμερα) — εδώ μόνο τα «τούβλα» δικτύου. Ο server επιβάλλει ΜΟΝΟ
-# ένα δώρο/κατεύθυνση/μέρα (unique index) + πραγματική αποδεκτή φιλία.
+# FRIENDSHIP GIFTS (Κέρμα Φιλίας) — 1 δώρο/μέρα ανά φίλο, αμοιβαίο
 # ═══════════════════════════════════════════════════════════════════════════
+# Πάνω από τη συλλογή `friendship_gifts` (immutable log: μόνο createRule — καμία
+# ενημέρωση/διαγραφή). Ένα δώρο ανά (from_user, to_user, ημέρα) μέσω unique index.
+# Ο server επιτρέπει τη δημιουργία μόνο αν η φιλία είναι accepted και αφορά και
+# τους δύο (βλ. migration add_friendship_gifts_collection). Το UI (FriendsPopup)
+# αφήνει το πάτημα μόνο όταν ΚΑΙ οι δύο ολοκλήρωσαν το σημερινό Daily Quest, αλλά
+# η τελική αρχή για τον περιορισμό «1/μέρα» είναι ο server.
 
+## Η σημερινή ημερομηνία σε μορφή "YYYY-MM-DD" (τοπική) — το κλειδί του «1/μέρα».
 func _today_string() -> String:
-	return Time.get_date_string_from_system()
+	return Time.get_date_string_from_system(false)
 
-## Στέλνει 1 Κέρμα Φιλίας στον to_user_id, μέσα από τη δοσμένη σχέση φιλίας.
-## Ο server αρνείται (μη-2xx) αν έχει ήδη σταλεί σήμερα ή αν η φιλία δεν είναι
-## αποδεκτή/δεν αφορά τους δύο αυτούς χρήστες.
+## Στέλνει 1 Κέρμα Φιλίας σε έναν φίλο για ΣΗΜΕΡΑ. Ο server απορρίπτει (unique
+## index) αν έχει ήδη σταλεί δώρο στον ίδιο φίλο σήμερα.
 func send_friendship_gift(friendship_id: String, to_user_id: String) -> Dictionary:
 	if not is_logged_in():
 		return _fail("not_logged_in")
+	if to_user_id == "" or to_user_id == _user_id:
+		return _fail("self_gift")
 	var body := {
 		"friendship": friendship_id,
 		"from_user": _user_id,
@@ -330,8 +333,7 @@ func send_friendship_gift(friendship_id: String, to_user_id: String) -> Dictiona
 	}
 	return await _request(HTTPClient.METHOD_POST, "/api/collections/friendship_gifts/records", body, true)
 
-## Σε ποιους φίλους έχω ΗΔΗ στείλει Κέρμα Φιλίας σήμερα (σύνολο user ids) — το
-## FriendsPopup απενεργοποιεί το κουμπί δώρου σε αυτούς.
+## Τα δώρα που ΕΓΩ έστειλα ΣΗΜΕΡΑ (ώστε το UI να ξέρει ποιους φίλους δώρισα ήδη).
 func list_my_gifts_sent_today() -> Dictionary:
 	if not is_logged_in():
 		return _fail("not_logged_in")
@@ -339,10 +341,9 @@ func list_my_gifts_sent_today() -> Dictionary:
 	var path := "/api/collections/friendship_gifts/records?perPage=200&filter=" + filter.uri_encode()
 	return await _request(HTTPClient.METHOD_GET, path, null, true)
 
-## Κέρματα Φιλίας που έχω ΛΑΒΕΙ (τελευταίες 2 εβδομάδες — αρκετό παράθυρο ώστε
-## να μη χαθεί δώρο αν ο παίκτης λείψει λίγες μέρες). Το FriendsPopup συγκρίνει
-## με τα ήδη «παραληφθέντα» τοπικά (GameData) και πιστώνει Κέρμα Φιλίας για
-## όσα δεν έχει ήδη μετρήσει — βλ. friends_popup.gd::_claim_incoming_gifts.
+## Τα δώρα που ΕΛΑΒΑ πρόσφατα (τελευταίες ~14 μέρες). Το UI τα πιστώνει τοπικά μία
+## φορά ανά record id (GameData.friendship_gifts_claimed). Το παράθυρο 14 ημερών
+## καλύπτει άνετα τυχόν offline μέρες χωρίς να κατεβάζει όλο το ιστορικό.
 func list_my_gifts_received() -> Dictionary:
 	if not is_logged_in():
 		return _fail("not_logged_in")
@@ -722,7 +723,14 @@ func _is_transport_secure_for_auth() -> bool:
 	if base_url.begins_with("https://"):
 		return true
 	# http:// επιτρέπεται ΜΟΝΟ σε loopback (τοπικός dev server).
-	var host := base_url.trim_prefix("http://").split("/")[0].split(":")[0].to_lower()
+	return _is_loopback_url(base_url)
+
+
+## True αν το URL δείχνει σε τοπικό loopback host (127.0.0.1 ή localhost) — άσχετα
+## από πρωτόκολλο/θύρα. Χρησιμοποιείται και για να μην παγιδεύει ένα παλιό
+## αποθηκευμένο dev base_url ένα production build (δες _load_session).
+func _is_loopback_url(url: String) -> bool:
+	var host := url.strip_edges().trim_prefix("https://").trim_prefix("http://").split("/")[0].split(":")[0].to_lower()
 	return host == "127.0.0.1" or host == "localhost"
 
 
@@ -734,7 +742,15 @@ func _load_session() -> void:
 	var cfg := ConfigFile.new()
 	if cfg.load(CONFIG_PATH) != OK:
 		return
-	base_url = cfg.get_value("server", "base_url", DEFAULT_BASE_URL)
+	var stored_url := str(cfg.get_value("server", "base_url", DEFAULT_BASE_URL))
+	# Μην αφήνεις ένα παλιό αποθηκευμένο loopback URL (από προηγούμενο τοπικό dev
+	# build) να παγιδεύσει ένα production build σε λάθος server: αν το αποθηκευμένο
+	# δείχνει σε 127.0.0.1/localhost αλλά το DEFAULT_BASE_URL είναι απομακρυσμένο,
+	# αγνόησέ το και ακολούθησε το default του build. Το τοπικό dev με ρητό
+	# set_base_url("http://127.0.0.1:8090") ΔΕΝ επηρεάζεται (default = loopback).
+	if _is_loopback_url(stored_url) and not _is_loopback_url(DEFAULT_BASE_URL):
+		stored_url = DEFAULT_BASE_URL
+	base_url = stored_url
 	_token = cfg.get_value("auth", "token", "")
 	_user_id = cfg.get_value("auth", "user_id", "")
 	_username = cfg.get_value("auth", "username", "")
