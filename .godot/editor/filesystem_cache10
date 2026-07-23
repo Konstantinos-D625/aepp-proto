@@ -1,5 +1,5 @@
 9cad1ddce9e5a63143ba340c9520626b
-::res://::1784803502
+::res://::1784805797
 bakery_quiz.json::JSON::-1::1784710015::0::1::::<><><>0<>0<><>::
 blacksmith_exercises.json::JSON::-1::1784799642::0::1::::<><><>0<>0<><>::
 blacksmith_quiz.json::JSON::-1::1782986437::0::1::::<><><>0<>0<><>::
@@ -101,7 +101,7 @@ ProfilePopup.tscn::PackedScene::6440956095888245096::1784550720::0::1::::<><><>0
 RoomImagePopup.tscn::PackedScene::-1::1783429359::0::1::::<><><>0<>0<><>::res://Scripts/room_image_popup.gd<>res://Scenes/FoundKeyPopup.tscn
 ShopPopup.tscn::PackedScene::3419947777078795157::1782980430::0::1::::<><><>0<>0<><>::res://Scripts/shop_popup.gd
 WitchMapPopup.tscn::PackedScene::45936093021815432::1784241937::0::1::::<><><>0<>0<><>::uid://cppltoqha00cc::::res://Scripts/witch_map_popup.gd<>uid://bo3revpnfp643::::res://Εικόνες/witch_map.png
-::res://Scripts/::1784803618
+::res://Scripts/::1784805469
 achievements.gd::GDScript::4602972129006798931::1784799642::0::1::::<>Node<><>0<>0<><>::
 alchemy_popup.gd::GDScript::5692750439646174258::1784708413::0::1::::<>Control<><>0<>0<><>::
 armor_inventory.gd::GDScript::4943718543629863539::1784635076::0::1::::<>Node<><>0<>0<><>::
@@ -127,15 +127,15 @@ daily_streak_icon.gd::GDScript::9133484433124490579::1784293421::0::1::::<>Contr
 equipment_catalog.gd::GDScript::8220899368612002966::1784799642::0::1::::EquipmentCatalog<>Node<><>0<>0<><>::
 exercise_popup.gd::GDScript::4413751119549013950::1783430263::0::1::::<>Control<><>0<>0<><>::
 found_key_popup.gd::GDScript::8012495537441729554::1784635142::0::1::::<>Control<><>0<>0<><>::
-friendship_inventory.gd::GDScript::2547813308413733881::1784803468::0::1::::<>Node<><>0<>0<><>::
-friends_popup.gd::GDScript::8613635682644664157::1784801628::0::1::::<>Control<><>0<>0<><>::
-GameData.gd::GDScript::7281786025913595614::1784799642::0::1::::<>Node<><>0<>0<><>::
+friendship_inventory.gd::GDScript::2547813308413733881::1784804316::0::1::::<>Node<><>0<>0<><>::
+friends_popup.gd::GDScript::8613635682644664157::1784805398::0::1::::<>Control<><>0<>0<><>::
+GameData.gd::GDScript::7281786025913595614::1784805190::0::1::::<>Node<><>0<>0<><>::
 gnome_popup.gd::GDScript::6327436408539605330::1784024764::0::1::::<>Control<><>0<>0<><>::
-heroes.gd::GDScript::6184848438944181353::1784803618::0::1::::<>Node<><>0<>0<><>::
+heroes.gd::GDScript::6184848438944181353::1784804301::0::1::::<>Node<><>0<>0<><>::
 hero_slot_popup.gd::GDScript::1976868662772412618::1784631241::0::1::::HeroSlotPopup<>Control<><>0<>0<><>::
 innkeeper_popup.gd::GDScript::8928826371840808870::1784708413::0::1::::<>Control<><>0<>0<><>::
 inventory_data.gd::GDScript::3332798620403996391::1784799642::0::1::::<>Node<><>0<>0<><>::
-inventory_popup.gd::GDScript::4053288783231927979::1784802171::0::1::::<>Control<><>0<>0<><>::
+inventory_popup.gd::GDScript::4053288783231927979::1784804284::0::1::::<>Control<><>0<>0<><>::
 key_drop_zone.gd::GDScript::3643484733162168551::1783429359::0::1::::<>Panel<><>0<>0<><>::
 key_inventory.gd::GDScript::549379175661400944::1784799642::0::1::::<>Node<><>0<>0<><>::
 key_token.gd::GDScript::7472227817666806628::1783429359::0::1::::<>Button<><>0<>0<><>::
@@ -145,10 +145,10 @@ MatchDragItem.gd::GDScript::7471654915675482530::1784293421::0::1::::MatchDragIt
 MatchingQuizManager.gd::GDScript::8936308416369787290::1783424314::0::1::::MatchingQuizManager<>RefCounted<><>0<>0<><>::
 miner_popup.gd::GDScript::3248297179168208394::1784293421::0::1::::<>Control<><>0<>0<><>::
 mini_boss_popup.gd::GDScript::7775751994260464204::1784711044::0::1::::<>Control<><>0<>0<><>::
-net.gd::GDScript::1982023271812240650::1784800807::0::1::::<>Node<><>0<>0<><>::
+net.gd::GDScript::1982023271812240650::1784805469::0::1::::<>Node<><>0<>0<><>::
 old_man_popup.gd::GDScript::8859547473265482108::1784630143::0::1::::<>Control<><>0<>0<><>::
 OptionsMenu.gd::GDScript::727246842236017652::1782980430::0::1::::<>Panel<><>0<>0<><>::
-player_profile.gd::GDScript::8200953446782244452::1784550062::0::1::::<>Node<><>0<>0<><>::
+player_profile.gd::GDScript::8200953446782244452::1784805200::0::1::::<>Node<><>0<>0<><>::
 profile_popup.gd::GDScript::9046519275355994529::1784799642::0::1::::<>Control<><>0<>0<><>::
 QuizManager.gd::GDScript::1747317443515993810::1784287139::0::1::::QuizManager<>RefCounted<><>0<>0<><>::
 room_image_popup.gd::GDScript::5478719028964953031::1784635153::0::1::::<>Control<><>0<>0<><>::
@@ -160,10 +160,10 @@ CHANGELOG.md::TextFile::-1::1784458722::0::1::::<><><>0<>0<><>::
 LICENSE.md::TextFile::-1::1784458722::0::1::::<><><>0<>0<><>::
 pb_serve.log::TextFile::-1::1784716398::0::1::::<><><>0<>0<><>::
 README.md::TextFile::-1::1784716498::0::1::::<><><>0<>0<><>::
-::res://server/pb_data/::1784802776
+::res://server/pb_data/::1784804581
 ::res://server/pb_data/backups/::1784710956
 ::res://server/pb_data/storage/::1784550090
-::res://server/pb_migrations/::1784799642
+::res://server/pb_migrations/::1784805237
 ::res://Όπλα/::1784802764
 LockedItem.jpg::CompressedTexture2D::7674907803555600466::1783331296::1783331822::1::::<><><>0<>0<>3ef052f8ad9574c78205a1ce3f28f7cc<>res://.godot/imported/LockedItem.jpg-82fde1b34b2e113bacbb0fc2b15bd2c8.ctex::
 ::res://Όπλα/Αξίνα/::1784189079
@@ -188,11 +188,11 @@ Level1.png::CompressedTexture2D::7632732532309853318::1783331296::1783331822::1:
 ::res://Όπλα/Τσεκούρι/::1784189079
 Level1.png::CompressedTexture2D::5166843851197328891::1783331296::1783331822::1::::<><><>0<>0<>98076829b278ad85ef7cfcffea988b8c<>res://.godot/imported/Level1.png-3e9f6bfa99e1ab4ac725ae6df1780550.ctex::
 ::res://Αντικείμενα Φιλίας/::1784803418
-::res://Αντικείμενα Φιλίας/Γάντι/::1784803418
+::res://Αντικείμενα Φιλίας/Γάντι/::1784803910
 friendship_glove.png::CompressedTexture2D::3877861904052654641::1784802894::1784803910::1::::<><><>0<>0<>05de2a931e42e0fe4d35108234c46005<>res://.godot/imported/friendship_glove.png-4847104b3b026da56c2f62f142f67079.ctex::
-::res://Αντικείμενα Φιλίας/Μανδύας/::1784803418
+::res://Αντικείμενα Φιλίας/Μανδύας/::1784803910
 friendship_cloak.png::CompressedTexture2D::4922456417328207862::1784803040::1784803910::1::::<><><>0<>0<>1639d75a9fa6e51579db67363a5337e5<>res://.godot/imported/friendship_cloak.png-a8706fbce844dcb7a6676369e4b26e36.ctex::
-::res://Αντικείμενα Φιλίας/Ραβδί/::1784803418
+::res://Αντικείμενα Φιλίας/Ραβδί/::1784803910
 friendship_wand.png::CompressedTexture2D::6505443061111676187::1784802089::1784803910::1::::<><><>0<>0<>d83ea1dee13f0f435184d81ce489ea2b<>res://.godot/imported/friendship_wand.png-fd17e56af06f3599e085b6b26bfac981.ctex::
 ::res://Εικόνες/::1784802306
 alch.bg2.png::CompressedTexture2D::3871464102211351926::1784709960::1784710013::1::::<><><>0<>0<>33af9efbe6c35cdc0cbac9288318e8d8<>res://.godot/imported/alch.bg2.png-900837ef2838af4dba21d63480eba085.ctex::

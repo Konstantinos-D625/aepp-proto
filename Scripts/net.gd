@@ -81,6 +81,12 @@ func _flush_and_quit() -> void:
 	get_tree().create_timer(FLUSH_TIMEOUT).timeout.connect(get_tree().quit)
 	if is_logged_in():
 		await push_save()
+		# ΧΩΡΙΣ αυτό, ένα Daily Quest που μόλις ολοκληρώθηκε και το παιχνίδι
+		# έκλεισε πριν προλάβει το debounced auto-push (_on_local_saved, 4s)
+		# θα άφηνε το daily_quest_done_today ΠΑΛΙΟ (false) στον server — ο
+		# φίλος θα έβλεπε το κουμπί 🎁 απενεργοποιημένο παρόλο που το Daily
+		# Quest όντως έγινε.
+		await push_profile()
 	get_tree().quit()
 
 
@@ -297,6 +303,53 @@ func remove_friend(friendship_id: String) -> Dictionary:
 		return _fail("not_logged_in")
 	return await _request(HTTPClient.METHOD_DELETE,
 		"/api/collections/friendships/records/" + friendship_id, null, true)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# ΚΕΡΜΑΤΑ ΦΙΛΙΑΣ (Φάση 9) — 1 δωρεάν Κέρμα Φιλίας/μέρα ανά φίλο, πάνω από τη
+# συλλογή `friendship_gifts` (βλ. server/pb_migrations/…add_friendship_gifts…).
+# Το UI (FriendsPopup) αποφασίζει ΠΟΤΕ να δείξει το κουμπί (και οι δύο έκαναν
+# Daily Quest σήμερα) — εδώ μόνο τα «τούβλα» δικτύου. Ο server επιβάλλει ΜΟΝΟ
+# ένα δώρο/κατεύθυνση/μέρα (unique index) + πραγματική αποδεκτή φιλία.
+# ═══════════════════════════════════════════════════════════════════════════
+
+func _today_string() -> String:
+	return Time.get_date_string_from_system()
+
+## Στέλνει 1 Κέρμα Φιλίας στον to_user_id, μέσα από τη δοσμένη σχέση φιλίας.
+## Ο server αρνείται (μη-2xx) αν έχει ήδη σταλεί σήμερα ή αν η φιλία δεν είναι
+## αποδεκτή/δεν αφορά τους δύο αυτούς χρήστες.
+func send_friendship_gift(friendship_id: String, to_user_id: String) -> Dictionary:
+	if not is_logged_in():
+		return _fail("not_logged_in")
+	var body := {
+		"friendship": friendship_id,
+		"from_user": _user_id,
+		"to_user": to_user_id,
+		"date": _today_string(),
+	}
+	return await _request(HTTPClient.METHOD_POST, "/api/collections/friendship_gifts/records", body, true)
+
+## Σε ποιους φίλους έχω ΗΔΗ στείλει Κέρμα Φιλίας σήμερα (σύνολο user ids) — το
+## FriendsPopup απενεργοποιεί το κουμπί δώρου σε αυτούς.
+func list_my_gifts_sent_today() -> Dictionary:
+	if not is_logged_in():
+		return _fail("not_logged_in")
+	var filter := 'from_user="%s" && date="%s"' % [_user_id, _today_string()]
+	var path := "/api/collections/friendship_gifts/records?perPage=200&filter=" + filter.uri_encode()
+	return await _request(HTTPClient.METHOD_GET, path, null, true)
+
+## Κέρματα Φιλίας που έχω ΛΑΒΕΙ (τελευταίες 2 εβδομάδες — αρκετό παράθυρο ώστε
+## να μη χαθεί δώρο αν ο παίκτης λείψει λίγες μέρες). Το FriendsPopup συγκρίνει
+## με τα ήδη «παραληφθέντα» τοπικά (GameData) και πιστώνει Κέρμα Φιλίας για
+## όσα δεν έχει ήδη μετρήσει — βλ. friends_popup.gd::_claim_incoming_gifts.
+func list_my_gifts_received() -> Dictionary:
+	if not is_logged_in():
+		return _fail("not_logged_in")
+	var since := Time.get_date_string_from_unix_time(int(Time.get_unix_time_from_system()) - 14 * 86400)
+	var filter := 'to_user="%s" && date>="%s"' % [_user_id, since]
+	var path := "/api/collections/friendship_gifts/records?perPage=200&filter=" + filter.uri_encode()
+	return await _request(HTTPClient.METHOD_GET, path, null, true)
 
 
 # ═══════════════════════════════════════════════════════════════════════════

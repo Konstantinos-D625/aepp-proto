@@ -1,4 +1,2 @@
-res://Scripts/shop_popup.gd
-res://Scripts/heroes.gd
-res://Scripts/friendship_inventory.gd
-res://Scripts/inventory_popup.gd
+res://Scripts/net.gd
+res://Scripts/friends_popup.gd

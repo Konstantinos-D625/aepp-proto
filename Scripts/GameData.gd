@@ -143,6 +143,14 @@ var achievements: Dictionary = {}
 # επόμενη επίσκεψη στο ίδιο δωμάτιο.
 var castle_completed: bool = false
 
+# ── Κέρματα Φιλίας που έχουν ήδη πιστωθεί (friends_popup.gd, Φάση 9) ─────────
+# friendship_gifts record id -> true. Το ΙΔΙΟ δώρο (server-side record) θα
+# ξαναφανεί σε κάθε fetch μέχρι να λήξει το παράθυρο του Net.list_my_gifts_
+# received() — χωρίς αυτή τη λίστα θα πιστωνόταν Κέρμα Φιλίας ξανά και ξανά σε
+# κάθε άνοιγμα της καρτέλας «Φίλοι». Δεν χρειάζεται καθάρισμα (μικρό, tops
+# λίγες δεκάδες entries/έτος ανά παίκτη).
+var friendship_gifts_claimed: Dictionary = {}
+
 # ── Meta (Φάση 4 cloud sync) ─────────────────────────────────────────────────
 # Unix seconds της τελευταίας τοπικής αποθήκευσης. Ενημερώνεται σε κάθε _save()/
 # αποθήκευση εξοπλισμού. Ταξιδεύει ΜΕΣΑ στο export_save() blob (πληροφοριακά)·
@@ -439,6 +447,18 @@ func save_currencies(amounts: Dictionary) -> void:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
+# ΔΗΜΟΣΙΟ API — ΚΕΡΜΑΤΑ ΦΙΛΙΑΣ (persistence μόνο· λογική στο friends_popup.gd)
+# ═══════════════════════════════════════════════════════════════════════════
+
+func get_claimed_friendship_gift_ids() -> Dictionary:
+	return friendship_gifts_claimed
+
+func save_claimed_friendship_gift_ids(ids: Dictionary) -> void:
+	friendship_gifts_claimed = ids.duplicate()
+	_save()
+
+
+# ═══════════════════════════════════════════════════════════════════════════
 # ΔΗΜΟΣΙΟ API — ΚΛΕΙΔΙΑ (persistence μόνο· λογική στο KeyInventory)
 # ═══════════════════════════════════════════════════════════════════════════
 
@@ -500,6 +520,7 @@ func _load() -> void:
 	party                       = config.get_value("party", "data", {})
 	achievements                = config.get_value("achievements", "unlocked", {})
 	castle_completed            = config.get_value("castle", "completed", false)
+	friendship_gifts_claimed    = config.get_value("friendship_gifts", "claimed", {})
 	save_updated_at             = int(config.get_value("meta", "updated_at", 0))
 
 func _save() -> void:
@@ -522,6 +543,7 @@ func _save() -> void:
 	config.set_value("party", "data", party)
 	config.set_value("achievements", "unlocked", achievements)
 	config.set_value("castle", "completed", castle_completed)
+	config.set_value("friendship_gifts", "claimed", friendship_gifts_claimed)
 	config.save(SAVE_PATH)
 	saved.emit()
 
@@ -551,6 +573,7 @@ func export_save() -> Dictionary:
 		"party": party,
 		"achievements": achievements,
 		"castle_completed": castle_completed,
+		"friendship_gifts_claimed": friendship_gifts_claimed,
 		"equipment": get_equipped_loadout(),
 	}
 
@@ -573,6 +596,7 @@ func import_save(data: Dictionary) -> void:
 	party                        = data.get("party", {})
 	achievements                 = data.get("achievements", {})
 	castle_completed             = bool(data.get("castle_completed", false))
+	friendship_gifts_claimed     = data.get("friendship_gifts_claimed", {})
 	save_equipped_loadout(data.get("equipment", {}))  # γράφει [equipment] + meta
 	_save()                                           # γράφει τα υπόλοιπα sections
 	_check_streak_expiry()
@@ -599,6 +623,7 @@ func reset_to_new_game() -> void:
 	party = {}
 	achievements = {}
 	castle_completed = false
+	friendship_gifts_claimed = {}
 	save_equipped_loadout({})  # καθαρίζει το [equipment] section + meta
 	_save()                    # γράφει fresh τα υπόλοιπα sections
 	save_reloaded.emit()       # → autoloads επανέρχονται σε defaults
