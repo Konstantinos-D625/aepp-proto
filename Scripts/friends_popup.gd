@@ -5,8 +5,8 @@ extends Control
 # ═══════════════════════════════════════════════════════════════════════════
 # Καθαρό UI πάνω από το Net autoload. Το κουμπί HUD/Sidebar/Buttons/Friends το
 # ανοίγει. Τρεις καρτέλες:
-#   • «Φίλοι»       — οι αποδεκτές φιλίες + η πρόοδός τους (κεφάλαιο/σερί) για
-#                     σύγκριση/κίνητρο· κουμπί αφαίρεσης.
+#   • «Φίλοι»       — εγώ + οι αποδεκτές φιλίες μου σε ΜΙΑ κατάταξη (leaderboard),
+#                     ταξινομημένη κατά ισχύ ομάδας (party_power)· κουμπί αφαίρεσης.
 #   • «Αιτήματα»    — εισερχόμενα (Αποδοχή/Απόρριψη) + εξερχόμενα εκκρεμή (Ακύρωση).
 #   • «Αναζήτηση»   — βρες παίκτη με username → «Πρόσθεσε» (στέλνει αίτημα).
 #
@@ -236,24 +236,55 @@ func _refresh() -> void:
 		return
 	var items: Array = res["data"].get("items", [])
 	if _tab == "friends":
-		_populate_friends(items, my_id)
+		await _populate_friends(items, my_id)
 	else:
 		_populate_requests(items)
 
-## Οι αποδεκτές φιλίες, με την πρόοδο του κάθε φίλου (fetch profile ανά φίλο).
+## Λίστα-κατάταξη: εγώ + οι αποδεκτοί φίλοι, ταξινομημένοι φθίνουσα κατά ισχύ
+## ομάδας (party_power). Η δική μου ισχύς υπολογίζεται τοπικά (μέσω PlayerProfile/
+## Heroes) — των φίλων έρχεται από το δημόσιο profile τους στον server (ήδη
+## συγχρονισμένο μέσω push_profile()).
 func _populate_friends(items: Array, my_id: int) -> void:
 	var me := Net.get_user_id()
 	var accepted := items.filter(func(r): return str(r.get("status", "")) == "accepted")
-	if accepted.is_empty():
-		_list.add_child(_hint("Δεν έχεις φίλους ακόμα. Δοκίμασε την Αναζήτηση!"))
-		return
+	var my_profile := PlayerProfile.build_public_profile()
+	var entries: Array[Dictionary] = [{
+		"name": Net.get_username(),
+		"power": float(my_profile.get("party_power", 0.0)),
+		"region_label": str(my_profile.get("region_label", "—")),
+		"streak": int(my_profile.get("streak", 0)),
+		"is_me": true,
+		"rec": {},
+	}]
 	for rec in accepted:
 		var other_id := _other_user(rec, me)
 		var other_name := _other_name(rec, me)
-		var row := _friend_row(other_name, rec)
-		_list.add_child(row)
-		# Συμπλήρωσε πρόοδο ασύγχρονα (δεν μπλοκάρει τη λίστα).
-		_fill_friend_progress(row, other_id, my_id)
+		var res := await Net.fetch_profile(other_id)
+		if my_id != _refresh_id:
+			return   # ο χρήστης άλλαξε καρτέλα στο μεταξύ
+		var power := 0.0
+		var region_label := "—"
+		var streak := 0
+		if res["ok"]:
+			var profs: Array = res["data"].get("items", [])
+			if not profs.is_empty():
+				var p: Dictionary = profs[0]
+				power = float(p.get("party_power", 0.0))
+				region_label = str(p.get("region_label", "—"))
+				streak = int(p.get("streak", 0))
+		entries.append({
+			"name": other_name, "power": power, "region_label": region_label,
+			"streak": streak, "is_me": false, "rec": rec,
+		})
+
+	if my_id != _refresh_id:
+		return
+	entries.sort_custom(func(a, b): return a["power"] > b["power"])
+	_clear_list()
+	for i in entries.size():
+		_list.add_child(_friend_row(i + 1, entries[i]))
+	if accepted.is_empty():
+		_list.add_child(_hint("Δεν έχεις φίλους ακόμα. Δοκίμασε την Αναζήτηση!"))
 
 ## Εισερχόμενα αιτήματα (Αποδοχή/Απόρριψη) + εξερχόμενα εκκρεμή (Ακύρωση).
 func _populate_requests(items: Array) -> void:
@@ -318,65 +349,76 @@ func _do_search() -> void:
 # ═══════════════════════════════════════════════════════════════════════════
 # ΓΡΑΜΜΕΣ
 # ═══════════════════════════════════════════════════════════════════════════
-func _friend_row(uname: String, rec: Dictionary) -> PanelContainer:
+## Μία γραμμή της κατάταξης «Φίλοι»: θέση, όνομα (+ «(Εσύ)» στη δική σου),
+## ισχύ ομάδας, και υπο-γραμμή κεφαλαίου/σερί. Τα κουμπιά 💬/❌ εμφανίζονται
+## μόνο σε γραμμές φίλων (όχι στη δική σου).
+func _friend_row(rank: int, entry: Dictionary) -> PanelContainer:
 	var card := _row_card()
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 14)
 	card.add_child(row)
+
+	var rank_l := Label.new()
+	rank_l.text = _rank_label(rank)
+	rank_l.custom_minimum_size = Vector2(64, 0)
+	rank_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	rank_l.add_theme_color_override("font_color", C_GOLD if rank <= 3 else C_MUTED)
+	rank_l.add_theme_font_size_override("font_size", 30)
+	row.add_child(rank_l)
 
 	var col := VBoxContainer.new()
 	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	col.add_theme_constant_override("separation", 2)
 	row.add_child(col)
 
+	var is_me: bool = entry["is_me"]
+	var uname: String = entry["name"]
+
 	var name_l := Label.new()
-	name_l.text = uname
-	name_l.add_theme_color_override("font_color", C_GOLD)
+	name_l.text = (uname + "  (Εσύ)") if is_me else uname
+	name_l.add_theme_color_override("font_color", C_OK if is_me else C_GOLD)
 	name_l.add_theme_font_size_override("font_size", 30)
 	col.add_child(name_l)
 
-	# Placeholder προόδου — γεμίζει από το _fill_friend_progress.
-	var prog := Label.new()
-	prog.name = "Progress"
-	prog.text = "…"
-	prog.add_theme_color_override("font_color", C_MUTED)
-	prog.add_theme_font_size_override("font_size", 22)
-	col.add_child(prog)
+	var sub := Label.new()
+	sub.text = "🗺 %s   🔥 %d" % [str(entry.get("region_label", "—")), int(entry.get("streak", 0))]
+	sub.add_theme_color_override("font_color", C_MUTED)
+	sub.add_theme_font_size_override("font_size", 22)
+	col.add_child(sub)
 
-	# 💬 DM με τον φίλο (Φ7)
-	var me := Net.get_user_id()
-	var other_id := _other_user(rec, me)
-	var chat := Button.new()
-	chat.text = "💬"
-	chat.custom_minimum_size = Vector2(70, 64)
-	chat.add_theme_font_size_override("font_size", 26)
-	chat.pressed.connect(func():
-		dm_requested.emit(other_id, uname)
-		close_popup())
-	row.add_child(chat)
+	var power_l := Label.new()
+	power_l.text = "💪 %.1f" % float(entry["power"])
+	power_l.custom_minimum_size = Vector2(100, 0)
+	power_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	power_l.add_theme_color_override("font_color", C_GOLD)
+	power_l.add_theme_font_size_override("font_size", 26)
+	row.add_child(power_l)
 
-	var remove := Button.new()
-	remove.text = "❌"
-	remove.custom_minimum_size = Vector2(70, 64)
-	remove.add_theme_font_size_override("font_size", 26)
-	remove.pressed.connect(func(): _on_remove(str(rec.get("id", ""))))
-	row.add_child(remove)
+	if not is_me:
+		var rec: Dictionary = entry["rec"]
+		var me := Net.get_user_id()
+		var other_id := _other_user(rec, me)
+
+		var chat := Button.new()
+		chat.text = "💬"
+		chat.custom_minimum_size = Vector2(70, 64)
+		chat.add_theme_font_size_override("font_size", 26)
+		chat.pressed.connect(func():
+			dm_requested.emit(other_id, uname)
+			close_popup())
+		row.add_child(chat)
+
+		var remove := Button.new()
+		remove.text = "❌"
+		remove.custom_minimum_size = Vector2(70, 64)
+		remove.add_theme_font_size_override("font_size", 26)
+		remove.pressed.connect(func(): _on_remove(str(rec.get("id", ""))))
+		row.add_child(remove)
+
 	return card
 
-func _fill_friend_progress(row: PanelContainer, uid: String, my_id: int) -> void:
-	var res := await Net.fetch_profile(uid)
-	if my_id != _refresh_id or not is_instance_valid(row):
-		return
-	var prog: Label = row.find_child("Progress", true, false)
-	if prog == null:
-		return
-	if res["ok"]:
-		var items: Array = res["data"].get("items", [])
-		if not items.is_empty():
-			var p: Dictionary = items[0]
-			prog.text = "🗺 %s   🔥 %d" % [str(p.get("region_label", "—")), int(p.get("streak", 0))]
-			return
-	prog.text = "—"
+func _rank_label(rank: int) -> String:
+	return "#%d" % rank
 
 func _incoming_row(uname: String, id: String) -> PanelContainer:
 	var card := _row_card()

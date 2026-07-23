@@ -16,7 +16,7 @@ const PRICE_CURRENCY := "Χαλκός"
 # Νομίσματα/υλικά που δείχνει το strip στην κορυφή του Inventory — αντικατέστησαν
 # την παλιά «Αποθήκη»/LootPopup (ό,τι έδειχνε το loot φαίνεται τώρα εδώ, ίδιο
 # μοτίβο με το currency strip του Shop). Ίδιο σύνολο με το Shop.
-const STRIP_CURRENCIES: Array[String] = ["Χαλκός", "Δέρμα", "Σίδερο", "Κέρμα"]
+const STRIP_CURRENCIES: Array[String] = ["Χαλκός", "Δέρμα", "Σίδερο", "Κέρμα", "Κέρμα Φιλίας"]
 
 var _current_category := Inventory.CATEGORY_WEAPON
 var _currency_amount_labels: Dictionary = {}   # currency -> Label (ποσό)
@@ -46,6 +46,10 @@ func _ready() -> void:
 			_refresh()
 	)
 	ArmorInventory.changed.connect(func() -> void:
+		if visible:
+			_refresh()
+	)
+	FriendshipInventory.changed.connect(func() -> void:
 		if visible:
 			_refresh()
 	)
@@ -146,10 +150,12 @@ func _update_currency_strip() -> void:
 		if is_instance_valid(lbl):
 			(lbl as Label).text = str(Currency.get_amount(currency))
 
-func _current_catalog() -> EquipmentCatalog:
+## Η καρτέλα «Όπλα» δείχνει ΚΑΙ τα Αντικείμενα Φιλίας μαζί με τα κανονικά
+## όπλα (ζητήθηκε ρητά) — γι' αυτό επιστρέφει λίστα καταλόγων, όχι έναν.
+func _current_catalogs() -> Array[EquipmentCatalog]:
 	if _current_category == Inventory.CATEGORY_WEAPON:
-		return WeaponInventory
-	return ArmorInventory
+		return [WeaponInventory, FriendshipInventory]
+	return [ArmorInventory]
 
 func _select_category(category: String) -> void:
 	_current_category = category
@@ -182,14 +188,15 @@ func _refresh() -> void:
 				%ItemsList.add_child(_make_hero_row(hero))
 		return
 
-	var catalog := _current_catalog()
-	# Όλα τα αντικείμενα όλων των κατηγοριών του καταλόγου μαζί σε μία λίστα —
-	# δεν υπάρχουν πλέον υπο-κατηγορίες. Μόνο όσα ΚΑΤΕΧΕΙ ο παίκτης (ο πλήρης
-	# κατάλογος με τα ακλείδωτα φαίνεται μόνο στο Shop).
-	for category in catalog.categories:
-		for id in catalog.get_items_in_category(category):
-			if catalog.is_owned(id):
-				%ItemsList.add_child(_make_equipment_card(catalog, id))
+	# Όλα τα αντικείμενα όλων των κατηγοριών (ενδεχομένως >1 κατάλογος στο
+	# «Όπλα», βλ. _current_catalogs) μαζί σε μία λίστα — δεν υπάρχουν πλέον
+	# υπο-κατηγορίες. Μόνο όσα ΚΑΤΕΧΕΙ ο παίκτης (ο πλήρης κατάλογος με τα
+	# ακλείδωτα φαίνεται μόνο στο Shop).
+	for catalog in _current_catalogs():
+		for category in catalog.categories:
+			for id in catalog.get_items_in_category(category):
+				if catalog.is_owned(id):
+					%ItemsList.add_child(_make_equipment_card(catalog, id))
 
 # ═══════════════════════════════════════════════════════════════════════════
 # ΚΑΡΤΕΣ ΕΞΟΠΛΙΣΜΟΥ (WeaponInventory/ArmorInventory — αγορά μόνο από Shop,

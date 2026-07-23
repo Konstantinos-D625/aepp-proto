@@ -161,9 +161,9 @@ func refresh_auth() -> Dictionary:
 ## Αποσύνδεση — σβήνει το τοπικό session (το token του PocketBase είναι stateless).
 ##  • flush=true: ανεβάζει πρώτα την τελευταία αποθήκευση (πριν χαθεί το token),
 ##    ώστε μια αγορά μέσα στο παράθυρο debounce να μη χαθεί στην αποσύνδεση.
-##  • reset_local=true (Φάση 5, anti-cheat): μηδενίζει το ΤΟΠΙΚΟ save και
-##    ξαναφορτώνει το τρέχον scene από την αρχή, ώστε ο επόμενος παίκτης να ΜΗΝ
-##    κληρονομεί τα δεδομένα του αποσυνδεδεμένου (βλ. GameData.reset_to_new_game).
+##  • reset_local=true (Φάση 5, anti-cheat): μηδενίζει το ΤΟΠΙΚΟ save και γυρνά
+##    στην οθόνη «πρώτης εκκίνησης», ώστε ο επόμενος παίκτης να ΜΗΝ κληρονομεί
+##    τα δεδομένα του αποσυνδεδεμένου (βλ. GameData.reset_to_new_game).
 ## Το refresh-failure στην εκκίνηση καλεί logout(false, false): άκυρο token ή
 ## προσωρινά offline server ΔΕΝ πρέπει ΠΟΤΕ να σβήνει την τοπική πρόοδο.
 func logout(flush := true, reset_local := true) -> void:
@@ -175,10 +175,10 @@ func logout(flush := true, reset_local := true) -> void:
 	_save_session()
 	auth_changed.emit(false)
 	if reset_local:
-		# Καθάρισε το save ΠΡΙΝ το reload· το token έχει ήδη σβηστεί, οπότε οι
-		# `saved` εκπομπές του reset δεν θα κάνουν push (auto-push guard).
+		# Καθάρισε το save ΠΡΙΝ την αλλαγή scene· το token έχει ήδη σβηστεί, οπότε
+		# οι `saved` εκπομπές του reset δεν θα κάνουν push (auto-push guard).
 		GameData.reset_to_new_game()
-		get_tree().reload_current_scene()
+		get_tree().change_scene_to_file("res://Scenes/GenderSelect.tscn")
 
 
 # ═══════════════════════════════════════════════════════════════════════════

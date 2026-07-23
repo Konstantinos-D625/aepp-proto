@@ -43,6 +43,7 @@ var _grid: GridContainer
 var _tab_weapons: Button
 var _tab_armor: Button
 var _tab_characters: Button
+var _tab_friendship: Button
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
@@ -51,6 +52,7 @@ func _ready() -> void:
 	Currency.changed.connect(_update_currency_labels)
 	WeaponInventory.changed.connect(_on_equipment_changed)
 	ArmorInventory.changed.connect(_on_equipment_changed)
+	FriendshipInventory.changed.connect(_on_equipment_changed)
 	# Ανανέωση της καρτέλας Χαρακτήρων όταν αλλάζει το roster (π.χ. μετά από αγορά).
 	Heroes.changed.connect(_on_equipment_changed)
 
@@ -69,6 +71,8 @@ func _close() -> void:
 func _current_catalog() -> EquipmentCatalog:
 	if _category == "weapons":
 		return WeaponInventory
+	if _category == "friendship":
+		return FriendshipInventory
 	return ArmorInventory
 
 # ═══════════════════════════════════════════════════════════════
@@ -121,7 +125,7 @@ func _build_header() -> void:
 # / Heroes.HERO_DEFS), οπότε φαίνονται όλα στο strip ώστε ο παίκτης να ξέρει
 # πόσο έχει μαζέψει χωρίς να ανοίξει την Αποθήκη. Όχι Κλειδιά — δεν αφορούν
 # καθόλου το Shop. Ίδια σχετική σειρά με το Currency.ORDER.
-const STRIP_CURRENCIES: Array[String] = ["Χαλκός", "Δέρμα", "Σίδερο", "Κέρμα"]
+const STRIP_CURRENCIES: Array[String] = ["Χαλκός", "Δέρμα", "Σίδερο", "Κέρμα", "Κέρμα Φιλίας"]
 
 func _build_currency_strip(hdr: Control) -> void:
 	_currency_strip = Control.new()
@@ -249,19 +253,23 @@ func _build_tabs() -> void:
 	bar.add_theme_stylebox_override("panel", _sb(Color(0.048, 0.032, 0.015, 0.90), C0, 0))
 	add_child(bar)
 
-	# Τρία tabs στο πλάτος 1080 (~344 το καθένα), ύψος 116 — άνετος στόχος για
-	# δάχτυλο (τα παλιά 90 ήταν μόλις ~30dp).
-	_tab_weapons = _tab_button("⚔  ΟΠΛΑ", Vector2(16, 12), Vector2(344, 116))
+	# Τέσσερα tabs στο πλάτος 1080 (~256 το καθένα), ύψος 116 — άνετος στόχος
+	# για δάχτυλο (τα παλιά 90 ήταν μόλις ~30dp).
+	_tab_weapons = _tab_button("⚔  ΟΠΛΑ", Vector2(16, 12), Vector2(256, 116))
 	bar.add_child(_tab_weapons)
 	_tab_weapons.pressed.connect(func(): _set_category("weapons"))
 
-	_tab_armor = _tab_button("🛡  ΠΑΝΟΠΛΙΕΣ", Vector2(368, 12), Vector2(344, 116))
+	_tab_armor = _tab_button("🛡  ΠΑΝΟΠΛΙΕΣ", Vector2(280, 12), Vector2(256, 116))
 	bar.add_child(_tab_armor)
 	_tab_armor.pressed.connect(func(): _set_category("armor"))
 
-	_tab_characters = _tab_button("🧑  ΗΡΩΕΣ", Vector2(720, 12), Vector2(344, 116))
+	_tab_characters = _tab_button("🧑  ΗΡΩΕΣ", Vector2(544, 12), Vector2(256, 116))
 	bar.add_child(_tab_characters)
 	_tab_characters.pressed.connect(func(): _set_category("characters"))
+
+	_tab_friendship = _tab_button("🤝  ΦΙΛΙΑΣ", Vector2(808, 12), Vector2(256, 116))
+	bar.add_child(_tab_friendship)
+	_tab_friendship.pressed.connect(func(): _set_category("friendship"))
 
 	_update_tabs()
 
@@ -303,9 +311,10 @@ func _update_tabs() -> void:
 	_style_iron(_tab_weapons,    _category == "weapons")
 	_style_iron(_tab_armor,      _category == "armor")
 	_style_iron(_tab_characters, _category == "characters")
+	_style_iron(_tab_friendship, _category == "friendship")
 
 ## Η κάτω περιοχή (grid) ξεκινάει ακριβώς κάτω από τα tabs (Όπλα/Πανοπλίες/
-## Ήρωες) — δεν υπάρχει πλέον γραμμή υπο-κατηγοριών.
+## Ήρωες/Φιλίας) — δεν υπάρχει πλέον γραμμή υπο-κατηγοριών.
 func _layout_grid_area() -> void:
 	var top := HDR_H + TAB_H + 16
 	_scroll.position = Vector2(0, top)
@@ -322,7 +331,8 @@ func _refresh_grid() -> void:
 	# Όλα τα αντικείμενα όλων των κατηγοριών του καταλόγου μαζί — δεν υπάρχουν
 	# πλέον υπο-κατηγορίες. Τα αποκλειστικά τρόπαια boss (is_shop_hidden, π.χ.
 	# Bad Goblin Armor/Tree Magic Sphere) ΔΕΝ εμφανίζονται εδώ — παίρνονται
-	# ΜΟΝΟ νικώντας το αντίστοιχο boss (βλ. boss_fight.gd).
+	# ΜΟΝΟ νικώντας το αντίστοιχο boss (βλ. boss_fight.gd). Ίδιος βρόχος και
+	# για την καρτέλα «Φιλίας» (FriendshipInventory) — καμία ειδική περίπτωση.
 	for category in catalog.categories:
 		for id in catalog.get_items_in_category(category):
 			if catalog.is_shop_hidden(id):

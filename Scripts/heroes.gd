@@ -274,7 +274,11 @@ func hero_uid_holding_item(item_id: String) -> String:
 				return str(h["uid"])
 	return ""
 
-## Ποιο catalog (WeaponInventory/ArmorInventory) ανήκει ένα item id, ή null.
+## Ποιο catalog (WeaponInventory/ArmorInventory/FriendshipInventory) ανήκει
+## ένα item id, ή null. Το FriendshipInventory είναι εδώ ΜΟΝΟ για να δείχνει
+## το Shop τα στατιστικά του (display_item_buffs) — τα αντικείμενα φιλίας δεν
+## εξοπλίζονται σε ήρωα (κανένα hero "items" array δεν τα περιέχει ποτέ), οπότε
+## το item_stat_buffs() τους δεν επηρεάζει ποτέ στην πράξη την πραγματική ισχύ.
 func _catalog_for(item_id: String) -> EquipmentCatalog:
 	var cut := item_id.rfind("_")
 	if cut < 0:
@@ -284,6 +288,8 @@ func _catalog_for(item_id: String) -> EquipmentCatalog:
 		return WeaponInventory
 	if ArmorInventory.categories.has(cat):
 		return ArmorInventory
+	if FriendshipInventory.categories.has(cat):
+		return FriendshipInventory
 	return null
 
 ## Η ΜΟΝΑΔΙΚΗ μετατροπή item -> stat buff ΠΟΥ ΜΕΤΡΑΕΙ στην πραγματική ισχύ
@@ -319,11 +325,13 @@ func item_info(item_id: String) -> Dictionary:
 		"is_weapon": cat == WeaponInventory,
 	}
 
-## Όλα τα items (όπλα + πανοπλίες) που κατέχει ο παίκτης — για τον επιλογέα
-## items μέσα στο HeroSlotPopup.
+## Όλα τα items (όπλα + πανοπλίες + αντικείμενα φιλίας) που κατέχει ο
+## παίκτης — για τον επιλογέα items μέσα στο HeroSlotPopup. Τα 2 slots ενός
+## ήρωα είναι γενικά (καμία τυποποίηση weapon/armor, βλ. equip_item) — ό,τι
+## εμφανιστεί εδώ μπορεί να εξοπλιστεί σε οποιοδήποτε από τα δύο.
 func get_owned_items() -> Array:
 	var result: Array = []
-	for cat in [WeaponInventory, ArmorInventory]:
+	for cat in [WeaponInventory, ArmorInventory, FriendshipInventory]:
 		for category in cat.categories:
 			for id in cat.get_items_in_category(category):
 				if cat.is_owned(id):
