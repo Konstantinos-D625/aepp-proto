@@ -1,2 +1,3 @@
-res://Scripts/net.gd
 res://Scripts/friends_popup.gd
+res://Scripts/player_profile.gd
+res://Scripts/profile_popup.gd

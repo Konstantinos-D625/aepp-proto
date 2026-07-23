@@ -390,18 +390,18 @@ func _refresh() -> void:
 func _populate_stats() -> void:
 	# ΜΟΝΑΔΙΚΗ πηγή: το ίδιο δημόσιο προφίλ που θα στέλνεται στον server (Φάση 4).
 	var p := PlayerProfile.build_public_profile()
-	_list.add_child(_stat_row("🗺", "Κεφάλαιο", str(p["region_label"])))
-	_list.add_child(_stat_row("🔥", "Σερί (streak)", "%d ημέρες" % int(p["streak"])))
-	_list.add_child(_stat_row("💪", "Ισχύς Ομάδας", "%.1f / 20" % float(p["party_power"])))
-	_list.add_child(_stat_row("🧑", "Ήρωες", str(int(p["roster_size"]))))
-	_list.add_child(_stat_row("⚔", "Εξοπλισμός", str(int(p["gear_owned"]))))
-	_list.add_child(_stat_row("🏆", "Επιτεύγματα",
+	_list.add_child(_stat_row("chapter", "Κεφάλαιο", str(p["region_label"])))
+	_list.add_child(_stat_row("streak", "Σερί (streak)", "%d ημέρες" % int(p["streak"])))
+	_list.add_child(_stat_row("team_power", "Ισχύς Ομάδας", "%.1f / 20" % float(p["party_power"])))
+	_list.add_child(_stat_row("characters", "Ήρωες", str(int(p["roster_size"]))))
+	_list.add_child(_stat_row("weapons", "Εξοπλισμός", str(int(p["gear_owned"]))))
+	_list.add_child(_stat_row("achievements", "Επιτεύγματα",
 		"%d / %d" % [int(p["achievements_count"]), int(p["achievements_total"])]))
 
 	_list.add_child(_section_label("— Κατακτήσεις —"))
-	_list.add_child(_bool_row("👺", "Ζούμπας ο Καλικάντζαρος", bool(p["goblin_defeated"])))
-	_list.add_child(_bool_row("🌳", "Στοιχειωμένο Δέντρο", bool(p["tree_defeated"])))
-	_list.add_child(_bool_row("🔮", "Μόργκανα η Μάγισσα", bool(p["morgana_defeated"])))
+	_list.add_child(_bool_row("goblin", "Ζούμπας ο Καλικάντζαρος", bool(p["goblin_defeated"])))
+	_list.add_child(_bool_row("tree", "Στοιχειωμένο Δέντρο", bool(p["tree_defeated"])))
+	_list.add_child(_bool_row("witch", "Μόργκανα η Μάγισσα", bool(p["morgana_defeated"])))
 
 	# GDPR (Φάση 8): σημείωση απορρήτου + διαγραφή λογαριασμού — μόνο αν είσαι συνδεδεμένος.
 	if Net.is_logged_in():
@@ -430,18 +430,33 @@ func _populate_achievements() -> void:
 # ═══════════════════════════════════════════════════════════════════════════
 # ΓΡΑΜΜΕΣ / ΒΟΗΘΗΤΙΚΑ
 # ═══════════════════════════════════════════════════════════════════════════
-func _stat_row(icon: String, label: String, value: String, value_color: Color = C_GOLD) -> Control:
+## `icon_key`: κλειδί στο PlayerProfile.STAT_TEXTURE_ICONS/STAT_EMOJI_ICONS
+## (π.χ. "chapter", "streak") — δείχνει την ΠΡΑΓΜΑΤΙΚΗ εικόνα αν υπάρχει το
+## αρχείο, αλλιώς πέφτει πίσω στο emoji.
+func _stat_row(icon_key: String, label: String, value: String, value_color: Color = C_GOLD) -> Control:
 	var card := _row_card()
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 14)
 	card.add_child(row)
 
-	var ic := Label.new()
-	ic.text = icon
-	ic.add_theme_font_size_override("font_size", 30)
-	ic.custom_minimum_size = Vector2(46, 0)
-	ic.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	row.add_child(ic)
+	var icon_tex := PlayerProfile.get_stat_icon_texture(icon_key)
+	if icon_tex:
+		var ic := TextureRect.new()
+		ic.texture = icon_tex
+		# EXPAND_IGNORE_SIZE ΠΡΙΝ το custom_minimum_size — ίδια παγίδα με
+		# παντού αλλού (Currency/Heroes εικονίδια): αλλιώς το minimum size
+		# της υφής κλειδώνει το πλαίσιο στο φυσικό μέγεθος.
+		ic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		ic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		ic.custom_minimum_size = Vector2(40, 40)
+		row.add_child(ic)
+	else:
+		var ic := Label.new()
+		ic.text = str(PlayerProfile.STAT_EMOJI_ICONS.get(icon_key, "•"))
+		ic.add_theme_font_size_override("font_size", 30)
+		ic.custom_minimum_size = Vector2(46, 0)
+		ic.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		row.add_child(ic)
 
 	var l := Label.new()
 	l.text = label
@@ -458,8 +473,8 @@ func _stat_row(icon: String, label: String, value: String, value_color: Color = 
 	row.add_child(v)
 	return card
 
-func _bool_row(icon: String, label: String, done: bool) -> Control:
-	return _stat_row(icon, label, "Νικήθηκε ✓" if done else "Εκκρεμεί", C_OK if done else C_MUTED)
+func _bool_row(icon_key: String, label: String, done: bool) -> Control:
+	return _stat_row(icon_key, label, "Νικήθηκε ✓" if done else "Εκκρεμεί", C_OK if done else C_MUTED)
 
 func _ach_row(a: Dictionary) -> Control:
 	var unlocked: bool = bool(a.get("unlocked", false))

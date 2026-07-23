@@ -448,19 +448,19 @@ func _friend_row(rank: int, entry: Dictionary) -> PanelContainer:
 	name_l.add_theme_font_size_override("font_size", 30)
 	col.add_child(name_l)
 
-	var sub := Label.new()
-	sub.text = "🗺 %s   🔥 %d" % [str(entry.get("region_label", "—")), int(entry.get("streak", 0))]
-	sub.add_theme_color_override("font_color", C_MUTED)
-	sub.add_theme_font_size_override("font_size", 22)
+	var sub := HBoxContainer.new()
+	sub.add_theme_constant_override("separation", 10)
+	sub.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	col.add_child(sub)
+	sub.add_child(_mini_icon_label("chapter", str(entry.get("region_label", "—")), 22, C_MUTED))
+	sub.add_child(_mini_icon_label("streak", str(int(entry.get("streak", 0))), 22, C_MUTED))
 
-	var power_l := Label.new()
-	power_l.text = "💪 %.1f" % float(entry["power"])
-	power_l.custom_minimum_size = Vector2(100, 0)
-	power_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	power_l.add_theme_color_override("font_color", C_GOLD)
-	power_l.add_theme_font_size_override("font_size", 26)
-	row.add_child(power_l)
+	var power_box := HBoxContainer.new()
+	power_box.custom_minimum_size = Vector2(100, 0)
+	power_box.alignment = BoxContainer.ALIGNMENT_END
+	power_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	power_box.add_child(_mini_icon_label("team_power", "%.1f" % float(entry["power"]), 26, C_GOLD))
+	row.add_child(power_box)
 
 	if not is_me:
 		var rec: Dictionary = entry["rec"]
@@ -587,11 +587,12 @@ func _search_row(rec: Dictionary, relation: String) -> PanelContainer:
 	name_l.add_theme_font_size_override("font_size", 28)
 	col.add_child(name_l)
 
-	var sub := Label.new()
-	sub.text = "🗺 %s   🔥 %d" % [str(rec.get("region_label", "—")), int(rec.get("streak", 0))]
-	sub.add_theme_color_override("font_color", C_MUTED)
-	sub.add_theme_font_size_override("font_size", 22)
+	var sub := HBoxContainer.new()
+	sub.add_theme_constant_override("separation", 10)
+	sub.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	col.add_child(sub)
+	sub.add_child(_mini_icon_label("chapter", str(rec.get("region_label", "—")), 22, C_MUTED))
+	sub.add_child(_mini_icon_label("streak", str(int(rec.get("streak", 0))), 22, C_MUTED))
 
 	var btn := Button.new()
 	btn.custom_minimum_size = Vector2(150, 64)
@@ -698,6 +699,40 @@ func _hide_toast() -> void:
 	if _toast_tween != null and _toast_tween.is_valid():
 		_toast_tween.kill()
 	_toast.modulate.a = 0.0
+
+## Μικρό εικόνα+κείμενο ζεύγος (π.χ. [chapter_icon] Το Χωριό) — `key` είναι
+## κλειδί στο PlayerProfile.STAT_TEXTURE_ICONS/STAT_EMOJI_ICONS, ίδιο μοτίβο με
+## το profile_popup.gd (δείχνει την ΠΡΑΓΜΑΤΙΚΗ εικόνα αν υπάρχει το αρχείο,
+## αλλιώς emoji fallback).
+func _mini_icon_label(key: String, text: String, font_size: int, color: Color) -> Control:
+	var box := HBoxContainer.new()
+	box.add_theme_constant_override("separation", 4)
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	var icon_tex := PlayerProfile.get_stat_icon_texture(key)
+	if icon_tex:
+		var icon := TextureRect.new()
+		icon.texture = icon_tex
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.custom_minimum_size = Vector2(font_size, font_size)
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		box.add_child(icon)
+	else:
+		var fallback := Label.new()
+		fallback.text = str(PlayerProfile.STAT_EMOJI_ICONS.get(key, "•"))
+		fallback.add_theme_font_size_override("font_size", font_size)
+		fallback.add_theme_color_override("font_color", color)
+		fallback.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		box.add_child(fallback)
+
+	var lbl := Label.new()
+	lbl.text = text
+	lbl.add_theme_font_size_override("font_size", font_size)
+	lbl.add_theme_color_override("font_color", color)
+	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(lbl)
+	return box
 
 func _clear_list() -> void:
 	for c in _list.get_children():

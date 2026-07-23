@@ -283,13 +283,7 @@ func _slot_plate(idx: int, unlocked: bool, hero: Dictionary, x: float, y: float)
 	_lbl(_grid_root, str(hero["name"]), Vector2(x, py + 6), Vector2(PW, 40),
 		 28, C_BONE, HORIZONTAL_ALIGNMENT_CENTER, Color(0,0,0,0.95), 2, 3)
 	var fin := Heroes.get_final_stats(hero)
-	var stats_line := "%s%d  %s%d  %s%d  %s%d" % [
-		Heroes.STAT_ICONS["HP"], fin["HP"],
-		Heroes.STAT_ICONS["Damage"], fin["Damage"],
-		Heroes.STAT_ICONS["Shield"], fin["Shield"],
-		Heroes.STAT_ICONS["AttackSpeed"], fin["AttackSpeed"]]
-	_lbl(_grid_root, stats_line, Vector2(x, py + 48), Vector2(PW, 34), 22,
-		 C_GOLD, HORIZONTAL_ALIGNMENT_CENTER)
+	_stat_row(_grid_root, fin, Vector2(x, py + 48), Vector2(PW, 34), 22, C_GOLD)
 
 # ─── card helpers (draw into _grid_root) ───────────────────────
 func _brackets(x: float, y: float, w: float, h: float, col: Color) -> void:
@@ -402,6 +396,48 @@ func _lbl(parent: Control, text: String, pos: Vector2, sz: Vector2, font_sz: int
 		l.add_theme_constant_override("shadow_offset_y", sy)
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	parent.add_child(l)
+
+## Γραμμή στατιστικών (εικόνα+αριθμός ανά stat) — ίδιο μοτίβο με το κόμμα κόστους
+## νομισμάτων του Shop, αλλά πάνω από Heroes.STAT_KEYS. Χρησιμοποιεί την
+## ΠΡΑΓΜΑΤΙΚΗ εικόνα κάθε στατιστικού (Heroes.get_stat_icon_texture) με emoji
+## ως fallback αν λείψει το PNG.
+func _stat_row(parent: Control, stats: Dictionary, pos: Vector2, sz: Vector2, font_sz: int, col: Color) -> void:
+	var box := HBoxContainer.new()
+	box.position  = pos
+	box.size      = sz
+	box.alignment = BoxContainer.ALIGNMENT_CENTER
+	box.add_theme_constant_override("separation", 6)
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(box)
+
+	for key in Heroes.STAT_KEYS:
+		if not stats.has(key):
+			continue
+		var tex := Heroes.get_stat_icon_texture(key)
+		if tex == null:
+			var fallback := Label.new()
+			fallback.text = str(Heroes.STAT_ICONS.get(key, "•"))
+			fallback.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+			fallback.add_theme_font_size_override("font_size", font_sz)
+			fallback.add_theme_color_override("font_color", col)
+			fallback.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			box.add_child(fallback)
+		else:
+			var icon := TextureRect.new()
+			icon.texture = tex
+			icon.expand_mode  = TextureRect.EXPAND_IGNORE_SIZE
+			icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			icon.custom_minimum_size = Vector2(font_sz + 4, font_sz + 4)
+			icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			box.add_child(icon)
+
+		var val_lbl := Label.new()
+		val_lbl.text = str(int(stats[key]))
+		val_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		val_lbl.add_theme_font_size_override("font_size", font_sz)
+		val_lbl.add_theme_color_override("font_color", col)
+		val_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		box.add_child(val_lbl)
 
 func _ornament(x: float, y: float, w: float) -> void:
 	var r := ColorRect.new()

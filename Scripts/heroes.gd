@@ -34,6 +34,14 @@ const STAT_LABELS := {
 const STAT_ICONS := {
 	"HP": "❤", "Damage": "⚔", "Shield": "🛡", "AttackSpeed": "⚡",
 }
+# Εικόνες στατιστικών (PNG) — προτιμώνται έναντι του emoji (STAT_ICONS) όπου
+# υπάρχει το αρχείο· ίδιο μοτίβο με Currency.TEXTURE_ICONS/get_icon_texture.
+const STAT_TEXTURE_ICONS := {
+	"HP": "res://Εικόνες/HP_icon.png",
+	"Damage": "res://Εικόνες/attack_icon.png",
+	"Shield": "res://Εικόνες/defence_icon.png",
+	"AttackSpeed": "res://Εικόνες/speed_icon.png",
+}
 const STAT_MIN := 1
 const STAT_MAX := 20
 
@@ -370,6 +378,15 @@ func get_final_stats(hero: Dictionary) -> Dictionary:
 ## ίδιος alpha-crop με boy/girl). Επιστρέφει null αν λείπει.
 func hero_texture(hero: Dictionary) -> Texture2D:
 	return GameData.get_cropped_texture(str(hero.get("avatar", "")))
+
+## Texture εικονιδίου ενός στατιστικού (attack/defence/speed/HP_icon.png), ή
+## null αν δεν έχει οριστεί/λείπει το αρχείο — τα UI που δείχνουν στατιστικά
+## πέφτουν τότε πίσω στο emoji (STAT_ICONS).
+func get_stat_icon_texture(key: String) -> Texture2D:
+	var path: String = STAT_TEXTURE_ICONS.get(key, "")
+	if path != "" and ResourceLoader.exists(path):
+		return load(path)
+	return null
 
 
 # ═══════════════════════════════════════════════════════════════════════════

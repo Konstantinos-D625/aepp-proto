@@ -235,16 +235,55 @@ func _price_chip(box: HBoxContainer, currency: String, amount: int, font_sz: int
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.add_child(icon)
 
-## Μία γραμμή κειμένου με ΟΛΑ τα stats ενός buffs Dictionary (π.χ. {"Damage":
-## 13, "AttackSpeed": 5} -> "⚔ 13   ⚡ 5"), σε σειρά Heroes.STAT_KEYS, με τα
-## ίδια εικονίδια/χρώματα με το Character stat panel — ώστε η κάρτα να δείχνει
-## ΟΛΑ όσα δίνει το αντικείμενο, όχι μόνο το πρωτεύον Επίθεση/Άμυνα.
-func _stat_line(buffs: Dictionary) -> String:
-	var parts: Array = []
+## Γραμμή στατιστικών (εικόνα+αριθμός ανά stat, π.χ. {"Damage": 13,
+## "AttackSpeed": 5} -> [attack_icon] 13   [speed_icon] 5), σε σειρά
+## Heroes.STAT_KEYS — ίδιο μοτίβο με _price_row/_price_chip, αλλά πάνω από τα
+## στατιστικά ενός ήρωα/αντικειμένου αντί για νομίσματα. Χρησιμοποιεί την
+## ΠΡΑΓΜΑΤΙΚΗ εικόνα κάθε στατιστικού (Heroes.get_stat_icon_texture) με emoji
+## ως fallback αν λείψει το PNG. Το `stats` dict καθορίζει ποια/πόσα φαίνονται
+## (π.χ. buffs αντικειμένου με 1-2 κλειδιά, ή τα πλήρη 4 stats ενός ήρωα).
+func _stat_row(parent: Control, stats: Dictionary, pos: Vector2, sz: Vector2, font_sz: int, col: Color) -> void:
+	var box := HBoxContainer.new()
+	box.position  = pos
+	box.size      = sz
+	box.alignment = BoxContainer.ALIGNMENT_CENTER
+	box.add_theme_constant_override("separation", 10)
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(box)
+
 	for key in Heroes.STAT_KEYS:
-		if buffs.has(key):
-			parts.append("%s %d" % [Heroes.STAT_ICONS[key], int(buffs[key])])
-	return "   ".join(parts)
+		if stats.has(key):
+			_stat_chip(box, key, int(stats[key]), font_sz, col)
+
+func _stat_chip(box: HBoxContainer, key: String, value: int, font_sz: int, col: Color) -> void:
+	var icon_tex := Heroes.get_stat_icon_texture(key)
+	if icon_tex == null:
+		var fallback := Label.new()
+		fallback.text = str(Heroes.STAT_ICONS.get(key, "•"))
+		fallback.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		fallback.add_theme_font_size_override("font_size", font_sz)
+		fallback.add_theme_color_override("font_color", col)
+		fallback.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		box.add_child(fallback)
+	else:
+		var icon := TextureRect.new()
+		icon.texture = icon_tex
+		# EXPAND_IGNORE_SIZE ΠΡΙΝ το custom_minimum_size — ίδια παγίδα με τα
+		# νομίσματα (βλ. _price_chip): αλλιώς το minimum size της υφής
+		# κλειδώνει το πλαίσιο στο φυσικό μέγεθος.
+		icon.expand_mode  = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.custom_minimum_size = Vector2(font_sz + 6, font_sz + 6)
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		box.add_child(icon)
+
+	var val_lbl := Label.new()
+	val_lbl.text = str(value)
+	val_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	val_lbl.add_theme_font_size_override("font_size", font_sz)
+	val_lbl.add_theme_color_override("font_color", col)
+	val_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(val_lbl)
 
 func _build_tabs() -> void:
 	var bar := Panel.new()
@@ -386,8 +425,8 @@ func _make_equipment_card(catalog: EquipmentCatalog, id: String) -> Control:
 	# ΟΛΑ τα stats που δίνει το αντικείμενο όταν εξοπλιστεί (όχι μόνο το
 	# πρωτεύον Επίθεση/Άμυνα του καταλόγου) — π.χ. ένα όπλο δείχνει Damage ΚΑΙ
 	# AttackSpeed αν δίνει και τα δύο. Βλ. Heroes.display_item_buffs.
-	_lbl(card, _stat_line(Heroes.display_item_buffs(id)),
-		 Vector2(20, 312), Vector2(CARD_W - 40, 40), 28, C_SILVER, HORIZONTAL_ALIGNMENT_CENTER)
+	_stat_row(card, Heroes.display_item_buffs(id),
+		 Vector2(20, 312), Vector2(CARD_W - 40, 40), 28, C_SILVER)
 
 	# Χωρίς αναβαθμίσεις (κανένα catalog δεν είναι πλέον upgradable) δεν έχει
 	# νόημα να δείχνεται "Επίπεδο x/3" — απλό "Κατοχή".
@@ -456,12 +495,7 @@ func _make_hero_card(def: Dictionary) -> Control:
 	# Τα ΣΤΑΘΕΡΑ stats που θα πάρει ο παίκτης (Heroes.get_hero_stats — ίδια
 	# πάντα, βλ. HERO_DEFS, οπότε η αγορά δίνει ΑΚΡΙΒΩΣ αυτά).
 	var st := Heroes.get_hero_stats(str(def["id"]))
-	_lbl(card, "%s %d   %s %d   %s %d   %s %d" % [
-			Heroes.STAT_ICONS["HP"], int(st["HP"]),
-			Heroes.STAT_ICONS["Damage"], int(st["Damage"]),
-			Heroes.STAT_ICONS["Shield"], int(st["Shield"]),
-			Heroes.STAT_ICONS["AttackSpeed"], int(st["AttackSpeed"])],
-		 Vector2(12, 312), Vector2(CARD_W - 24, 44), 28, C_GOLD, HORIZONTAL_ALIGNMENT_CENTER)
+	_stat_row(card, st, Vector2(12, 312), Vector2(CARD_W - 24, 44), 28, C_GOLD)
 	if owned:
 		_lbl(card, "Στο ρόστερ σου", Vector2(20, 358), Vector2(CARD_W - 40, 44),
 			 30, C_SILVER, HORIZONTAL_ALIGNMENT_CENTER)

@@ -207,8 +207,22 @@ func _build_portrait_and_stats(hero: Dictionary, y: float) -> void:
 
 ## Μία γραμμή stat: εικονίδιο+όνομα, μπάρα (final/20), και «base (+buff)».
 func _stat_row(x: float, y: float, w: float, key: String, base_v: int, buff_v: int, final_v: int) -> void:
-	_label(_content, "%s %s" % [Heroes.STAT_ICONS[key], Heroes.STAT_LABELS[key]],
-		Vector2(x, y), Vector2(w, 34), 24, C_BONE, HORIZONTAL_ALIGNMENT_LEFT)
+	const ICON_SZ := 28.0
+	var tex := Heroes.get_stat_icon_texture(key)
+	if tex != null:
+		var icon := TextureRect.new()
+		icon.texture = tex
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.position = Vector2(x, y + 3)
+		icon.size = Vector2(ICON_SZ, ICON_SZ)
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_content.add_child(icon)
+		_label(_content, Heroes.STAT_LABELS[key], Vector2(x + ICON_SZ + 8, y), Vector2(w - ICON_SZ - 8, 34),
+			24, C_BONE, HORIZONTAL_ALIGNMENT_LEFT)
+	else:
+		_label(_content, "%s %s" % [Heroes.STAT_ICONS[key], Heroes.STAT_LABELS[key]],
+			Vector2(x, y), Vector2(w, 34), 24, C_BONE, HORIZONTAL_ALIGNMENT_LEFT)
 	var val_text := str(base_v)
 	if buff_v > 0:
 		val_text += "  (+%d)" % buff_v

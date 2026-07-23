@@ -276,12 +276,7 @@ func _make_equipment_card(catalog: EquipmentCatalog, id: String) -> Control:
 
 	# ΟΛΑ τα stats που δίνει το αντικείμενο εξοπλισμένο (όχι μόνο το πρωτεύον
 	# Επίθεση/Άμυνα του καταλόγου) — βλ. Heroes.display_item_buffs.
-	var stat_row_label := Label.new()
-	stat_row_label.text = _stat_line(Heroes.display_item_buffs(id))
-	stat_row_label.add_theme_color_override("font_color", C_GOLD)
-	stat_row_label.add_theme_font_size_override("font_size", 26)
-	stat_row_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	info.add_child(stat_row_label)
+	info.add_child(_stat_row(Heroes.display_item_buffs(id), 26, C_GOLD))
 
 	if catalog.upgradable:
 		info.add_child(_make_upgrade_row(catalog, id))
@@ -323,16 +318,7 @@ func _make_hero_row(hero: Dictionary) -> Control:
 	info.add_child(name_label)
 
 	var fin := Heroes.get_final_stats(hero)
-	var stats_label := Label.new()
-	stats_label.text = "%s %d   %s %d   %s %d   %s %d" % [
-		Heroes.STAT_ICONS["HP"], fin["HP"],
-		Heroes.STAT_ICONS["Damage"], fin["Damage"],
-		Heroes.STAT_ICONS["Shield"], fin["Shield"],
-		Heroes.STAT_ICONS["AttackSpeed"], fin["AttackSpeed"]]
-	stats_label.add_theme_color_override("font_color", C_GOLD)
-	stats_label.add_theme_font_size_override("font_size", 26)
-	stats_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	info.add_child(stats_label)
+	info.add_child(_stat_row(fin, 26, C_GOLD))
 
 	return card
 
@@ -425,16 +411,48 @@ func _refund_chip(currency: String, amount: int) -> Control:
 	box.add_child(icon)
 	return box
 
-## Μία γραμμή κειμένου με ΟΛΑ τα stats ενός buffs Dictionary (π.χ. {"Damage":
-## 13, "AttackSpeed": 5} -> "⚔ 13   ⚡ 5"), σε σειρά Heroes.STAT_KEYS — ίδιο
-## helper με το shop_popup.gd (δεν υπάρχει κοινό UI-utils module, κάθε popup
-## κρατά τα δικά του μικρά format helpers, ίδιο μοτίβο με το υπόλοιπο codebase).
-func _stat_line(buffs: Dictionary) -> String:
-	var parts: Array = []
+## Γραμμή στατιστικών (εικόνα+αριθμός ανά stat) — ίδιο μοτίβο με _refund_chip,
+## αλλά πάνω από Heroes.STAT_KEYS αντί για Currency.ORDER. Το `stats` dict
+## καθορίζει ποια/πόσα φαίνονται (buffs αντικειμένου με 1-2 κλειδιά, ή τα
+## πλήρη 4 stats ενός ήρωα).
+func _stat_row(stats: Dictionary, font_size: int, color: Color) -> Control:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 10)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	for key in Heroes.STAT_KEYS:
-		if buffs.has(key):
-			parts.append("%s %d" % [Heroes.STAT_ICONS[key], int(buffs[key])])
-	return "   ".join(parts)
+		if stats.has(key):
+			row.add_child(_stat_chip(key, int(stats[key]), font_size, color))
+	return row
+
+func _stat_chip(key: String, value: int, font_size: int, color: Color) -> Control:
+	var box := HBoxContainer.new()
+	box.add_theme_constant_override("separation", 4)
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	var tex := Heroes.get_stat_icon_texture(key)
+	if tex == null:
+		var fallback := Label.new()
+		fallback.text = str(Heroes.STAT_ICONS.get(key, "•"))
+		fallback.add_theme_font_size_override("font_size", font_size)
+		fallback.add_theme_color_override("font_color", color)
+		fallback.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		box.add_child(fallback)
+	else:
+		var icon := TextureRect.new()
+		icon.texture = tex
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.custom_minimum_size = Vector2(font_size + 4, font_size + 4)
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		box.add_child(icon)
+
+	var lbl := Label.new()
+	lbl.text = str(value)
+	lbl.add_theme_font_size_override("font_size", font_size)
+	lbl.add_theme_color_override("font_color", color)
+	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(lbl)
+	return box
 
 ## Βάζει την ΠΡΑΓΜΑΤΙΚΗ εικόνα του Χαλκού (copper.png) δίπλα στο κείμενο του
 ## κουμπιού, αντί για το παλιό emoji "🪙" — που είναι ΧΡΥΣΟ νόμισμα, ενώ χρυσός

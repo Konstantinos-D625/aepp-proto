@@ -1,5 +1,5 @@
 9cad1ddce9e5a63143ba340c9520626b
-::res://::1784805797
+::res://::1784811272
 bakery_quiz.json::JSON::-1::1784710015::0::1::::<><><>0<>0<><>::
 blacksmith_exercises.json::JSON::-1::1784799642::0::1::::<><><>0<>0<><>::
 blacksmith_quiz.json::JSON::-1::1782986437::0::1::::<><><>0<>0<><>::
@@ -101,7 +101,7 @@ ProfilePopup.tscn::PackedScene::6440956095888245096::1784550720::0::1::::<><><>0
 RoomImagePopup.tscn::PackedScene::-1::1783429359::0::1::::<><><>0<>0<><>::res://Scripts/room_image_popup.gd<>res://Scenes/FoundKeyPopup.tscn
 ShopPopup.tscn::PackedScene::3419947777078795157::1782980430::0::1::::<><><>0<>0<><>::res://Scripts/shop_popup.gd
 WitchMapPopup.tscn::PackedScene::45936093021815432::1784241937::0::1::::<><><>0<>0<><>::uid://cppltoqha00cc::::res://Scripts/witch_map_popup.gd<>uid://bo3revpnfp643::::res://Εικόνες/witch_map.png
-::res://Scripts/::1784805469
+::res://Scripts/::1784813308
 achievements.gd::GDScript::4602972129006798931::1784799642::0::1::::<>Node<><>0<>0<><>::
 alchemy_popup.gd::GDScript::5692750439646174258::1784708413::0::1::::<>Control<><>0<>0<><>::
 armor_inventory.gd::GDScript::4943718543629863539::1784635076::0::1::::<>Node<><>0<>0<><>::
@@ -115,7 +115,7 @@ boss_popup.gd::GDScript::8776902047286408081::1784287139::0::1::::<>Control<><>0
 botanist_popup.gd::GDScript::1445750158024431413::1784708413::0::1::::<>Control<><>0<>0<><>::
 cartographer_popup.gd::GDScript::239351488849523937::1784708413::0::1::::<>Control<><>0<>0<><>::
 castle_popup.gd::GDScript::1212796840026451031::1784636400::0::1::::<>Control<><>0<>0<><>::
-CharacterSelect.gd::GDScript::5716850399735152383::1784191042::0::1::::<>Panel<><>0<>0<><>::
+CharacterSelect.gd::GDScript::5716850399735152383::1784811048::0::1::::<>Panel<><>0<>0<><>::
 chat_popup.gd::GDScript::7850656079580871027::1784799642::0::1::::<>Control<><>0<>0<><>::
 clans_popup.gd::GDScript::2654521755718060909::1784799642::0::1::::<>Control<><>0<>0<><>::
 condition_key_popup.gd::GDScript::8472912507788045150::1784636847::0::1::::<>Control<><>0<>0<><>::
@@ -128,14 +128,14 @@ equipment_catalog.gd::GDScript::8220899368612002966::1784799642::0::1::::Equipme
 exercise_popup.gd::GDScript::4413751119549013950::1783430263::0::1::::<>Control<><>0<>0<><>::
 found_key_popup.gd::GDScript::8012495537441729554::1784635142::0::1::::<>Control<><>0<>0<><>::
 friendship_inventory.gd::GDScript::2547813308413733881::1784804316::0::1::::<>Node<><>0<>0<><>::
-friends_popup.gd::GDScript::8613635682644664157::1784805398::0::1::::<>Control<><>0<>0<><>::
+friends_popup.gd::GDScript::8613635682644664157::1784813308::0::1::::<>Control<><>0<>0<><>::
 GameData.gd::GDScript::7281786025913595614::1784805190::0::1::::<>Node<><>0<>0<><>::
 gnome_popup.gd::GDScript::6327436408539605330::1784024764::0::1::::<>Control<><>0<>0<><>::
-heroes.gd::GDScript::6184848438944181353::1784804301::0::1::::<>Node<><>0<>0<><>::
-hero_slot_popup.gd::GDScript::1976868662772412618::1784631241::0::1::::HeroSlotPopup<>Control<><>0<>0<><>::
+heroes.gd::GDScript::6184848438944181353::1784810837::0::1::::<>Node<><>0<>0<><>::
+hero_slot_popup.gd::GDScript::1976868662772412618::1784811087::0::1::::HeroSlotPopup<>Control<><>0<>0<><>::
 innkeeper_popup.gd::GDScript::8928826371840808870::1784708413::0::1::::<>Control<><>0<>0<><>::
 inventory_data.gd::GDScript::3332798620403996391::1784799642::0::1::::<>Node<><>0<>0<><>::
-inventory_popup.gd::GDScript::4053288783231927979::1784804284::0::1::::<>Control<><>0<>0<><>::
+inventory_popup.gd::GDScript::4053288783231927979::1784811158::0::1::::<>Control<><>0<>0<><>::
 key_drop_zone.gd::GDScript::3643484733162168551::1783429359::0::1::::<>Panel<><>0<>0<><>::
 key_inventory.gd::GDScript::549379175661400944::1784799642::0::1::::<>Node<><>0<>0<><>::
 key_token.gd::GDScript::7472227817666806628::1783429359::0::1::::<>Button<><>0<>0<><>::
@@ -145,14 +145,14 @@ MatchDragItem.gd::GDScript::7471654915675482530::1784293421::0::1::::MatchDragIt
 MatchingQuizManager.gd::GDScript::8936308416369787290::1783424314::0::1::::MatchingQuizManager<>RefCounted<><>0<>0<><>::
 miner_popup.gd::GDScript::3248297179168208394::1784293421::0::1::::<>Control<><>0<>0<><>::
 mini_boss_popup.gd::GDScript::7775751994260464204::1784711044::0::1::::<>Control<><>0<>0<><>::
-net.gd::GDScript::1982023271812240650::1784805469::0::1::::<>Node<><>0<>0<><>::
+net.gd::GDScript::1982023271812240650::1784806847::0::1::::<>Node<><>0<>0<><>::
 old_man_popup.gd::GDScript::8859547473265482108::1784630143::0::1::::<>Control<><>0<>0<><>::
 OptionsMenu.gd::GDScript::727246842236017652::1782980430::0::1::::<>Panel<><>0<>0<><>::
-player_profile.gd::GDScript::8200953446782244452::1784805200::0::1::::<>Node<><>0<>0<><>::
-profile_popup.gd::GDScript::9046519275355994529::1784799642::0::1::::<>Control<><>0<>0<><>::
+player_profile.gd::GDScript::8200953446782244452::1784813167::0::1::::<>Node<><>0<>0<><>::
+profile_popup.gd::GDScript::9046519275355994529::1784813229::0::1::::<>Control<><>0<>0<><>::
 QuizManager.gd::GDScript::1747317443515993810::1784287139::0::1::::QuizManager<>RefCounted<><>0<>0<><>::
 room_image_popup.gd::GDScript::5478719028964953031::1784635153::0::1::::<>Control<><>0<>0<><>::
-shop_popup.gd::GDScript::3475271302785549210::1784803554::0::1::::<>Control<><>0<>0<><>::
+shop_popup.gd::GDScript::3475271302785549210::1784810933::0::1::::<>Control<><>0<>0<><>::
 weapon_inventory.gd::GDScript::1336859417518328041::1784635076::0::1::::<>Node<><>0<>0<><>::
 witch_map_popup.gd::GDScript::5857342265635040850::1784242617::0::1::::<>Control<><>0<>0<><>::
 ::res://server/::1784800834
@@ -160,7 +160,7 @@ CHANGELOG.md::TextFile::-1::1784458722::0::1::::<><><>0<>0<><>::
 LICENSE.md::TextFile::-1::1784458722::0::1::::<><><>0<>0<><>::
 pb_serve.log::TextFile::-1::1784716398::0::1::::<><><>0<>0<><>::
 README.md::TextFile::-1::1784716498::0::1::::<><><>0<>0<><>::
-::res://server/pb_data/::1784804581
+::res://server/pb_data/::1784812805
 ::res://server/pb_data/backups/::1784710956
 ::res://server/pb_data/storage/::1784550090
 ::res://server/pb_migrations/::1784805237
@@ -194,12 +194,14 @@ friendship_glove.png::CompressedTexture2D::3877861904052654641::1784802894::1784
 friendship_cloak.png::CompressedTexture2D::4922456417328207862::1784803040::1784803910::1::::<><><>0<>0<>1639d75a9fa6e51579db67363a5337e5<>res://.godot/imported/friendship_cloak.png-a8706fbce844dcb7a6676369e4b26e36.ctex::
 ::res://Αντικείμενα Φιλίας/Ραβδί/::1784803910
 friendship_wand.png::CompressedTexture2D::6505443061111676187::1784802089::1784803910::1::::<><><>0<>0<>d83ea1dee13f0f435184d81ce489ea2b<>res://.godot/imported/friendship_wand.png-fd17e56af06f3599e085b6b26bfac981.ctex::
-::res://Εικόνες/::1784802306
+::res://Εικόνες/::1784813086
+achievements_icon.png::CompressedTexture2D::6092599786767766726::1784812213::1784813380::1::::<><><>0<>0<>33ed6f0ee8ec38106df34fac5bc2ed3c<>res://.godot/imported/achievements_icon.png-297b2b1dc010adb97080e3e2d53922d1.ctex::
 alch.bg2.png::CompressedTexture2D::3871464102211351926::1784709960::1784710013::1::::<><><>0<>0<>33af9efbe6c35cdc0cbac9288318e8d8<>res://.godot/imported/alch.bg2.png-900837ef2838af4dba21d63480eba085.ctex::
 alch.bg.png::CompressedTexture2D::6449579438259546737::1784709954::1784710013::1::::<><><>0<>0<>45df4abe6e01cd131a35096a8b0879b3<>res://.godot/imported/alch.bg.png-490f38193f05959b94b17ddcbc849d83.ctex::
 archer_frog.png::CompressedTexture2D::6501876379542328522::1784191851::1784192744::1::::<><><>0<>0<>d8c18ddfc03c2c76aed8886621e3e039<>res://.godot/imported/archer_frog.png-d22408b48f25fd811d71caad1400c17a.ctex::
 armor.png::CompressedTexture2D::4396914478175038623::1782980431::1782980431::1::::<><><>0<>0<>b7dee98b125b6b9985a77da376305a5a<>res://.godot/imported/armor.png-466a34db8939a84d2c689eade312c7f6.ctex::
 armory.png::CompressedTexture2D::6324612726790246304::1783429230::1783430623::1::::<><><>0<>0<>a9a779bc0fa58e65339ddcdac49a48fa<>res://.godot/imported/armory.png-a2785dbc26f80a8aea8558e767eb4ee2.ctex::
+attack_icon.png::CompressedTexture2D::8625309335935173886::1784809653::1784810506::1::::<><><>0<>0<>4f82d2f7907771cf20c2cc0a2300e75e<>res://.godot/imported/attack_icon.png-dcdb079de47063650b050f292458b271.ctex::
 avatar.png::CompressedTexture2D::8389726529632551840::1783073756::1783073793::1::::<><><>0<>0<>1cb2c1ee284e1995db15ba5c0187ecd6<>res://.godot/imported/avatar.png-7de7efcd3aff5d8a204923617c233fd2.ctex::
 bad_goblin.png::CompressedTexture2D::3287835147324943904::1784189638::1784208489::1::::<><><>0<>0<>7a8a90c3bdd8ececae0b149b669ea999<>res://.godot/imported/bad_goblin.png-3545b2c1b0ce25457ed539eff71e3b72.ctex::
 bad_goblin_bg.png::CompressedTexture2D::8810724998073088196::1784190186::1784208489::1::::<><><>0<>0<>8b91b56d8a73a7e73345d5930084b8f8<>res://.godot/imported/bad_goblin_bg.png-395c471c90865ac7d9f9b8b185736a5e.ctex::
@@ -222,7 +224,9 @@ castle.png::CompressedTexture2D::6902645727542780342::1783429231::1783430623::1:
 castle_closed.png::CompressedTexture2D::5681541170059234351::1783585091::1783430622::1::::<><><>0<>0<>65ba5dd88eaa158d024de7f84ab5d76a<>res://.godot/imported/castle_closed.png-1c8c84db90bec2b55af31cc106f43ec4.ctex::
 cellar.png::CompressedTexture2D::7041352556409853738::1783585091::1783585104::1::::<><><>0<>0<>799f975443956ea95ddf3eb97b6764a0<>res://.godot/imported/cellar.png-bcc679feed590afd474340c4285953f6.ctex::
 chapel.png::CompressedTexture2D::265941855072747517::1783429230::1783430623::1::::<><><>0<>0<>7d53ce50b7f986d7ec33b56bb9c67238<>res://.godot/imported/chapel.png-1086e56cb98947b6598bdebd02c61d4c.ctex::
+chapter_icon.png::CompressedTexture2D::462551564656699386::1784811643::1784813381::1::::<><><>0<>0<>4ad84fa518d42738ab334badf444aba6<>res://.godot/imported/chapter_icon.png-1105266442e04523720124263ad76e57.ctex::
 char.png::CompressedTexture2D::2786302757163484239::1784025317::1784103380::1::::<><><>0<>0<>ccf665cedc52b3f6b52942a0074fc656<>res://.godot/imported/char.png-280022c2dda9f222c3f3dbd3a1b2f007.ctex::
+characters_icon.png::CompressedTexture2D::6319563840858623524::1784812061::1784813380::1::::<><><>0<>0<>c5a11d265943ebd6bfea304a0479a172<>res://.godot/imported/characters_icon.png-1ddb6fb12d71696a0abaa1c512a79e03.ctex::
 charto.bg2.png::CompressedTexture2D::3000923189692483088::1784709790::1784710013::1::::<><><>0<>0<>df3f454d1c7172e4bba507a9f6afb798<>res://.godot/imported/charto.bg2.png-5963794817380eb3e8cb10fd61bafe44.ctex::
 charto.bg.png::CompressedTexture2D::7848168604326375515::1784709781::1784710013::1::::<><><>0<>0<>629c1d7cd9b93a36439b1c213ccb24ae<>res://.godot/imported/charto.bg.png-772f379481f9957d4e78ba6245424908.ctex::
 chestplate.png::CompressedTexture2D::3061414252111046112::1783074095::1783074620::1::::<><><>0<>0<>b13782096631e92f9a4fbc466d3a6de8<>res://.godot/imported/chestplate.png-640876dbab00f3c4e41241c683907bcd.ctex::
@@ -231,6 +235,7 @@ copper.png::CompressedTexture2D::5329745879976844375::1784023957::1784024571::1:
 cottonman.png::CompressedTexture2D::3516148048958045177::1782980431::1782980449::1::::<><><>0<>0<>68da662d299ce81b9baaeb7222704d17<>res://.godot/imported/cottonman.png-de6044ec6d90c85aa94a28620a729c75.ctex::
 curse_spell.png::CompressedTexture2D::9207466088063450349::1783680995::1783681233::1::::<><><>0<>0<>01b0cd043a2c087b30287fb4154df74b<>res://.godot/imported/curse_spell.png-7932b0e6c79d0fa4319c64b9d8b4f14a.ctex::
 de.area.bg.png::CompressedTexture2D::9215373796213468251::1784709796::1784710013::1::::<><><>0<>0<>b6ae2ec3d8c0825b95c36a4cb0a292a2<>res://.godot/imported/de.area.bg.png-663a7c4d9d97c1746eb555cdb87fe8c2.ctex::
+defence_icon.png::CompressedTexture2D::8291780177211043384::1784809768::1784810506::1::::<><><>0<>0<>9e85d7fea26934f0b451054fe277af53<>res://.godot/imported/defence_icon.png-dbd37d2eeb6d2d4b9717a06da1b558dd.ctex::
 dq.png::CompressedTexture2D::8849636931554026051::1784025317::1784103380::1::::<><><>0<>0<>8c2edf23bf913881b5323da49cb4ae18<>res://.godot/imported/dq.png-270211066651c50fbfdf3332e130e205.ctex::
 dungeons.png::CompressedTexture2D::8780904688376643953::1783585091::1783585104::1::::<><><>0<>0<>3894f23ab72473622ec9d40ee6fbf3eb<>res://.godot/imported/dungeons.png-d6af67ba49e3d04eed20ebb43bd504f3.ctex::
 ep.area.bg.png::CompressedTexture2D::5768487824161000091::1784709805::1784710014::1::::<><><>0<>0<>242abcd9a66efbf7ed21bb75383d3467<>res://.godot/imported/ep.area.bg.png-a9e2e33dc3b18c63d332fda558c158b9.ctex::
@@ -247,6 +252,7 @@ girl.png::CompressedTexture2D::4567686063232668508::1784025317::1784026925::1:::
 gnome-bg.png::CompressedTexture2D::7783039853084223282::1783944673::1783944755::1::::<><><>0<>0<>1dc3d125fbfab3cb3a5020b1b4449ed6<>res://.godot/imported/gnome-bg.png-1cf4b0797827355f63afa128c5321843.ctex::
 gnome-house.png::CompressedTexture2D::60013768176261365::1783944287::1783946099::1::::<><><>0<>0<>7ff464bbe434a3213e1e619c76a18d4d<>res://.godot/imported/gnome-house.png-cbaa037f2409429915052b40f3ac6090.ctex::
 gnome.png::CompressedTexture2D::3868614787280887025::1783944517::1783944755::1::::<><><>0<>0<>97b36ba5e5e54f0c860b072fd13fe379<>res://.godot/imported/gnome.png-1984fffbb1313b20c0e7647c5d10ec2f.ctex::
+goblin_icon.png::CompressedTexture2D::4284471320824191102::1784812376::1784813380::1::::<><><>0<>0<>621e97edcf0281a7fffb3239e192ac6d<>res://.godot/imported/goblin_icon.png-2ae61b00e143e2ed42a90727a9675e40.ctex::
 great_hall.png::CompressedTexture2D::7442935350364107559::1783585091::1783585104::1::::<><><>0<>0<>fd4bab0aa804069661f85a188089aa76<>res://.godot/imported/great_hall.png-8a9adfd0af90598b85b505f34201d13e.ctex::
 green-orb.png::CompressedTexture2D::3504658815731801834::1783412991::1783413851::1::::<><><>0<>0<>ef322ea32b9d42a8e677b3b2e6363a59<>res://.godot/imported/green-orb.png-f6f2e3a14eaaa3cd2839858cf928b277.ctex::
 helmet.png::CompressedTexture2D::2053793339810810907::1783073846::1783074620::1::::<><><>0<>0<>36bc67d0f86b060f056d4057bf89a9a9<>res://.godot/imported/helmet.png-e77409f890dcd6a3a48a0d6338f2a4e9.ctex::
@@ -256,6 +262,7 @@ house3.png::CompressedTexture2D::5615390780426621887::1782980431::1782980447::1:
 house4.png::CompressedTexture2D::1948789741503830718::1782980431::1782980447::1::::<><><>0<>0<>2daf6a8ba47061c450224dd34f7de12d<>res://.godot/imported/house4.png-ddde3d28f8dfd8f2a48de4115569059b.ctex::
 house11.png::CompressedTexture2D::5721762162716962353::1782980431::1782980447::1::::<><><>0<>0<>f4d2a43754cb29060f46001c71c0477a<>res://.godot/imported/house11.png-9dc3d2802decd7bf511efebf3cb44f92.ctex::
 house22.png::CompressedTexture2D::6801777409018761250::1782980431::1782980447::1::::<><><>0<>0<>0a1ede6608e9d5520e7632b901af81cd<>res://.godot/imported/house22.png-35263b7252e67921824a36f1db777e54.ctex::
+HP_icon.png::CompressedTexture2D::2999505614341410639::1784810344::1784810506::1::::<><><>0<>0<>18dc376d5319e95b5177d28b0c22e1f5<>res://.godot/imported/HP_icon.png-5a4cfdbb5c39b50b76d69b4d7b72cb74.ctex::
 Inventory1.png::CompressedTexture2D::5240026811545397193::1784025315::1784103379::1::::<><><>0<>0<>f5d2135c5d9051caa8d63c56c8e94d5b<>res://.godot/imported/Inventory1.png-25dc13094166307b705165c9b2110c83.ctex::
 iron.png::CompressedTexture2D::4241249429015011170::1784024086::1784024571::1::::<><><>0<>0<>324192baf3bff86edaa1002cdf01db20<>res://.godot/imported/iron.png-771cb9fa54ca08ae3e4a28b7e0c5c850.ctex::
 Jun 28, 2026, 04_25_46 PM.png::CompressedTexture2D::1816064027197564036::1782980431::1782980449::1::::<><><>0<>0<>a942ace87db551297f65003bcac84151<>res://.godot/imported/Jun 28, 2026, 04_25_46 PM.png-cdd6cabf8573c504cff9211e9a87d4b5.ctex::
@@ -289,14 +296,20 @@ shield.png::CompressedTexture2D::8829992543328256973::1783680995::1783681233::1:
 Shop_Image.png::CompressedTexture2D::8963091960194278219::1782980431::1782980431::1::::<><><>0<>0<>739e7b45d1bb597b2d28eb0f7d048dd1<>res://.godot/imported/Shop_Image.png-d5ee16416bec713052f7ee7ce40a4310.ctex::
 sidebar.png::CompressedTexture2D::5624810131506267570::1784025319::1784103380::1::::<><><>0<>0<>8ea63dc614c35ef216c3f93f4235c376<>res://.godot/imported/sidebar.png-aab4f4c6a5de54af6d18f248f8ef7eef.ctex::
 sideq.png::CompressedTexture2D::8369161167023668902::1782980431::1782980447::1::::<><><>0<>0<>3bb2b1f6e344ef5128a3159b947c78d7<>res://.godot/imported/sideq.png-f5820220cfafe5481a9a0f21f86b08c3.ctex::
+speed_icon.png::CompressedTexture2D::8447119263900932943::1784809986::1784810506::1::::<><><>0<>0<>2db24dded68821c9d16df34ddb6f73a4<>res://.godot/imported/speed_icon.png-613d3002de2831f10eb71f6bfe12cccf.ctex::
 streak.png::CompressedTexture2D::8597605168906076239::1782980431::1782980447::1::::<><><>0<>0<>fa8a321d6741a94f06e4e44d1cd5d362<>res://.godot/imported/streak.png-e3ebbc89efc8602cdac986a30f1d0b54.ctex::
 streak_flame.png::CompressedTexture2D::3725044432675110322::1784293421::1784293428::1::::<><><>0<>0<>97de7a131071f78ea0bdd8194b644fd1<>res://.godot/imported/streak_flame.png-a0454f39a1f5f8683303173dea0c4dc8.ctex::
+streak_icon.png::CompressedTexture2D::7156108329566836657::1784811717::1784813380::1::::<><><>0<>0<>ce0302cf83c4da8c5d1064a42e3709ea<>res://.godot/imported/streak_icon.png-c6da3c323249a27715f718de7776324b.ctex::
 sword.png::CompressedTexture2D::6048526040080834457::1782980431::1782980431::1::::<><><>0<>0<>2826fc925433fc51a536bf7b8f8d7c44<>res://.godot/imported/sword.png-ad42f2d68162b83e22d3973f44d31a0c.ctex::
 sword_avatar.png::CompressedTexture2D::7998494461649364264::1782991043::1782992215::1::::<><><>0<>0<>9083e3fa2a676da0f2cba7a6dd289498<>res://.godot/imported/sword_avatar.png-ac13478430c8e2db77c663497edecab8.ctex::
+team_power_icon.png::CompressedTexture2D::8712267606911801418::1784811957::1784813380::1::::<><><>0<>0<>4f01da7a5e167fc4cc7bb3310ec6c97f<>res://.godot/imported/team_power_icon.png-5d50f5dcb669ee3b8223cc790e9468c2.ctex::
 throne_room.png::CompressedTexture2D::5210906782207333033::1783585091::1783585104::1::::<><><>0<>0<>9ea53e0c5b3c1e89cf4e1dfdabcd10e5<>res://.godot/imported/throne_room.png-50bd5bd636b36288ab52362c20ea9329.ctex::
+tree_icon.png::CompressedTexture2D::1530845886892476044::1784812464::1784813380::1::::<><><>0<>0<>1b5b1f868f4c74d35bbec05f571cd2d5<>res://.godot/imported/tree_icon.png-b8c7252ef930c59572c353003eba0e65.ctex::
+weapons_icon.png::CompressedTexture2D::3549484696757275379::1784812160::1784813380::1::::<><><>0<>0<>e7fe6c6cd7bd916ba60faa70aded2f0e<>res://.godot/imported/weapons_icon.png-34d23ab92744a9e2eb27cf697bb26b60.ctex::
 witch.png::CompressedTexture2D::2618681032825238797::1783938720::1783939114::1::::<><><>0<>0<>b146e89a530a470f75f2fc643ed698c0<>res://.godot/imported/witch.png-42edbe1fb688547e73ecc938368a5e0f.ctex::
 witchHouse.png::CompressedTexture2D::634610003498629538::1783420926::1783420998::1::::<><><>0<>0<>078afb97e0b94554f9825f6f190f2ee5<>res://.godot/imported/witchHouse.png-46f59773025a06dbc754e188abf060bd.ctex::
 witchhouse_inside.png::CompressedTexture2D::1874072657926010431::1783938843::1783939114::1::::<><><>0<>0<>585dde561ade15070afbfe11539f931b<>res://.godot/imported/witchhouse_inside.png-a0d8fd47e0bedb7c2d3ccb1974684953.ctex::
+witch_icon.png::CompressedTexture2D::2886810533621800626::1784812592::1784813380::1::::<><><>0<>0<>aa4304d670721c52496e05339c63d4a6<>res://.godot/imported/witch_icon.png-8fbfeadd92573b2923a031e3ed356511.ctex::
 witch_map.png::CompressedTexture2D::3427907530552265498::1784189079::1783337674::1::::<><><>0<>0<>3e28c135c5b14cb959dbe1b3f6e4dc22<>res://.godot/imported/witch_map.png-8c766f8cc2d1ab98b94c3902a0d444d8.ctex::
 κλειδι.png::CompressedTexture2D::3532366317166830454::1783429231::1783430622::1::::<><><>0<>0<>88dc67814c616960fcbad97456a42f50<>res://.godot/imported/κλειδι.png-ecf03266ea458262098dc9895ecac5f3.ctex::
 ::res://Εικόνες/bats_frames/::1784638720
