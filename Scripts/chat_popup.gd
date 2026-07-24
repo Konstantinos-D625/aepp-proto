@@ -29,6 +29,10 @@ extends Control
 
 ## Ο παίκτης θέλει να συνδεθεί (gate — δεν συμβαίνει από κανονική είσοδο, αλλά ασφαλές).
 signal login_requested
+## «Πίσω» από DM → ξανανοίγει το FriendsPopup (απ' όπου ήρθε ο παίκτης).
+signal friends_requested
+## «Πίσω» από clan chat → ξανανοίγει το ClansPopup (απ' όπου ήρθε ο παίκτης).
+signal clan_requested
 
 # ── Παλέτα (ίδια με τα υπόλοιπα popups) ──────────────────────────────────────
 const C_PARCH := Color("f3e6c4")
@@ -226,6 +230,18 @@ func _build() -> void:
 	_send_btn.pressed.connect(_on_send)
 	input_row.add_child(_send_btn)
 
+	# ── ← Πίσω (πάνω-ΑΡΙΣΤΕΡΑ) ──
+	# Το X κλείνει ΟΛΗ την καρτέλα· αυτό γυρνάει ΕΝΑ βήμα πίσω, στο popup απ' όπου
+	# ήρθε ο παίκτης (Φίλοι για DM, Συντεχνία για clan chat) — βλ. _on_back.
+	var back_btn := Button.new()
+	back_btn.text = "←"
+	back_btn.anchor_left = 0.0; back_btn.anchor_right = 0.0
+	back_btn.offset_left = 20.0; back_btn.offset_top = 24.0
+	back_btn.offset_right = 150.0; back_btn.offset_bottom = 154.0
+	back_btn.add_theme_font_size_override("font_size", 72)
+	back_btn.pressed.connect(_on_back)
+	card.add_child(back_btn)
+
 	# ── X (πάνω-δεξιά) ──
 	var close_btn := Button.new()
 	close_btn.text = "X"
@@ -235,6 +251,18 @@ func _build() -> void:
 	close_btn.add_theme_font_size_override("font_size", 72)
 	close_btn.pressed.connect(close_popup)
 	card.add_child(close_btn)
+
+
+## Κλείνει τη συνομιλία ΚΑΙ ξανανοίγει το popup προέλευσης. Το ChatPopup δεν ξέρει
+## ποιος το άνοιξε, ξέρει όμως το _scope — και η αντιστοίχιση είναι 1:1 (DM έρχεται
+## πάντα από τους Φίλους, clan chat πάντα από τη Συντεχνία, βλ. friends_popup.gd /
+## clans_popup.gd που κάνουν emit + close_popup()).
+func _on_back() -> void:
+	close_popup()
+	if _scope == "dm":
+		friends_requested.emit()
+	else:
+		clan_requested.emit()
 
 
 func _on_dim_input(event: InputEvent) -> void:

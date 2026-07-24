@@ -349,4 +349,6 @@ bus = &"Music"
 [connection signal="friends_requested" from="ClansPopup" to="FriendsPopup" method="open"]
 [connection signal="login_requested" from="ClansPopup" to="AuthPopup" method="open_from_profile"]
 [connection signal="login_requested" from="ChatPopup" to="AuthPopup" method="open_from_profile"]
+[connection signal="friends_requested" from="ChatPopup" to="FriendsPopup" method="open"]
+[connection signal="clan_requested" from="ChatPopup" to="ClansPopup" method="open"]
 [connection signal="go_pressed" from="DailyQuestPopup" to="DailyQuestExercises" method="open"]
