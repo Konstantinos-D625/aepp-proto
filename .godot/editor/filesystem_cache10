@@ -1,5 +1,5 @@
 9cad1ddce9e5a63143ba340c9520626b
-::res://::1784881561
+::res://::1784893777
 bakery_quiz.json::JSON::-1::1784710015::0::1::::<><><>0<>0<><>::
 blacksmith_exercises.json::JSON::-1::1784814314::0::1::::<><><>0<>0<><>::
 blacksmith_quiz.json::JSON::-1::1782986437::0::1::::<><><>0<>0<><>::
@@ -9,7 +9,7 @@ default_bus_layout.tres::AudioBusLayout::5718635773021068325::1782980446::0::1::
 export_presets.cfg::TextFile::-1::1784815243::0::1::::<><><>0<>0<><>::
 icon.svg::CompressedTexture2D::3012399866630628846::1782980431::1784799837::1::::<><><>0<>0<>76f5a1d4ec04c0675f2c0cdd002904e5<>res://.godot/imported/icon.svg-218a8f2b3041327d8a5756f3a245f83b.ctex::
 innkeeper_quiz.json::JSON::-1::1784814744::0::1::::<><><>0<>0<><>::
-miner_quiz.json::JSON::-1::1782983189::0::1::::<><><>0<>0<><>::
+miner_quiz.json::JSON::-1::1784889025::0::1::::<><><>0<>0<><>::
 ::res://Animations/::1784287139
 ::res://Animations/archer_animation/::1784287139
 fr1_4.png::CompressedTexture2D::8378763265675752064::1784287139::1784287139::1::::<><><>0<>0<>cd8116141f947c33d1fbf05f78bc08a3<>res://.godot/imported/fr1_4.png-33132f046acb81e9832fed5d1bbb01df.ctex::
@@ -66,11 +66,11 @@ Bäring.mp3::AudioStreamMP3::4425883104930032401::1782980430::1782980430::1::::<
 charsfx.gd::GDScript::5841267518890008036::1782980430::0::1::::<>AudioStreamPlayer<><>0<>0<><>::
 Medieval Trumpet Sound Effects.mp3::AudioStreamMP3::4778988038431794551::1782980430::1782980430::1::::<><><>0<>0<>8af0f520ef90f9983e574dd8fcb125a1<>res://.godot/imported/Medieval Trumpet Sound Effects.mp3-63ed118c87dd0d18a8c4f7d41abc78f0.mp3str::
 Smithing Sound Effect.mp3::AudioStreamMP3::6341490168223893955::1782980430::1782980430::1::::<><><>0<>0<>4de3145bdcc055f919af6f41c454677e<>res://.godot/imported/Smithing Sound Effect.mp3-a78b2431cdd673931c2507daf01c64fe.mp3str::
-::res://Scenes/::1784802502
+::res://Scenes/::1784885191
 AlchemyPopup.tscn::PackedScene::7899824782253068777::1784708849::0::1::::<><><>0<>0<><>::res://Scripts/alchemy_popup.gd
 Area1.tscn::PackedScene::3307231366579678210::1784802502::0::1::::<><><>0<>0<><>::uid://cwl4ofs06wqnj::::res://Music/Smithing Sound Effect.mp3<>uid://lgtra1umm75q::::res://Music/blacksmithSFX.gd<>uid://cac8h8ntb6eux::::res://Music/Medieval Trumpet Sound Effects.mp3<>uid://cphs277dyi43y::::res://Music/charsfx.gd<>uid://b4b6wbhi3jy4p::::res://Music/Bäring.mp3<>uid://opveruw8oaux::::res://Scenes/AuthPopup.tscn<>uid://gwoekbj5q0ba::::res://Scripts/bat_swarm_decoration.gd<>uid://dyudc04ugy6ka::::res://Εικόνες/bg1.png<>uid://blacksmith001::::res://Scenes/BlacksmithPopup.tscn<>uid://b7c08r38qo3h7::::res://Scenes/BossFight.tscn<>uid://ftwod68gmpix::::res://Scenes/BossPopup.tscn<>res://Scenes/CastlePopup.tscn<>uid://bfxx88hsb0mcd::::res://Εικόνες/char.png<>uid://charselect001::::res://Scenes/CharacterSelect.tscn<>res://Scenes/ChatPopup.tscn<>res://Scenes/ClansPopup.tscn<>uid://cotton001::::res://Scenes/CottonPopup.tscn<>uid://doi3j0i6x8yld::::res://Scenes/DailyQuestExercises.tscn<>uid://b4i3ybrjf1ngw::::res://Scenes/DailyQuestPopup.tscn<>uid://d3elfiiqbn5v0::::res://Scripts/daily_streak_icon.gd<>uid://dyc3hy1mvk2fn::::res://Εικόνες/dq.png<>uid://b5yo74otw82i0::::res://Εικόνες/friends.png<>res://Scenes/FriendsPopup.tscn<>uid://gnome001::::res://Scenes/GnomePopup.tscn<>uid://cgwkqgjbrbim0::::res://Εικόνες/Inventory1.png<>uid://mx4he0vrynwy::::res://Scenes/InventoryPopup.tscn<>uid://n0onwcivmsln::::res://Εικόνες/map.png<>uid://dwsc6lgu1bbrx::::res://Scenes/MapPopup.tscn<>uid://miner001::::res://Scenes/MinerPopup.tscn<>uid://minibossp001::::res://Scenes/MiniBossPopup.tscn<>uid://bfqlbwpnemv4i::::res://Εικόνες/old-man.png<>uid://oldman001::::res://Scenes/OldManPopup.tscn<>uid://bk5ukyemg4ah0::::res://Εικόνες/options.png<>uid://yo5qmvew6urw::::res://Scenes/OptionsMenu.tscn<>uid://c8lk87dnegeer::::res://Εικόνες/profile.png<>uid://cx1buum4vntnk::::res://Scenes/ProfilePopup.tscn<>uid://boywbmrd7cmun::::res://Scenes/ShopPopup.tscn<>uid://cmex2ibj3lcm1::::res://Εικόνες/sidebar.png<>uid://dric4kdeffx15::::res://Εικόνες/sideq.png<>uid://btco643jaw1wo::::res://Εικόνες/streak_flame.png<>uid://witchmap001::::res://Scenes/WitchMapPopup.tscn
-Area2.tscn::PackedScene::-1::1784708412::0::1::::<><><>0<>0<><>::res://Εικόνες/de.area.bg.png<>uid://bfxx88hsb0mcd::::res://Εικόνες/char.png<>uid://cgwkqgjbrbim0::::res://Εικόνες/Inventory1.png<>uid://n0onwcivmsln::::res://Εικόνες/map.png<>uid://dyc3hy1mvk2fn::::res://Εικόνες/dq.png<>uid://b5yo74otw82i0::::res://Εικόνες/friends.png<>uid://cmex2ibj3lcm1::::res://Εικόνες/sidebar.png<>uid://c8lk87dnegeer::::res://Εικόνες/profile.png<>uid://bk5ukyemg4ah0::::res://Εικόνες/options.png<>uid://btco643jaw1wo::::res://Εικόνες/streak_flame.png<>uid://d3elfiiqbn5v0::::res://Scripts/daily_streak_icon.gd<>uid://cphs277dyi43y::::res://Music/charsfx.gd<>uid://cac8h8ntb6eux::::res://Music/Medieval Trumpet Sound Effects.mp3<>uid://b4b6wbhi3jy4p::::res://Music/Bäring.mp3<>uid://dwsc6lgu1bbrx::::res://Scenes/MapPopup.tscn<>uid://cx1buum4vntnk::::res://Scenes/ProfilePopup.tscn<>uid://yo5qmvew6urw::::res://Scenes/OptionsMenu.tscn<>uid://charselect001::::res://Scenes/CharacterSelect.tscn<>uid://mx4he0vrynwy::::res://Scenes/InventoryPopup.tscn<>uid://b4i3ybrjf1ngw::::res://Scenes/DailyQuestPopup.tscn<>uid://doi3j0i6x8yld::::res://Scenes/DailyQuestExercises.tscn<>uid://bakery001::::res://Scenes/BakeryPopup.tscn<>uid://lchemy001::::res://Scenes/AlchemyPopup.tscn<>uid://library001::::res://Scenes/LibraryPopup.tscn<>uid://boywbmrd7cmun::::res://Scenes/ShopPopup.tscn
-Area3.tscn::PackedScene::-1::1784708412::0::1::::<><><>0<>0<><>::res://Εικόνες/ep.area.bg.png<>uid://bfxx88hsb0mcd::::res://Εικόνες/char.png<>uid://cgwkqgjbrbim0::::res://Εικόνες/Inventory1.png<>uid://n0onwcivmsln::::res://Εικόνες/map.png<>uid://dyc3hy1mvk2fn::::res://Εικόνες/dq.png<>uid://b5yo74otw82i0::::res://Εικόνες/friends.png<>uid://cmex2ibj3lcm1::::res://Εικόνες/sidebar.png<>uid://c8lk87dnegeer::::res://Εικόνες/profile.png<>uid://bk5ukyemg4ah0::::res://Εικόνες/options.png<>uid://btco643jaw1wo::::res://Εικόνες/streak_flame.png<>uid://d3elfiiqbn5v0::::res://Scripts/daily_streak_icon.gd<>uid://cphs277dyi43y::::res://Music/charsfx.gd<>uid://cac8h8ntb6eux::::res://Music/Medieval Trumpet Sound Effects.mp3<>uid://b4b6wbhi3jy4p::::res://Music/Bäring.mp3<>uid://dwsc6lgu1bbrx::::res://Scenes/MapPopup.tscn<>uid://cx1buum4vntnk::::res://Scenes/ProfilePopup.tscn<>uid://yo5qmvew6urw::::res://Scenes/OptionsMenu.tscn<>uid://charselect001::::res://Scenes/CharacterSelect.tscn<>uid://mx4he0vrynwy::::res://Scenes/InventoryPopup.tscn<>uid://b4i3ybrjf1ngw::::res://Scenes/DailyQuestPopup.tscn<>uid://doi3j0i6x8yld::::res://Scenes/DailyQuestExercises.tscn<>uid://botanist001::::res://Scenes/BotanistPopup.tscn<>uid://cartogr001::::res://Scenes/CartographerPopup.tscn<>uid://innkeep001::::res://Scenes/InnkeeperPopup.tscn
+Area2.tscn::PackedScene::-1::1784884013::0::1::::<><><>0<>0<><>::res://Εικόνες/de.area.bg.png<>uid://bfxx88hsb0mcd::::res://Εικόνες/char.png<>uid://cgwkqgjbrbim0::::res://Εικόνες/Inventory1.png<>uid://n0onwcivmsln::::res://Εικόνες/map.png<>uid://dyc3hy1mvk2fn::::res://Εικόνες/dq.png<>uid://b5yo74otw82i0::::res://Εικόνες/friends.png<>uid://cmex2ibj3lcm1::::res://Εικόνες/sidebar.png<>uid://c8lk87dnegeer::::res://Εικόνες/profile.png<>uid://bk5ukyemg4ah0::::res://Εικόνες/options.png<>uid://btco643jaw1wo::::res://Εικόνες/streak_flame.png<>uid://d3elfiiqbn5v0::::res://Scripts/daily_streak_icon.gd<>uid://cphs277dyi43y::::res://Music/charsfx.gd<>uid://cac8h8ntb6eux::::res://Music/Medieval Trumpet Sound Effects.mp3<>uid://b4b6wbhi3jy4p::::res://Music/Bäring.mp3<>uid://dwsc6lgu1bbrx::::res://Scenes/MapPopup.tscn<>uid://cx1buum4vntnk::::res://Scenes/ProfilePopup.tscn<>uid://yo5qmvew6urw::::res://Scenes/OptionsMenu.tscn<>uid://charselect001::::res://Scenes/CharacterSelect.tscn<>uid://mx4he0vrynwy::::res://Scenes/InventoryPopup.tscn<>uid://b4i3ybrjf1ngw::::res://Scenes/DailyQuestPopup.tscn<>uid://doi3j0i6x8yld::::res://Scenes/DailyQuestExercises.tscn<>uid://bakery001::::res://Scenes/BakeryPopup.tscn<>uid://lchemy001::::res://Scenes/AlchemyPopup.tscn<>uid://library001::::res://Scenes/LibraryPopup.tscn<>uid://boywbmrd7cmun::::res://Scenes/ShopPopup.tscn<>uid://opveruw8oaux::::res://Scenes/AuthPopup.tscn<>res://Scenes/FriendsPopup.tscn<>res://Scenes/ClansPopup.tscn<>res://Scenes/ChatPopup.tscn
+Area3.tscn::PackedScene::-1::1784884033::0::1::::<><><>0<>0<><>::res://Εικόνες/ep.area.bg.png<>uid://bfxx88hsb0mcd::::res://Εικόνες/char.png<>uid://cgwkqgjbrbim0::::res://Εικόνες/Inventory1.png<>uid://n0onwcivmsln::::res://Εικόνες/map.png<>uid://dyc3hy1mvk2fn::::res://Εικόνες/dq.png<>uid://b5yo74otw82i0::::res://Εικόνες/friends.png<>uid://cmex2ibj3lcm1::::res://Εικόνες/sidebar.png<>uid://c8lk87dnegeer::::res://Εικόνες/profile.png<>uid://bk5ukyemg4ah0::::res://Εικόνες/options.png<>uid://btco643jaw1wo::::res://Εικόνες/streak_flame.png<>uid://d3elfiiqbn5v0::::res://Scripts/daily_streak_icon.gd<>uid://cphs277dyi43y::::res://Music/charsfx.gd<>uid://cac8h8ntb6eux::::res://Music/Medieval Trumpet Sound Effects.mp3<>uid://b4b6wbhi3jy4p::::res://Music/Bäring.mp3<>uid://dwsc6lgu1bbrx::::res://Scenes/MapPopup.tscn<>uid://cx1buum4vntnk::::res://Scenes/ProfilePopup.tscn<>uid://yo5qmvew6urw::::res://Scenes/OptionsMenu.tscn<>uid://charselect001::::res://Scenes/CharacterSelect.tscn<>uid://mx4he0vrynwy::::res://Scenes/InventoryPopup.tscn<>uid://b4i3ybrjf1ngw::::res://Scenes/DailyQuestPopup.tscn<>uid://doi3j0i6x8yld::::res://Scenes/DailyQuestExercises.tscn<>uid://botanist001::::res://Scenes/BotanistPopup.tscn<>uid://cartogr001::::res://Scenes/CartographerPopup.tscn<>uid://innkeep001::::res://Scenes/InnkeeperPopup.tscn<>uid://opveruw8oaux::::res://Scenes/AuthPopup.tscn<>res://Scenes/FriendsPopup.tscn<>res://Scenes/ClansPopup.tscn<>res://Scenes/ChatPopup.tscn
 AuthPopup.tscn::PackedScene::1014892602104335487::1784799696::0::1::::<><><>0<>0<><>::uid://ipnsojn0yv8a::::res://Scripts/auth_popup.gd
 BakeryPopup.tscn::PackedScene::8863817876213611311::1784708849::0::1::::<><><>0<>0<><>::res://Scripts/bakery_popup.gd
 BlacksmithPopup.tscn::PackedScene::3158638219983173432::1782980446::0::1::::<><><>0<>0<><>::res://Scripts/blacksmith_popup.gd
@@ -92,7 +92,7 @@ FriendsPopup.tscn::PackedScene::-1::1784799642::0::1::::<><><>0<>0<><>::res://Sc
 GnomePopup.tscn::PackedScene::335874877232::1784016905::0::1::::<><><>0<>0<><>::res://Scripts/gnome_popup.gd
 HeroSlotPopup.tscn::PackedScene::14724634398523944::1784110176::0::1::::<><><>0<>0<><>::res://Scripts/hero_slot_popup.gd
 InnkeeperPopup.tscn::PackedScene::7715998780706504499::1784708849::0::1::::<><><>0<>0<><>::res://Scripts/innkeeper_popup.gd
-InventoryPopup.tscn::PackedScene::891520355038656872::1784630427::0::1::::<><><>0<>0<><>::uid://bx0pcrvekiocp::::res://Scripts/inventory_popup.gd
+InventoryPopup.tscn::PackedScene::891520355038656872::1784885191::0::1::::<><><>0<>0<><>::uid://bx0pcrvekiocp::::res://Scripts/inventory_popup.gd
 LibraryPopup.tscn::PackedScene::7434108234440101319::1784708849::0::1::::<><><>0<>0<><>::res://Scripts/library_popup.gd
 MapPopup.tscn::PackedScene::8740752792254848645::1784708444::0::1::::<><><>0<>0<><>::res://Scripts/map_popup.gd<>res://Εικόνες/map vertical (2).png
 MinerPopup.tscn::PackedScene::643235340856::1782980446::0::1::::<><><>0<>0<><>::res://Scripts/miner_popup.gd
@@ -103,7 +103,7 @@ ProfilePopup.tscn::PackedScene::6440956095888245096::1784550720::0::1::::<><><>0
 RoomImagePopup.tscn::PackedScene::-1::1783429359::0::1::::<><><>0<>0<><>::res://Scripts/room_image_popup.gd<>res://Scenes/FoundKeyPopup.tscn
 ShopPopup.tscn::PackedScene::3419947777078795157::1782980430::0::1::::<><><>0<>0<><>::res://Scripts/shop_popup.gd
 WitchMapPopup.tscn::PackedScene::45936093021815432::1784241937::0::1::::<><><>0<>0<><>::uid://cppltoqha00cc::::res://Scripts/witch_map_popup.gd<>uid://bo3revpnfp643::::res://Εικόνες/witch_map.png
-::res://Scripts/::1784815548
+::res://Scripts/::1784892300
 achievements.gd::GDScript::4602972129006798931::1784799642::0::1::::<>Node<><>0<>0<><>::
 alchemy_popup.gd::GDScript::5692750439646174258::1784708413::0::1::::<>Control<><>0<>0<><>::
 armor_inventory.gd::GDScript::4943718543629863539::1784635076::0::1::::<>Node<><>0<>0<><>::
@@ -113,16 +113,16 @@ battle_animations.gd::GDScript::2250147451654589212::1784287139::0::1::::BattleA
 bat_swarm_decoration.gd::GDScript::467407080719832006::1784638652::0::1::::<>TextureRect<><>0<>0<><>::
 blacksmith_popup.gd::GDScript::1104947120708314717::1784814487::0::1::::<>Control<><>0<>0<><>::
 boss_fight.gd::GDScript::1429297631428522712::1784541227::0::1::::<>Control<><>0<>0<><>::
-boss_popup.gd::GDScript::8776902047286408081::1784287139::0::1::::<>Control<><>0<>0<><>::
+boss_popup.gd::GDScript::8776902047286408081::1784891827::0::1::::<>Control<><>0<>0<><>::
 botanist_popup.gd::GDScript::1445750158024431413::1784708413::0::1::::<>Control<><>0<>0<><>::
 cartographer_popup.gd::GDScript::239351488849523937::1784814633::0::1::::<>Control<><>0<>0<><>::
-castle_popup.gd::GDScript::1212796840026451031::1784636400::0::1::::<>Control<><>0<>0<><>::
+castle_popup.gd::GDScript::1212796840026451031::1784882731::0::1::::<>Control<><>0<>0<><>::
 CharacterSelect.gd::GDScript::5716850399735152383::1784811048::0::1::::<>Panel<><>0<>0<><>::
-chat_popup.gd::GDScript::7850656079580871027::1784799642::0::1::::<>Control<><>0<>0<><>::
-clans_popup.gd::GDScript::2654521755718060909::1784799642::0::1::::<>Control<><>0<>0<><>::
+chat_popup.gd::GDScript::7850656079580871027::1784894162::0::1::::<>Control<><>0<>0<><>::
+clans_popup.gd::GDScript::2654521755718060909::1784894162::0::1::::<>Control<><>0<>0<><>::
 condition_key_popup.gd::GDScript::8472912507788045150::1784636847::0::1::::<>Control<><>0<>0<><>::
 cotton_popup.gd::GDScript::8888391497811551666::1784799642::0::1::::<>Control<><>0<>0<><>::
-currency_manager.gd::GDScript::2199047293735195674::1784802426::0::1::::<>Node<><>0<>0<><>::
+currency_manager.gd::GDScript::2199047293735195674::1784882718::0::1::::<>Node<><>0<>0<><>::
 daily_quest_exercises.gd::GDScript::7672720811075727448::1784799642::0::1::::<>Control<><>0<>0<><>::
 daily_quest_popup.gd::GDScript::6179309145657985828::1784293421::0::1::::<>Control<><>0<>0<><>::
 daily_streak_icon.gd::GDScript::9133484433124490579::1784293421::0::1::::<>Control<><>0<>0<><>::
@@ -130,14 +130,14 @@ equipment_catalog.gd::GDScript::8220899368612002966::1784799642::0::1::::Equipme
 exercise_popup.gd::GDScript::4413751119549013950::1783430263::0::1::::<>Control<><>0<>0<><>::
 found_key_popup.gd::GDScript::8012495537441729554::1784635142::0::1::::<>Control<><>0<>0<><>::
 friendship_inventory.gd::GDScript::2547813308413733881::1784804316::0::1::::<>Node<><>0<>0<><>::
-friends_popup.gd::GDScript::8613635682644664157::1784813308::0::1::::<>Control<><>0<>0<><>::
+friends_popup.gd::GDScript::8613635682644664157::1784894162::0::1::::<>Control<><>0<>0<><>::
 GameData.gd::GDScript::7281786025913595614::1784805190::0::1::::<>Node<><>0<>0<><>::
 gnome_popup.gd::GDScript::6327436408539605330::1784024764::0::1::::<>Control<><>0<>0<><>::
-heroes.gd::GDScript::6184848438944181353::1784810837::0::1::::<>Node<><>0<>0<><>::
+heroes.gd::GDScript::6184848438944181353::1784891785::0::1::::<>Node<><>0<>0<><>::
 hero_slot_popup.gd::GDScript::1976868662772412618::1784811087::0::1::::HeroSlotPopup<>Control<><>0<>0<><>::
 innkeeper_popup.gd::GDScript::8928826371840808870::1784814836::0::1::::<>Control<><>0<>0<><>::
 inventory_data.gd::GDScript::3332798620403996391::1784799642::0::1::::<>Node<><>0<>0<><>::
-inventory_popup.gd::GDScript::4053288783231927979::1784811158::0::1::::<>Control<><>0<>0<><>::
+inventory_popup.gd::GDScript::4053288783231927979::1784886036::0::1::::<>Control<><>0<>0<><>::
 key_drop_zone.gd::GDScript::3643484733162168551::1783429359::0::1::::<>Panel<><>0<>0<><>::
 key_inventory.gd::GDScript::549379175661400944::1784799642::0::1::::<>Node<><>0<>0<><>::
 key_token.gd::GDScript::7472227817666806628::1783429359::0::1::::<>Button<><>0<>0<><>::
@@ -146,15 +146,15 @@ map_popup.gd::GDScript::3856352631502612001::1784708444::0::1::::<>Control<><>0<
 MatchDragItem.gd::GDScript::7471654915675482530::1784293421::0::1::::MatchDragItem<>PanelContainer<><>0<>0<><>::
 MatchingQuizManager.gd::GDScript::8936308416369787290::1783424314::0::1::::MatchingQuizManager<>RefCounted<><>0<>0<><>::
 miner_popup.gd::GDScript::3248297179168208394::1784293421::0::1::::<>Control<><>0<>0<><>::
-mini_boss_popup.gd::GDScript::7775751994260464204::1784711044::0::1::::<>Control<><>0<>0<><>::
-net.gd::GDScript::1982023271812240650::1784815548::0::1::::<>Node<><>0<>0<><>::
+mini_boss_popup.gd::GDScript::7775751994260464204::1784892300::0::1::::<>Control<><>0<>0<><>::
+net.gd::GDScript::1982023271812240650::1784888209::0::1::::<>Node<><>0<>0<><>::
 old_man_popup.gd::GDScript::8859547473265482108::1784630143::0::1::::<>Control<><>0<>0<><>::
 OptionsMenu.gd::GDScript::727246842236017652::1782980430::0::1::::<>Panel<><>0<>0<><>::
-player_profile.gd::GDScript::8200953446782244452::1784813167::0::1::::<>Node<><>0<>0<><>::
-profile_popup.gd::GDScript::9046519275355994529::1784813229::0::1::::<>Control<><>0<>0<><>::
+player_profile.gd::GDScript::8200953446782244452::1784888163::0::1::::<>Node<><>0<>0<><>::
+profile_popup.gd::GDScript::9046519275355994529::1784894162::0::1::::<>Control<><>0<>0<><>::
 QuizManager.gd::GDScript::1747317443515993810::1784814240::0::1::::QuizManager<>RefCounted<><>0<>0<><>::
 room_image_popup.gd::GDScript::5478719028964953031::1784635153::0::1::::<>Control<><>0<>0<><>::
-shop_popup.gd::GDScript::3475271302785549210::1784810933::0::1::::<>Control<><>0<>0<><>::
+shop_popup.gd::GDScript::3475271302785549210::1784894028::0::1::::<>Control<><>0<>0<><>::
 weapon_inventory.gd::GDScript::1336859417518328041::1784635076::0::1::::<>Node<><>0<>0<><>::
 witch_map_popup.gd::GDScript::5857342265635040850::1784242617::0::1::::<>Control<><>0<>0<><>::
 ::res://server/::1784800834
@@ -165,7 +165,14 @@ README.md::TextFile::-1::1784716498::0::1::::<><><>0<>0<><>::
 ::res://server/pb_data/::1784813830
 ::res://server/pb_data/backups/::1784710956
 ::res://server/pb_data/storage/::1784550090
-::res://server/pb_migrations/::1784805237
+::res://server/pb_migrations/::1784888311
+::res://ui_changes/::1784893763
+::res://ui_changes/ui_changes/::1784893763
+chat_popup.gd::GDScript::5282023694199605125::1784893763::0::1::::<>Control<><>0<>0<><>::
+clans_popup.gd::GDScript::2495707893378187619::1784893763::0::1::::<>Control<><>0<>0<><>::
+friends_popup.gd::GDScript::6212434717066707029::1784893763::0::1::::<>Control<><>0<>0<><>::
+profile_popup.gd::GDScript::4370053303692593833::1784893763::0::1::::<>Control<><>0<>0<><>::
+shop_popup.gd::GDScript::6551300491118506741::1784893763::0::1::::<>Control<><>0<>0<><>::
 ::res://Όπλα/::1784802764
 LockedItem.jpg::CompressedTexture2D::7674907803555600466::1783331296::1783331822::1::::<><><>0<>0<>3ef052f8ad9574c78205a1ce3f28f7cc<>res://.godot/imported/LockedItem.jpg-82fde1b34b2e113bacbb0fc2b15bd2c8.ctex::
 ::res://Όπλα/Αξίνα/::1784189079
@@ -196,7 +203,7 @@ friendship_glove.png::CompressedTexture2D::3877861904052654641::1784802894::1784
 friendship_cloak.png::CompressedTexture2D::4922456417328207862::1784803040::1784803910::1::::<><><>0<>0<>1639d75a9fa6e51579db67363a5337e5<>res://.godot/imported/friendship_cloak.png-a8706fbce844dcb7a6676369e4b26e36.ctex::
 ::res://Αντικείμενα Φιλίας/Ραβδί/::1784803910
 friendship_wand.png::CompressedTexture2D::6505443061111676187::1784802089::1784803910::1::::<><><>0<>0<>d83ea1dee13f0f435184d81ce489ea2b<>res://.godot/imported/friendship_wand.png-fd17e56af06f3599e085b6b26bfac981.ctex::
-::res://Εικόνες/::1784882486
+::res://Εικόνες/::1784882714
 achievements_icon.png::CompressedTexture2D::6092599786767766726::1784812213::1784813380::1::::<><><>0<>0<>33ed6f0ee8ec38106df34fac5bc2ed3c<>res://.godot/imported/achievements_icon.png-297b2b1dc010adb97080e3e2d53922d1.ctex::
 alch.bg2.png::CompressedTexture2D::3871464102211351926::1784709960::1784710013::1::::<><><>0<>0<>33af9efbe6c35cdc0cbac9288318e8d8<>res://.godot/imported/alch.bg2.png-900837ef2838af4dba21d63480eba085.ctex::
 alch.bg.png::CompressedTexture2D::6449579438259546737::1784709954::1784710013::1::::<><><>0<>0<>45df4abe6e01cd131a35096a8b0879b3<>res://.godot/imported/alch.bg.png-490f38193f05959b94b17ddcbc849d83.ctex::

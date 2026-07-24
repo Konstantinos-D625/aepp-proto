@@ -404,13 +404,7 @@ func _show_login_gate() -> void:
 	_send_btn.disabled = true
 	_clear_list()
 	_list.add_child(_hint("Χρειάζεσαι λογαριασμό για να συνομιλήσεις."))
-	# Το εικονίδιο κλειδιού είναι PNG όπου υπάρχει (ίδιο μοτίβο με τα υπόλοιπα
-	# social popups)· το emoji μένει ως fallback αν λείπει το asset.
 	var btn := _make_button("🔑  Σύνδεση", "gold")
-	if ResourceLoader.exists("res://Εικόνες/key.png"):
-		btn.icon = load("res://Εικόνες/key.png")
-		btn.expand_icon = true
-		btn.text = "Σύνδεση"
 	btn.pressed.connect(func():
 		login_requested.emit()
 		close_popup())
