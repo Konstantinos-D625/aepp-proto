@@ -5,6 +5,21 @@ const C_MUTED := Color("cdbf9a")
 const C_GOLD  := Color("f2c84b")
 const C_EMPTY := Color(0, 0, 0, 0.35)
 
+# ── Κουμπιά (mobile-friendly styling) ────────────────────────────────────────
+# Ίδιο "iron/gold" ύφος με hero_slot_popup.gd (η οθόνη «Η Ομάδα σου» όπου
+# καταλήγει ο εξοπλισμός) — dark πλαίσιο με χρυσό/μπρούτζινο περίγραμμα αντί
+# για το γυμνό default Godot theme που είχαν πριν τα κουμπιά εδώ.
+const C_IRON    := Color(0.150, 0.128, 0.098)
+const C_IRON_L  := Color(0.230, 0.196, 0.140)
+const C_BRONZE  := Color(0.435, 0.308, 0.072)
+const C_GOLD_D  := Color(0.268, 0.192, 0.032)
+const C_DANGER  := Color("e2a5a5")
+const C_DANGER_D := Color(0.30, 0.12, 0.10)
+# Ελάχιστο ύψος κουμπιού — ~29dp στην κλίμακα αναφοράς 1080×1920 (project.godot),
+# αρκετά πάνω από το μικροσκοπικό 44-48px που είχαν πριν (κοντά στο Material
+# minimum 48dp target). Τα tabs/CloseButton είναι ήδη μεγαλύτερα (βλ. .tscn).
+const BTN_MIN_HEIGHT := 88
+
 var _confirm_overlay: Control
 
 const CATEGORY_CHARACTERS := "characters"
@@ -31,6 +46,9 @@ func _ready() -> void:
 	%WeaponsTab.pressed.connect(func(): _select_category(Inventory.CATEGORY_WEAPON))
 	%ArmorTab.pressed.connect(func(): _select_category(Inventory.CATEGORY_ARMOR))
 	%CharactersTab.pressed.connect(func(): _select_category(CATEGORY_CHARACTERS))
+	for tab in [%WeaponsTab, %ArmorTab, %CharactersTab]:
+		_style_btn(tab, C_GOLD, C_GOLD_D, C_MUTED)
+	_style_btn(%CloseButton, C_GOLD, C_GOLD_D)
 	# Το roster μπορεί να αλλάξει όσο είναι ανοιχτό το Inventory (π.χ. αγορά
 	# ήρωα δεν γίνεται εδώ, αλλά κρατάμε συνέπεια αν αλλάξει εξοπλισμός ήρωα).
 	Heroes.changed.connect(func() -> void:
@@ -98,7 +116,7 @@ func _build_currency_strip() -> void:
 
 func _make_currency_badge(currency: String) -> Control:
 	var badge := PanelContainer.new()
-	badge.custom_minimum_size = Vector2(0, 72)
+	badge.custom_minimum_size = Vector2(0, 80)
 	badge.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Color(0, 0, 0, 0.28)
@@ -126,19 +144,19 @@ func _make_currency_badge(currency: String) -> Control:
 		# minimum size στο φυσικό μέγεθος και ξεχειλίζει, βλ. shop_popup.gd).
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		icon.custom_minimum_size = Vector2(40, 40)
+		icon.custom_minimum_size = Vector2(44, 44)
 		icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		row.add_child(icon)
 	else:
 		var e := Label.new()
 		e.text = str(Currency.ICONS.get(currency, "•"))
-		e.add_theme_font_size_override("font_size", 30)
+		e.add_theme_font_size_override("font_size", 34)
 		row.add_child(e)
 
 	var amount := Label.new()
 	amount.text = str(Currency.get_amount(currency))
 	amount.add_theme_color_override("font_color", C_PARCH)
-	amount.add_theme_font_size_override("font_size", 30)
+	amount.add_theme_font_size_override("font_size", 34)
 	amount.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	row.add_child(amount)
 	_currency_amount_labels[currency] = amount
@@ -270,13 +288,14 @@ func _make_equipment_card(catalog: EquipmentCatalog, id: String) -> Control:
 		var tier_label := Label.new()
 		tier_label.text = "Επίπεδο %d/%d" % [catalog.get_tier(id), catalog.UPGRADE_MAX_TIER]
 		tier_label.add_theme_color_override("font_color", C_MUTED)
-		tier_label.add_theme_font_size_override("font_size", 22)
+		tier_label.add_theme_font_size_override("font_size", 30)
 		tier_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		info.add_child(tier_label)
 
 	# ΟΛΑ τα stats που δίνει το αντικείμενο εξοπλισμένο (όχι μόνο το πρωτεύον
-	# Επίθεση/Άμυνα του καταλόγου) — βλ. Heroes.display_item_buffs.
-	info.add_child(_stat_row(Heroes.display_item_buffs(id), 26, C_GOLD))
+	# Επίθεση/Άμυνα του καταλόγου) — βλ. Heroes.display_item_buffs. Ακόμα πιο
+	# μεγάλο (34 -> 42) — παρέμεναν δυσδιάκριτα ακόμα και μετά την πρώτη μεγέθυνση.
+	info.add_child(_stat_row(Heroes.display_item_buffs(id), 42, C_GOLD))
 
 	if catalog.upgradable:
 		info.add_child(_make_upgrade_row(catalog, id))
@@ -318,7 +337,7 @@ func _make_hero_row(hero: Dictionary) -> Control:
 	info.add_child(name_label)
 
 	var fin := Heroes.get_final_stats(hero)
-	info.add_child(_stat_row(fin, 26, C_GOLD))
+	info.add_child(_stat_row(fin, 42, C_GOLD))
 
 	return card
 
@@ -333,17 +352,18 @@ func _make_upgrade_row(catalog: EquipmentCatalog, id: String) -> Control:
 		var max_label := Label.new()
 		max_label.text = "MAX"
 		max_label.add_theme_color_override("font_color", C_GOLD)
-		max_label.add_theme_font_size_override("font_size", 22)
+		max_label.add_theme_font_size_override("font_size", 24)
 		max_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		row.add_child(max_label)
 	else:
 		var upgrade_btn := Button.new()
 		upgrade_btn.text = "Αναβάθμιση  %d" % catalog.get_upgrade_cost(tier)
-		upgrade_btn.add_theme_font_size_override("font_size", 22)
-		upgrade_btn.custom_minimum_size = Vector2(220, 48)
+		upgrade_btn.add_theme_font_size_override("font_size", 24)
+		upgrade_btn.custom_minimum_size = Vector2(260, BTN_MIN_HEIGHT)
 		# PASS αντί για STOP: πατιέται κανονικά, αλλά αφήνει ένα drag πάνω του
 		# να φτάσει ΚΑΙ στο ScrollContainer (mobile scroll).
 		upgrade_btn.mouse_filter = Control.MOUSE_FILTER_PASS
+		_style_btn(upgrade_btn, C_GOLD, C_GOLD_D)
 		_set_price_icon(upgrade_btn)
 		row.add_child(upgrade_btn)
 		upgrade_btn.pressed.connect(func(): catalog.upgrade(id))
@@ -358,16 +378,16 @@ func _make_upgrade_row(catalog: EquipmentCatalog, id: String) -> Control:
 ## EquipmentCatalog.get_sell_refund), όχι μόνο Χαλκός.
 func _make_sell_row(catalog: EquipmentCatalog, id: String) -> Control:
 	var row := HFlowContainer.new()
-	row.add_theme_constant_override("h_separation", 10)
-	row.add_theme_constant_override("v_separation", 8)
+	row.add_theme_constant_override("h_separation", 16)
+	row.add_theme_constant_override("v_separation", 10)
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	var sell_btn := Button.new()
 	sell_btn.text = "Πούλησε"
-	sell_btn.add_theme_font_size_override("font_size", 20)
-	sell_btn.add_theme_color_override("font_color", Color("e2a5a5"))
-	sell_btn.custom_minimum_size = Vector2(120, 44)
+	sell_btn.add_theme_font_size_override("font_size", 22)
+	sell_btn.custom_minimum_size = Vector2(180, BTN_MIN_HEIGHT)
 	sell_btn.mouse_filter = Control.MOUSE_FILTER_PASS
+	_style_btn(sell_btn, C_DANGER, C_DANGER_D, C_DANGER)
 	row.add_child(sell_btn)
 	sell_btn.pressed.connect(func(): catalog.sell(id))
 
@@ -383,13 +403,14 @@ func _make_sell_row(catalog: EquipmentCatalog, id: String) -> Control:
 ## πάνω σε κουμπί (εδώ το κουμπί «Πούλησε» έχει σταθερό, μικρό κείμενο).
 func _refund_chip(currency: String, amount: int) -> Control:
 	var box := HBoxContainer.new()
-	box.add_theme_constant_override("separation", 4)
+	box.add_theme_constant_override("separation", 8)
 	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
+	# Ακόμα πιο μεγάλα (32 -> 44 / 40×40 -> 52×52) — παρέμεναν δυσδιάκριτα.
 	var lbl := Label.new()
 	lbl.text = "+%d" % amount
-	lbl.add_theme_font_size_override("font_size", 20)
-	lbl.add_theme_color_override("font_color", Color("e2a5a5"))
+	lbl.add_theme_font_size_override("font_size", 44)
+	lbl.add_theme_color_override("font_color", C_DANGER)
 	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.add_child(lbl)
 
@@ -397,7 +418,7 @@ func _refund_chip(currency: String, amount: int) -> Control:
 	if tex == null:
 		var fallback := Label.new()
 		fallback.text = str(Currency.ICONS.get(currency, ""))
-		fallback.add_theme_font_size_override("font_size", 20)
+		fallback.add_theme_font_size_override("font_size", 44)
 		fallback.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		box.add_child(fallback)
 		return box
@@ -406,7 +427,7 @@ func _refund_chip(currency: String, amount: int) -> Control:
 	icon.texture = tex
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	icon.custom_minimum_size = Vector2(24, 24)
+	icon.custom_minimum_size = Vector2(52, 52)
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.add_child(icon)
 	return box
@@ -417,7 +438,7 @@ func _refund_chip(currency: String, amount: int) -> Control:
 ## πλήρη 4 stats ενός ήρωα).
 func _stat_row(stats: Dictionary, font_size: int, color: Color) -> Control:
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 10)
+	row.add_theme_constant_override("separation", 12)
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	for key in Heroes.STAT_KEYS:
 		if stats.has(key):
@@ -426,7 +447,7 @@ func _stat_row(stats: Dictionary, font_size: int, color: Color) -> Control:
 
 func _stat_chip(key: String, value: int, font_size: int, color: Color) -> Control:
 	var box := HBoxContainer.new()
-	box.add_theme_constant_override("separation", 4)
+	box.add_theme_constant_override("separation", 6)
 	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	var tex := Heroes.get_stat_icon_texture(key)
@@ -478,14 +499,70 @@ func _make_card_panel() -> PanelContainer:
 	# IGNORE: η κάρτα δεν έχει δικό της click — αλλιώς (default STOP) ένα drag
 	# πάνω της δεν φτάνει ποτέ στο ScrollContainer από πάνω (mobile scroll).
 	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# Ζεστό μπρούτζινο περίγραμμα (αντί για σχεδόν-αόρατο μαύρο) + απαλή σκιά,
+	# ίδια οικογένεια χρωμάτων με τα κουμπιά — η κάρτα δείχνει τώρα σαν σφραγισμένο
+	# αντικείμενο πάνω σε δέρμα, όχι σκέτο γκρι κουτί.
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0, 0, 0, 0.22)
-	sb.set_corner_radius_all(12)
-	sb.set_border_width_all(1)
-	sb.border_color = Color(0, 0, 0, 0.35)
-	sb.content_margin_left = 16
-	sb.content_margin_right = 16
-	sb.content_margin_top = 14
-	sb.content_margin_bottom = 14
+	sb.bg_color = Color(0, 0, 0, 0.24)
+	sb.set_corner_radius_all(14)
+	sb.set_border_width_all(2)
+	sb.border_color = C_BRONZE.darkened(0.45)
+	sb.shadow_color = Color(0, 0, 0, 0.35)
+	sb.shadow_size = 4
+	sb.content_margin_left = 18
+	sb.content_margin_right = 18
+	sb.content_margin_top = 16
+	sb.content_margin_bottom = 16
 	card.add_theme_stylebox_override("panel", sb)
 	return card
+
+func _sb(bg: Color, border: Color, bw: int, cr: int) -> StyleBoxFlat:
+	var s := StyleBoxFlat.new()
+	s.bg_color = bg
+	s.border_color = border
+	s.set_border_width_all(bw)
+	s.set_corner_radius_all(cr)
+	return s
+
+## Ενιαίο "iron/gold" ύφος για ΟΛΑ τα κουμπιά του Inventory (tabs, κλείσιμο,
+## αναβάθμιση, πούλησε) — dark πλαίσιο με χρωματιστό (`accent`) περίγραμμα που
+## φωτίζει στο hover/pressed, αντί για το γυμνό default Godot theme (γκρι
+## κουτάκια) που είχαν πριν όλα εδώ. Ίδια τεχνική με hero_slot_popup._style_iron
+## (η οθόνη «Η Ομάδα σου», όπου καταλήγει ο εξοπλισμός) — κρατά συνέπεια στο
+## ύφος ανάμεσα στις δύο οθόνες.
+## `base_text`: χρώμα κειμένου σε ήρεμη κατάσταση — π.χ. λιωμένο γκρι για τα
+## ανενεργά tabs (ώστε το επιλεγμένο, με accent χρώμα, να ξεχωρίζει καθαρά).
+## Εξασφαλίζει επίσης ελάχιστο ύψος BTN_MIN_HEIGHT (mobile touch target) αν το
+## κουμπί δεν έχει ήδη ορίσει μεγαλύτερο.
+func _style_btn(btn: Button, accent: Color, pressed_bg: Color, base_text: Color = C_PARCH) -> void:
+	if btn.custom_minimum_size.y < BTN_MIN_HEIGHT:
+		btn.custom_minimum_size = Vector2(btn.custom_minimum_size.x, BTN_MIN_HEIGHT)
+
+	var n := _sb(C_IRON, accent.darkened(0.4), 3, 14)
+	n.content_margin_left = 16; n.content_margin_right = 16
+	n.content_margin_top = 8; n.content_margin_bottom = 8
+	btn.add_theme_stylebox_override("normal", n)
+
+	var h := _sb(C_IRON_L, accent, 4, 14)
+	h.content_margin_left = 16; h.content_margin_right = 16
+	h.content_margin_top = 8; h.content_margin_bottom = 8
+	h.shadow_color = accent * Color(1, 1, 1, 0.35)
+	h.shadow_size = 6
+	btn.add_theme_stylebox_override("hover", h)
+
+	var p := _sb(pressed_bg, accent.lightened(0.25), 4, 14)
+	p.content_margin_left = 16; p.content_margin_right = 16
+	p.content_margin_top = 8; p.content_margin_bottom = 8
+	btn.add_theme_stylebox_override("pressed", p)
+	btn.add_theme_stylebox_override("hover_pressed", p)
+
+	btn.add_theme_stylebox_override("disabled", _sb(Color(0.10, 0.09, 0.08), accent.darkened(0.65), 2, 14))
+	btn.add_theme_stylebox_override("focus", _sb(Color(0, 0, 0, 0), Color(0, 0, 0, 0), 0, 14))
+
+	btn.add_theme_color_override("font_color", base_text)
+	btn.add_theme_color_override("font_hover_color", accent.lightened(0.2))
+	btn.add_theme_color_override("font_pressed_color", accent.lightened(0.3))
+	btn.add_theme_color_override("font_disabled_color", C_MUTED.darkened(0.4))
+	btn.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.85))
+	btn.add_theme_constant_override("shadow_offset_x", 1)
+	btn.add_theme_constant_override("shadow_offset_y", 2)

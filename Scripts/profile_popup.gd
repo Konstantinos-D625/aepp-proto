@@ -21,6 +21,9 @@ extends Control
 # ύφος κάρτας (σκούρο panel + χρυσό) με το InventoryPopup.
 
 const EMBLEM_PATH := "res://Εικόνες/profile.png"
+const STATS_ICON_PATH := "res://Εικόνες/stats.png"
+const LOCK_ICON_PATH := "res://Εικόνες/lock.png"
+const KEY_ICON_PATH := "res://Εικόνες/key.png"
 
 ## Ο παίκτης πάτησε «Σύνδεση» — το AuthPopup ανοίγει την οθόνη λογαριασμού.
 signal login_requested
@@ -166,7 +169,7 @@ func _build() -> void:
 	var tabs := HBoxContainer.new()
 	tabs.add_theme_constant_override("separation", 14)
 	vbox.add_child(tabs)
-	_stats_btn = _make_tab("📊  Στοιχεία", "stats")
+	_stats_btn = _make_tab("Στοιχεία", "stats", STATS_ICON_PATH)
 	_ach_btn   = _make_tab("🏆  Επιτεύγματα", "achievements")
 	tabs.add_child(_stats_btn)
 	tabs.add_child(_ach_btn)
@@ -337,13 +340,16 @@ func _on_delete_confirmed() -> void:
 		_refresh_delete_btn()
 
 
-func _make_tab(text: String, id: String) -> Button:
+func _make_tab(text: String, id: String, icon_path: String = "") -> Button:
 	var b := Button.new()
 	b.text = text
 	b.toggle_mode = true
 	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	b.custom_minimum_size = Vector2(0, 72)
 	b.add_theme_font_size_override("font_size", 30)
+	if icon_path != "" and ResourceLoader.exists(icon_path):
+		b.icon = load(icon_path)
+		b.expand_icon = true
 	b.pressed.connect(func(): _select_tab(id))
 	return b
 
@@ -356,10 +362,17 @@ func _refresh_account_btn() -> void:
 	if not is_instance_valid(_account_btn):
 		return
 	if Net.is_logged_in():
+		_account_btn.icon = null
 		_account_btn.text = "🚪  Αποσύνδεση"
 		_account_btn.add_theme_color_override("font_color", C_MUTED)
 	else:
-		_account_btn.text = "🔑  Σύνδεση"
+		if ResourceLoader.exists(KEY_ICON_PATH):
+			_account_btn.icon = load(KEY_ICON_PATH)
+			_account_btn.expand_icon = true
+			_account_btn.text = "Σύνδεση"
+		else:
+			_account_btn.icon = null
+			_account_btn.text = "🔑  Σύνδεση"
 		_account_btn.add_theme_color_override("font_color", C_GOLD)
 
 func _on_account_pressed() -> void:
@@ -483,13 +496,21 @@ func _ach_row(a: Dictionary) -> Control:
 	row.add_theme_constant_override("separation", 16)
 	card.add_child(row)
 
-	var icon := Label.new()
-	icon.text = str(a.get("icon", "🏆")) if unlocked else "🔒"
-	icon.add_theme_font_size_override("font_size", 40)
-	icon.custom_minimum_size = Vector2(58, 0)
-	icon.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	icon.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	row.add_child(icon)
+	if not unlocked and ResourceLoader.exists(LOCK_ICON_PATH):
+		var lock_icon := TextureRect.new()
+		lock_icon.texture = load(LOCK_ICON_PATH)
+		lock_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		lock_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		lock_icon.custom_minimum_size = Vector2(58, 0)
+		row.add_child(lock_icon)
+	else:
+		var icon := Label.new()
+		icon.text = str(a.get("icon", "🏆")) if unlocked else "🔒"
+		icon.add_theme_font_size_override("font_size", 40)
+		icon.custom_minimum_size = Vector2(58, 0)
+		icon.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		icon.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		row.add_child(icon)
 
 	var col := VBoxContainer.new()
 	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL

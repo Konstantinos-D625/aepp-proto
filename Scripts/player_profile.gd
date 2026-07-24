@@ -80,7 +80,6 @@ func build_public_profile() -> Dictionary:
 		"region_id": region["id"],
 		"region_label": region["label"],
 		"streak": GameData.get_streak(),
-		"daily_quest_done_today": GameData.is_daily_quest_completed_today(),
 		"achievements": Achievements.get_unlocked_ids(),
 		"achievements_count": Achievements.unlocked_count(),
 		"achievements_total": Achievements.total_count(),

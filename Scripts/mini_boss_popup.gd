@@ -118,6 +118,10 @@ const BOSS_DEFS := {
 		# (EquipmentCatalog.grant, βλ. boss_fight.gd::_conclude_fight) — είναι
 		# η ΜΟΝΗ πηγή της, ΔΕΝ αγοράζεται από το Shop.
 		"weapon_reward": "Σφαίρα_1",
+		# Κλειδωμένο μέχρι να νικηθεί ο καλικάντζαρος πρώτα (βλ. _show_challenge)
+		# — ο παίκτης πρέπει να προχωρήσει με τη σειρά δυσκολίας του δάσους
+		# (καλικάντζαρος 5 -> δέντρο 10 -> Μόργκανα 15, βλ. σχόλιο κορυφής).
+		"requires": "goblin",
 		"dialogue": "Γρρρ... ποιος ταράζει τις ρίζες μου;\n\nΧίλια χρόνια στέκομαι εδώ\nκαι τα κλαδιά μου έχουν λυγίσει\nπιο γενναίους από σένα...\n\nΈλα κοντά, αν τολμάς!",
 		"taunt_win":  "Οι ρίζες μου... υποκλίνονται. Πάρε τον θησαυρό μου.",
 		"taunt_lose": "Τα κλαδιά μου σε πέταξαν σαν φύλλο!",
@@ -361,10 +365,38 @@ func _show_challenge() -> void:
 	if GameData.is_mini_boss_defeated(_boss_id):
 		_show_defeated()
 		return
+	# Κλείδωμα σειράς: το δέντρο (BOSS_DEFS["tree"]["requires"] = "goblin") δεν
+	# παίζεται πριν νικηθεί ο καλικάντζαρος — βλ. σχόλιο στο BOSS_DEFS.
+	var requires := str(_def().get("requires", ""))
+	if requires != "" and not GameData.is_mini_boss_defeated(requires):
+		_show_locked(requires)
+		return
 	if Heroes.get_active_party().is_empty():
 		_show_no_party()
 		return
 	_show_odds()
+
+## Το boss που χρειάζεται πρώτα (requires) δεν έχει νικηθεί ακόμα — καμία
+## προσπάθεια, μόνο εξήγηση. Ίδιο μοτίβο κουτιού με _show_defeated/_show_no_party.
+func _show_locked(requires: String) -> void:
+	var req_name := str(BOSS_DEFS.get(requires, {}).get("name", requires))
+	var box := _styled_box(Color(0.10, 0.06, 0.04, 0.90), C_CRIMSON)
+
+	_label(box, "🔒", Vector2(0, 40), Vector2(box.size.x, 100),
+		72, C_CRIMSON.lightened(0.25), HORIZONTAL_ALIGNMENT_CENTER)
+	_label(box, "Δεν είσαι έτοιμος ακόμα!", Vector2(0, 150), Vector2(box.size.x, 60),
+		34, C_CRIMSON.lightened(0.3), HORIZONTAL_ALIGNMENT_CENTER, Color(0,0,0,0.9), 2, 3)
+
+	var msg := Label.new()
+	msg.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	msg.text = "Πρέπει πρώτα να νικήσεις %s." % req_name
+	msg.position = Vector2(50, 230)
+	msg.size     = Vector2(box.size.x - 100, 140)
+	msg.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	msg.add_theme_font_size_override("font_size", 26)
+	msg.add_theme_color_override("font_color", C_PARCH_D)
+	msg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(msg)
 
 ## Το boss έχει ήδη νικηθεί — καμία νέα προσπάθεια, καμία επιπλέον ανταμοιβή.
 ## Μόνο το κουμπί «Πίσω στο Δάσος» (χτισμένο μόνιμα, βλ. _build_back_button).
@@ -409,12 +441,15 @@ func _show_odds() -> void:
 
 	var avg := Heroes.get_party_average_stat()
 	var probability := Heroes.win_probability(avg, int(d["stat"]))
+	var msg := Heroes.get_probability_message(probability)
+	var tier_colors := [C_CRIMSON.lightened(0.35), C_GOLD_D.lightened(0.55), C_GOLD]
 
 	_label(box, "Πιθανότητα Νίκης", Vector2(0, 30), Vector2(box.size.x, 44),
 		28, C_PARCH_D, HORIZONTAL_ALIGNMENT_CENTER)
-	_label(box, "%d%%" % int(round(probability * 100.0)), Vector2(0, 74), Vector2(box.size.x, 100),
-		80, C_GOLD, HORIZONTAL_ALIGNMENT_CENTER, Color(0,0,0,0.9), 2, 3)
-	_label(box, "Μέσος όρος ομάδας: %.1f / 20   —   %s: %d" % [avg, d["name"], int(d["stat"])],
+	var msg_label := _label(box, str(msg["text"]), Vector2(30, 74), Vector2(box.size.x - 60, 100),
+		30, tier_colors[int(msg["tier"])], HORIZONTAL_ALIGNMENT_CENTER, Color(0,0,0,0.9), 2, 3)
+	msg_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_label(box, "Μέσος όρος ομάδας: %.1f / 20" % avg,
 		Vector2(20, 182), Vector2(box.size.x - 40, 40), 22, C_PARCH_D, HORIZONTAL_ALIGNMENT_CENTER)
 
 	# ── Κόστος επανάληψης (μόνο αν έχει ήδη χάσει από ΑΥΤΟ το boss) ──────────

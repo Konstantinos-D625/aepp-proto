@@ -1,5 +1,13 @@
+res://Scripts/castle_popup.gd
+res://Scripts/chat_popup.gd
+res://Scripts/clans_popup.gd
+res://Scripts/currency_manager.gd
 res://Scripts/friends_popup.gd
-res://Scripts/player_profile.gd
 res://Scripts/profile_popup.gd
-res://Scripts/blacksmith_popup.gd
-res://Scripts/QuizManager.gd
+res://Scripts/net.gd
+res://Scripts/inventory_popup.gd
+res://Scripts/player_profile.gd
+res://Scripts/shop_popup.gd
+res://Scripts/boss_popup.gd
+res://Scripts/mini_boss_popup.gd
+res://Scripts/heroes.gd

@@ -439,3 +439,26 @@ func win_probability(party_avg: float, boss_stat: int) -> float:
 		return 0.5 * t * t
 	var t2: float = (avg - b) / (float(STAT_MAX) - b)
 	return 0.5 + 0.5 * t2
+
+## Μετατρέπει μια πιθανότητα νίκης σε ένα ειλικρινές μήνυμα προς τον παίκτη
+## αντί για γυμνό ποσοστό (ζητήθηκε ώστε η πληροφορία να "διαβάζεται" πιο
+## φυσικά). Το "tier" (0=κακό, 1=μέτριο, 2=καλό) αφήνεται στο κάθε popup να
+## το χαρτογραφήσει στη δική του παλέτα χρωμάτων (π.χ. C_CRIMSON/C_GOLD).
+func get_probability_message(probability: float) -> Dictionary:
+	var pct := int(round(probability * 100.0))
+	if pct <= 0:
+		return {"text": "Είναι αδύνατο να κερδίσεις.", "tier": 0}
+	elif pct <= 15:
+		return {"text": "Είσαι αδύναμος. Δεν πρόκειται να κερδίσεις.", "tier": 0}
+	elif pct <= 35:
+		return {"text": "Οι πιθανότητές σου είναι πολύ μικρές. Δυνάμωσε πρώτα.", "tier": 0}
+	elif pct <= 50:
+		return {"text": "Η μάχη είναι δύσκολη. Δεν σε ευνοεί η τύχη.", "tier": 1}
+	elif pct <= 65:
+		return {"text": "Έχεις μια πραγματική ευκαιρία, αλλά θα είναι σκληρή μάχη.", "tier": 1}
+	elif pct <= 85:
+		return {"text": "Είσαι δυνατός. Οι πιθανότητες σε ευνοούν.", "tier": 2}
+	elif pct <= 99:
+		return {"text": "Είσαι σχεδόν έτοιμος. Η νίκη είναι πολύ πιθανή.", "tier": 2}
+	else:
+		return {"text": "Είσαι απόλυτα έτοιμος! Η νίκη είναι σίγουρη.", "tier": 2}

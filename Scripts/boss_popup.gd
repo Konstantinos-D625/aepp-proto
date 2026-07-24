@@ -142,11 +142,60 @@ func _go_to_state2() -> void:
 ## στατιστικό του: με MORGANA_STAT = 15 η καμπύλη είναι ΑΚΡΙΒΩΣ η αρχική
 ## (μέσος όρος 15 -> 50%).
 func _show_challenge() -> void:
+	# Κλείδωμα σειράς: η Μόργκανα (stat 15) δεν παίζεται πριν νικηθεί το
+	# στοιχειωμένο δέντρο (stat 10, mini_boss_popup.gd) — που με τη σειρά του
+	# απαιτεί ήδη τον καλικάντζαρο (βλ. BOSS_DEFS["tree"]["requires"] εκεί),
+	# άρα αυτός ο ένας έλεγχος αρκεί για ολόκληρη την αλυσίδα.
+	if not GameData.is_mini_boss_defeated("tree"):
+		_show_locked()
+		return
 	var heroes := Heroes.get_active_party()
 	if heroes.is_empty():
 		_show_no_party()
 		return
 	_show_odds(heroes)
+
+## Το στοιχειωμένο δέντρο δεν έχει νικηθεί ακόμα — καμία προσπάθεια εναντίον
+## της Μόργκανας, μόνο εξήγηση. Ίδιο μοτίβο κουτιού με _show_no_party.
+func _show_locked() -> void:
+	var box := _clear_result_box()
+	var s := StyleBoxFlat.new()
+	s.bg_color     = Color(0.10, 0.06, 0.04, 0.90)
+	s.border_color = C_CRIMSON
+	s.set_border_width_all(3)
+	s.set_corner_radius_all(8)
+	box.add_theme_stylebox_override("panel", s)
+
+	var icon := Label.new()
+	icon.text = "🔒"
+	icon.position = Vector2(0, 40)
+	icon.size     = Vector2(box.size.x, 100)
+	icon.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	icon.add_theme_font_size_override("font_size", 72)
+	icon.add_theme_color_override("font_color", C_CRIMSON.lightened(0.25))
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(icon)
+
+	var title := Label.new()
+	title.text = "Δεν είσαι έτοιμος ακόμα!"
+	title.position = Vector2(0, 150)
+	title.size     = Vector2(box.size.x, 60)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 34)
+	title.add_theme_color_override("font_color", C_CRIMSON.lightened(0.3))
+	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(title)
+
+	var hint := Label.new()
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	hint.text = "Πρέπει πρώτα να νικήσεις το Γερο-Ρίζας το Στοιχειωμένο Δέντρο, στο δάσος της μάγισσας."
+	hint.position = Vector2(50, 230)
+	hint.size     = Vector2(box.size.x - 100, 140)
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	hint.add_theme_font_size_override("font_size", 26)
+	hint.add_theme_color_override("font_color", C_PARCH_D)
+	hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(hint)
 
 # ═══════════════════════════════════════════════════════════════════════════
 # ΚΑΤΑΣΚΕΥΗ UI
@@ -378,7 +427,8 @@ func _show_odds(heroes: Array) -> void:
 
 	var avg := Heroes.get_party_average_stat()
 	var probability := Heroes.win_probability(avg, MORGANA_STAT)
-	var pct := int(round(probability * 100.0))
+	var msg := Heroes.get_probability_message(probability)
+	var tier_colors := [C_CRIMSON.lightened(0.35), C_GOLD_D.lightened(0.55), C_GOLD]
 
 	var title := Label.new()
 	title.text = "Πιθανότητα Νίκης"
@@ -391,12 +441,14 @@ func _show_odds(heroes: Array) -> void:
 	box.add_child(title)
 
 	var pct_label := Label.new()
-	pct_label.text = "%d%%" % pct
-	pct_label.position = Vector2(0, 74)
-	pct_label.size     = Vector2(box.size.x, 100)
+	pct_label.text = str(msg["text"])
+	pct_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	pct_label.position = Vector2(30, 74)
+	pct_label.size     = Vector2(box.size.x - 60, 100)
 	pct_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	pct_label.add_theme_font_size_override("font_size", 80)
-	pct_label.add_theme_color_override("font_color", C_GOLD)
+	pct_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	pct_label.add_theme_font_size_override("font_size", 30)
+	pct_label.add_theme_color_override("font_color", tier_colors[int(msg["tier"])])
 	pct_label.add_theme_color_override("font_shadow_color", Color(0,0,0,0.9))
 	pct_label.add_theme_constant_override("shadow_offset_x", 2)
 	pct_label.add_theme_constant_override("shadow_offset_y", 3)

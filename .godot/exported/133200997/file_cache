@@ -1,4 +1,4 @@
-res://Scenes/Area1.tscn::e983181cf953a76b96f8baf57a19f35f::1784638815::res://.godot/exported/133200997/export-5185db153b0ab1f83d845ee7ca6c606c-Area1.scn
+res://Scenes/Area1.tscn::a48e43f76056ff3ec9f7ecd3774ade4a::1784802502::res://.godot/exported/133200997/export-5185db153b0ab1f83d845ee7ca6c606c-Area1.scn
 res://Scenes/BlacksmithPopup.tscn::30b35d109af358b1ca1e74ddc83ee431::1782980446::res://.godot/exported/133200997/export-4f77c59189e33de18be3ee1409a053fe-BlacksmithPopup.scn
 res://Scenes/BossFight.tscn::a3886f744ea39efc56db7ae5138c0797::1783681233::res://.godot/exported/133200997/export-446cac95b4fe6319102b22aa105eb75b-BossFight.scn
 res://Scenes/BossPopup.tscn::ea9212138a8ce8a5dea71a7583a66e41::1782980430::res://.godot/exported/133200997/export-8a947b822fdc5457d12248738be7edeb-BossPopup.scn
@@ -12,8 +12,8 @@ res://Scenes/ExercisePopup.tscn::c09fa2b2867677abd163fd1b652d5e15::1783430072::r
 res://Scenes/FoundKeyPopup.tscn::c870d7bcf57ed1980c2d58988fb2056b::1784635119::res://.godot/exported/133200997/export-d219f396ee09a73d012b7dfbc5dd1d98-FoundKeyPopup.scn
 res://Scenes/GnomePopup.tscn::21fdb45b0a74b836bcd5ebaa76bdb5df::1784016905::res://.godot/exported/133200997/export-25a4df1f6e9f65d335c4a8eb49014022-GnomePopup.scn
 res://Scenes/HeroSlotPopup.tscn::71abd9c38f8df39f9acc9b616f15dfa7::1784110176::res://.godot/exported/133200997/export-e32f1a49c6d1f8516331cd1c37f01926-HeroSlotPopup.scn
-res://Scenes/InventoryPopup.tscn::c3931f28babeda7c5222da5ffb4fe292::1784630427::res://.godot/exported/133200997/export-98635f1f8d378724614a624e8238dd84-InventoryPopup.scn
-res://Scenes/MapPopup.tscn::2ab51c3ef921b2305dc02f6f3c6d6597::1782980446::res://.godot/exported/133200997/export-d1f3d3dde22fdd6c59cd8e5594030b4d-MapPopup.scn
+res://Scenes/InventoryPopup.tscn::09149bd69bd8b540a7cd188b55844dc2::1784885191::res://.godot/exported/133200997/export-98635f1f8d378724614a624e8238dd84-InventoryPopup.scn
+res://Scenes/MapPopup.tscn::86fdccaa3be22e8976deaa6bff44996a::1784708444::res://.godot/exported/133200997/export-d1f3d3dde22fdd6c59cd8e5594030b4d-MapPopup.scn
 res://Scenes/MinerPopup.tscn::e0aa99387f27d1693ea3de08038b437e::1782980446::res://.godot/exported/133200997/export-a880d579702a317a4338f7422e38b349-MinerPopup.scn
 res://Scenes/MiniBossPopup.tscn::802877393ecbde9b9c1a17be6866e713::1784241703::res://.godot/exported/133200997/export-3d220fad7b10d9861fde4153484a4d2f-MiniBossPopup.scn
 res://Scenes/OldManPopup.tscn::d06deda8f01bf2acd4f966ad4d4d0e5e::1784554369::res://.godot/exported/133200997/export-b9f28b0c9eba6bde76945f5b9bf30ba2-OldManPopup.scn
@@ -23,3 +23,15 @@ res://Scenes/RoomImagePopup.tscn::1dfa7e1a4e705f73cc14c7d7ebf7ff10::1783429359::
 res://Scenes/ShopPopup.tscn::a089477787cef2ab81ac7cad429b224c::1782980430::res://.godot/exported/133200997/export-156405b909e058cabf11fdb77680f4bd-ShopPopup.scn
 res://Scenes/WitchMapPopup.tscn::acd855c95a833457967fbe2718128578::1784241937::res://.godot/exported/133200997/export-066c332a50ad45b39bfd3f13b9112e6b-WitchMapPopup.scn
 res://default_bus_layout.tres::a7eb4b294fc149072cba7d7a48edb30b::1782980446::res://.godot/exported/133200997/export-19246414aa9fb561ced4b8dce477acec-default_bus_layout.res
+res://Scenes/AlchemyPopup.tscn::8b851a2845c44b84fd3b097262b48f83::1784708849::res://.godot/exported/133200997/export-424a6670c7e83bcd289d41c32e1c3858-AlchemyPopup.scn
+res://Scenes/Area2.tscn::bb12a34b714358b086c23a83327591fa::1784884013::res://.godot/exported/133200997/export-0daef037019fc3ccea172773d6ff8fa3-Area2.scn
+res://Scenes/Area3.tscn::20cd5d61a1f10fbf0564c80a921c751b::1784884033::res://.godot/exported/133200997/export-a5470526382cae12b3da56dcd1c3c5ad-Area3.scn
+res://Scenes/AuthPopup.tscn::5082ba539811e5c601e548ecf4ffbb93::1784799696::res://.godot/exported/133200997/export-a703616726e38a35b3e3da0b83a4a4e8-AuthPopup.scn
+res://Scenes/BakeryPopup.tscn::b8d349e1b85cb01a80405147c5545453::1784708849::res://.godot/exported/133200997/export-7731132dc3f4714a6a7c79d1799b9ffe-BakeryPopup.scn
+res://Scenes/BotanistPopup.tscn::63dd545fb2fcff545c6212c2552eccc8::1784708849::res://.godot/exported/133200997/export-6b95b1fd3b6d6094fb0ab8eefb52daf1-BotanistPopup.scn
+res://Scenes/CartographerPopup.tscn::e713fcdb7cff725ada992e5871e6e801::1784708849::res://.godot/exported/133200997/export-dc771768841033a172439ecbc5792569-CartographerPopup.scn
+res://Scenes/ChatPopup.tscn::2636937b1e5376e22ed8e0b01a0e46b9::1784799642::res://.godot/exported/133200997/export-8667ec1b1ca0182726d52e7d373f09d0-ChatPopup.scn
+res://Scenes/ClansPopup.tscn::91133bdbc803ab873899255c99616382::1784799642::res://.godot/exported/133200997/export-047157da345309d93ab0685d0b93a0b3-ClansPopup.scn
+res://Scenes/FriendsPopup.tscn::6fce7854308dabf36786c51780a80243::1784799642::res://.godot/exported/133200997/export-5ac1bfc2b0ddf8e6bf07e0aa8a91e983-FriendsPopup.scn
+res://Scenes/InnkeeperPopup.tscn::2899c3dff8e79a2623c17975c290b174::1784708849::res://.godot/exported/133200997/export-1be4e426751c6d373d29ecacf97f5d2b-InnkeeperPopup.scn
+res://Scenes/LibraryPopup.tscn::3a1b7a75deec862bf683cbb3720c1963::1784708849::res://.godot/exported/133200997/export-a85461ca0bbbdba2d55dda4c67bd41b5-LibraryPopup.scn

@@ -70,9 +70,20 @@ func _ready() -> void:
 ## Φάση 5: όταν ο χρήστης κλείσει το παράθυρο, κάνε ΣΥΓΧΡΟΝΟ flush της τελευταίας
 ## αποθήκευσης πριν τον τερματισμό (αλλιώς μια αγορά μέσα στα 4s του debounce
 ## θα χανόταν). Δουλεύει και ως autoload — το NOTIFICATION φτάνει στο root.
+##
+## WM_CLOSE_REQUEST είναι ΜΟΝΟ desktop (κουμπί κλεισίματος παραθύρου) — στο
+## Android (βλ. export_presets.cfg) το «κλείσιμο» της εφαρμογής (home button,
+## εναλλαγή εφαρμογής, kill από το OS) ΔΕΝ το πυροδοτεί ΠΟΤΕ, φτάνει μόνο το
+## APPLICATION_PAUSED. Χωρίς αυτό το κλαδί, ό,τι έγινε μέσα στα 4s του debounce
+## πριν βγει ο παίκτης από την εφαρμογή (μια αγορά, μια ολοκλήρωση Daily Quest)
+## δεν θα ανέβαινε ΠΟΤΕ — ούτε το save ούτε το δημόσιο προφίλ (πρόοδος/κατάταξη
+## που βλέπουν οι φίλοι). ΔΕΝ κάνει quit εδώ (η εφαρμογή απλώς πάει background,
+## δεν τερματίζεται) — best-effort άμεσο push, χωρίς το κανονικό debounce.
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
 		_flush_and_quit()
+	elif what == NOTIFICATION_APPLICATION_PAUSED:
+		_flush_without_quit()
 
 
 ## Ανεβάζει την τελευταία κατάσταση και μετά κλείνει. Δίχτυ ασφαλείας: ό,τι κι αν
@@ -82,11 +93,18 @@ func _flush_and_quit() -> void:
 	get_tree().create_timer(FLUSH_TIMEOUT).timeout.connect(get_tree().quit)
 	if is_logged_in():
 		await push_save()
-		# Και το ΔΗΜΟΣΙΟ προφίλ: αλλιώς κλείσιμο μέσα στα 4s του debounce μετά την
-		# ολοκλήρωση του Daily Quest θα άφηνε το daily_quest_done_today μπαγιάτικο
-		# στον server, χαλώντας την ανταλλαγή Κέρματος Φιλίας με τους φίλους.
+		# Και το ΔΗΜΟΣΙΟ προφίλ: αλλιώς κλείσιμο μέσα στα 4s του debounce θα άφηνε
+		# μπαγιάτικη στον server την πρόοδο που βλέπουν οι φίλοι (κατάταξη/streak).
 		await push_profile()
 	get_tree().quit()
+
+## Ίδιο flush με το _flush_and_quit, χωρίς όμως τερματισμό — για APPLICATION_PAUSED
+## (background στο Android), όπου το παιχνίδι συνεχίζει να «τρέχει» (ή μπορεί να
+## σκοτωθεί απρόβλεπτα από το OS οποιαδήποτε στιγμή μετά, χωρίς άλλη ειδοποίηση).
+func _flush_without_quit() -> void:
+	if is_logged_in():
+		await push_save()
+		await push_profile()
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -305,14 +323,15 @@ func remove_friend(friendship_id: String) -> Dictionary:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# FRIENDSHIP GIFTS (Κέρμα Φιλίας) — 1 δώρο/μέρα ανά φίλο, αμοιβαίο
+# FRIENDSHIP GIFTS (Κέρμα Φιλίας) — 1 δώρο/μέρα ανά φίλο
 # ═══════════════════════════════════════════════════════════════════════════
 # Πάνω από τη συλλογή `friendship_gifts` (immutable log: μόνο createRule — καμία
 # ενημέρωση/διαγραφή). Ένα δώρο ανά (from_user, to_user, ημέρα) μέσω unique index.
 # Ο server επιτρέπει τη δημιουργία μόνο αν η φιλία είναι accepted και αφορά και
-# τους δύο (βλ. migration add_friendship_gifts_collection). Το UI (FriendsPopup)
-# αφήνει το πάτημα μόνο όταν ΚΑΙ οι δύο ολοκλήρωσαν το σημερινό Daily Quest, αλλά
-# η τελική αρχή για τον περιορισμό «1/μέρα» είναι ο server.
+# τους δύο (βλ. migration add_friendship_gifts_collection).
+# ΚΑΜΙΑ άλλη προϋπόθεση: ο καθένας στέλνει ένα δώρο σε κάθε φίλο του τη μέρα,
+# ανεξάρτητα από την πρόοδο του άλλου — η μόνη αρχή για το «1/μέρα» είναι ο
+# server (unique index)· το UI απλώς γκριζάρει όσους δώρισα ήδη σήμερα.
 
 ## Η σημερινή ημερομηνία σε μορφή "YYYY-MM-DD" (τοπική) — το κλειδί του «1/μέρα».
 func _today_string() -> String:

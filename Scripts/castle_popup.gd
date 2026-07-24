@@ -35,6 +35,7 @@ extends Control
 # ΚΑΙ k>0) -> μέσα δίνει τα κλειδιά της Νέας Λύσης 3 (Ψευδής, '7') ->
 # Main Bailey (Νέα Συνθήκη 3: ΟΧΙ(key) ΚΑΙ '0'<=digit<='9') — τελικό δωμάτιο.
 
+const LOCK_TEX := preload("res://Εικόνες/lock.png")
 const ARMORY_TEX := preload("res://Εικόνες/armory.png")
 const CHAPEL_TEX := preload("res://Εικόνες/chapel.png")
 const LIBRARY_TEX := preload("res://Εικόνες/library.png")
@@ -438,12 +439,12 @@ func _build_locked_panel() -> Control:
 	inner.add_theme_stylebox_override("panel", inner_style)
 	root.add_child(inner)
 
-	var icon := Label.new()
-	icon.text = "🔒"
+	var icon := TextureRect.new()
+	icon.texture = LOCK_TEX
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	icon.position = Vector2(BX, BY + 50)
 	icon.size     = Vector2(BW, 130)
-	icon.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	icon.add_theme_font_size_override("font_size", 96)
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(icon)
 

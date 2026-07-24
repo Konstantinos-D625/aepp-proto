@@ -1,12 +1,14 @@
 9cad1ddce9e5a63143ba340c9520626b
-::res://::1784811272
+::res://::1784881561
 bakery_quiz.json::JSON::-1::1784710015::0::1::::<><><>0<>0<><>::
-blacksmith_exercises.json::JSON::-1::1784799642::0::1::::<><><>0<>0<><>::
+blacksmith_exercises.json::JSON::-1::1784814314::0::1::::<><><>0<>0<><>::
 blacksmith_quiz.json::JSON::-1::1782986437::0::1::::<><><>0<>0<><>::
+cartographer_quiz.json::JSON::-1::1784814547::0::1::::<><><>0<>0<><>::
 cotton_quiz.json::JSON::-1::1784799705::0::1::::<><><>0<>0<><>::
 default_bus_layout.tres::AudioBusLayout::5718635773021068325::1782980446::0::1::::<><><>0<>0<><>::
-export_presets.cfg::TextFile::-1::1783596501::0::1::::<><><>0<>0<><>::
+export_presets.cfg::TextFile::-1::1784815243::0::1::::<><><>0<>0<><>::
 icon.svg::CompressedTexture2D::3012399866630628846::1782980431::1784799837::1::::<><><>0<>0<>76f5a1d4ec04c0675f2c0cdd002904e5<>res://.godot/imported/icon.svg-218a8f2b3041327d8a5756f3a245f83b.ctex::
+innkeeper_quiz.json::JSON::-1::1784814744::0::1::::<><><>0<>0<><>::
 miner_quiz.json::JSON::-1::1782983189::0::1::::<><><>0<>0<><>::
 ::res://Animations/::1784287139
 ::res://Animations/archer_animation/::1784287139
@@ -101,7 +103,7 @@ ProfilePopup.tscn::PackedScene::6440956095888245096::1784550720::0::1::::<><><>0
 RoomImagePopup.tscn::PackedScene::-1::1783429359::0::1::::<><><>0<>0<><>::res://Scripts/room_image_popup.gd<>res://Scenes/FoundKeyPopup.tscn
 ShopPopup.tscn::PackedScene::3419947777078795157::1782980430::0::1::::<><><>0<>0<><>::res://Scripts/shop_popup.gd
 WitchMapPopup.tscn::PackedScene::45936093021815432::1784241937::0::1::::<><><>0<>0<><>::uid://cppltoqha00cc::::res://Scripts/witch_map_popup.gd<>uid://bo3revpnfp643::::res://Εικόνες/witch_map.png
-::res://Scripts/::1784813308
+::res://Scripts/::1784815548
 achievements.gd::GDScript::4602972129006798931::1784799642::0::1::::<>Node<><>0<>0<><>::
 alchemy_popup.gd::GDScript::5692750439646174258::1784708413::0::1::::<>Control<><>0<>0<><>::
 armor_inventory.gd::GDScript::4943718543629863539::1784635076::0::1::::<>Node<><>0<>0<><>::
@@ -109,11 +111,11 @@ auth_popup.gd::GDScript::593298630466587238::1784799642::0::1::::<>Control<><>0<
 bakery_popup.gd::GDScript::4319847321492035492::1784799642::0::1::::<>Control<><>0<>0<><>::
 battle_animations.gd::GDScript::2250147451654589212::1784287139::0::1::::BattleAnimations<>RefCounted<><>0<>0<><>::
 bat_swarm_decoration.gd::GDScript::467407080719832006::1784638652::0::1::::<>TextureRect<><>0<>0<><>::
-blacksmith_popup.gd::GDScript::1104947120708314717::1784799642::0::1::::<>Control<><>0<>0<><>::
+blacksmith_popup.gd::GDScript::1104947120708314717::1784814487::0::1::::<>Control<><>0<>0<><>::
 boss_fight.gd::GDScript::1429297631428522712::1784541227::0::1::::<>Control<><>0<>0<><>::
 boss_popup.gd::GDScript::8776902047286408081::1784287139::0::1::::<>Control<><>0<>0<><>::
 botanist_popup.gd::GDScript::1445750158024431413::1784708413::0::1::::<>Control<><>0<>0<><>::
-cartographer_popup.gd::GDScript::239351488849523937::1784708413::0::1::::<>Control<><>0<>0<><>::
+cartographer_popup.gd::GDScript::239351488849523937::1784814633::0::1::::<>Control<><>0<>0<><>::
 castle_popup.gd::GDScript::1212796840026451031::1784636400::0::1::::<>Control<><>0<>0<><>::
 CharacterSelect.gd::GDScript::5716850399735152383::1784811048::0::1::::<>Panel<><>0<>0<><>::
 chat_popup.gd::GDScript::7850656079580871027::1784799642::0::1::::<>Control<><>0<>0<><>::
@@ -133,7 +135,7 @@ GameData.gd::GDScript::7281786025913595614::1784805190::0::1::::<>Node<><>0<>0<>
 gnome_popup.gd::GDScript::6327436408539605330::1784024764::0::1::::<>Control<><>0<>0<><>::
 heroes.gd::GDScript::6184848438944181353::1784810837::0::1::::<>Node<><>0<>0<><>::
 hero_slot_popup.gd::GDScript::1976868662772412618::1784811087::0::1::::HeroSlotPopup<>Control<><>0<>0<><>::
-innkeeper_popup.gd::GDScript::8928826371840808870::1784708413::0::1::::<>Control<><>0<>0<><>::
+innkeeper_popup.gd::GDScript::8928826371840808870::1784814836::0::1::::<>Control<><>0<>0<><>::
 inventory_data.gd::GDScript::3332798620403996391::1784799642::0::1::::<>Node<><>0<>0<><>::
 inventory_popup.gd::GDScript::4053288783231927979::1784811158::0::1::::<>Control<><>0<>0<><>::
 key_drop_zone.gd::GDScript::3643484733162168551::1783429359::0::1::::<>Panel<><>0<>0<><>::
@@ -145,12 +147,12 @@ MatchDragItem.gd::GDScript::7471654915675482530::1784293421::0::1::::MatchDragIt
 MatchingQuizManager.gd::GDScript::8936308416369787290::1783424314::0::1::::MatchingQuizManager<>RefCounted<><>0<>0<><>::
 miner_popup.gd::GDScript::3248297179168208394::1784293421::0::1::::<>Control<><>0<>0<><>::
 mini_boss_popup.gd::GDScript::7775751994260464204::1784711044::0::1::::<>Control<><>0<>0<><>::
-net.gd::GDScript::1982023271812240650::1784806847::0::1::::<>Node<><>0<>0<><>::
+net.gd::GDScript::1982023271812240650::1784815548::0::1::::<>Node<><>0<>0<><>::
 old_man_popup.gd::GDScript::8859547473265482108::1784630143::0::1::::<>Control<><>0<>0<><>::
 OptionsMenu.gd::GDScript::727246842236017652::1782980430::0::1::::<>Panel<><>0<>0<><>::
 player_profile.gd::GDScript::8200953446782244452::1784813167::0::1::::<>Node<><>0<>0<><>::
 profile_popup.gd::GDScript::9046519275355994529::1784813229::0::1::::<>Control<><>0<>0<><>::
-QuizManager.gd::GDScript::1747317443515993810::1784287139::0::1::::QuizManager<>RefCounted<><>0<>0<><>::
+QuizManager.gd::GDScript::1747317443515993810::1784814240::0::1::::QuizManager<>RefCounted<><>0<>0<><>::
 room_image_popup.gd::GDScript::5478719028964953031::1784635153::0::1::::<>Control<><>0<>0<><>::
 shop_popup.gd::GDScript::3475271302785549210::1784810933::0::1::::<>Control<><>0<>0<><>::
 weapon_inventory.gd::GDScript::1336859417518328041::1784635076::0::1::::<>Node<><>0<>0<><>::
@@ -160,7 +162,7 @@ CHANGELOG.md::TextFile::-1::1784458722::0::1::::<><><>0<>0<><>::
 LICENSE.md::TextFile::-1::1784458722::0::1::::<><><>0<>0<><>::
 pb_serve.log::TextFile::-1::1784716398::0::1::::<><><>0<>0<><>::
 README.md::TextFile::-1::1784716498::0::1::::<><><>0<>0<><>::
-::res://server/pb_data/::1784812805
+::res://server/pb_data/::1784813830
 ::res://server/pb_data/backups/::1784710956
 ::res://server/pb_data/storage/::1784550090
 ::res://server/pb_migrations/::1784805237
@@ -194,7 +196,7 @@ friendship_glove.png::CompressedTexture2D::3877861904052654641::1784802894::1784
 friendship_cloak.png::CompressedTexture2D::4922456417328207862::1784803040::1784803910::1::::<><><>0<>0<>1639d75a9fa6e51579db67363a5337e5<>res://.godot/imported/friendship_cloak.png-a8706fbce844dcb7a6676369e4b26e36.ctex::
 ::res://Αντικείμενα Φιλίας/Ραβδί/::1784803910
 friendship_wand.png::CompressedTexture2D::6505443061111676187::1784802089::1784803910::1::::<><><>0<>0<>d83ea1dee13f0f435184d81ce489ea2b<>res://.godot/imported/friendship_wand.png-fd17e56af06f3599e085b6b26bfac981.ctex::
-::res://Εικόνες/::1784813086
+::res://Εικόνες/::1784882486
 achievements_icon.png::CompressedTexture2D::6092599786767766726::1784812213::1784813380::1::::<><><>0<>0<>33ed6f0ee8ec38106df34fac5bc2ed3c<>res://.godot/imported/achievements_icon.png-297b2b1dc010adb97080e3e2d53922d1.ctex::
 alch.bg2.png::CompressedTexture2D::3871464102211351926::1784709960::1784710013::1::::<><><>0<>0<>33af9efbe6c35cdc0cbac9288318e8d8<>res://.godot/imported/alch.bg2.png-900837ef2838af4dba21d63480eba085.ctex::
 alch.bg.png::CompressedTexture2D::6449579438259546737::1784709954::1784710013::1::::<><><>0<>0<>45df4abe6e01cd131a35096a8b0879b3<>res://.godot/imported/alch.bg.png-490f38193f05959b94b17ddcbc849d83.ctex::
@@ -266,6 +268,7 @@ HP_icon.png::CompressedTexture2D::2999505614341410639::1784810344::1784810506::1
 Inventory1.png::CompressedTexture2D::5240026811545397193::1784025315::1784103379::1::::<><><>0<>0<>f5d2135c5d9051caa8d63c56c8e94d5b<>res://.godot/imported/Inventory1.png-25dc13094166307b705165c9b2110c83.ctex::
 iron.png::CompressedTexture2D::4241249429015011170::1784024086::1784024571::1::::<><><>0<>0<>324192baf3bff86edaa1002cdf01db20<>res://.godot/imported/iron.png-771cb9fa54ca08ae3e4a28b7e0c5c850.ctex::
 Jun 28, 2026, 04_25_46 PM.png::CompressedTexture2D::1816064027197564036::1782980431::1782980449::1::::<><><>0<>0<>a942ace87db551297f65003bcac84151<>res://.godot/imported/Jun 28, 2026, 04_25_46 PM.png-cdd6cabf8573c504cff9211e9a87d4b5.ctex::
+key.png::CompressedTexture2D::898732611311494574::1784881726::1784882714::1::::<><><>0<>0<>3c72c87fce32f28914bdf0ad2fde8538<>res://.godot/imported/key.png-2e5e155d16851fe570595f722c9515c5.ctex::
 kings_chamber.png::CompressedTexture2D::3644816821052791597::1783585091::1783585104::1::::<><><>0<>0<>06f72487a66107ce99f2ab65e4bee0f4<>res://.godot/imported/kings_chamber.png-1d5b8753a50015c821385434101ab669.ctex::
 kitchen.png::CompressedTexture2D::1517740120640945093::1783429230::1783430623::1::::<><><>0<>0<>fe5070aed876749d19607001ced1d182<>res://.godot/imported/kitchen.png-2f52ad1164cf6a7b21201e5fc18568f0.ctex::
 knight.png::CompressedTexture2D::2417691318508201812::1784192414::1784192744::1::::<><><>0<>0<>5dfe39b36171dc20d8eeede1023e464c<>res://.godot/imported/knight.png-99ea1f352887f7aa124a1b25bdfe9770.ctex::
@@ -276,6 +279,7 @@ leggings.png::CompressedTexture2D::4677571205764476107::1783074541::1783074620::
 library.bg2.png::CompressedTexture2D::5403572713777637705::1784709819::1784710014::1::::<><><>0<>0<>74fd2cb69bbb3970f096095a1821e097<>res://.godot/imported/library.bg2.png-2b3e2bdf0319859927a9e2d52e8ef6f2.ctex::
 library.bg.png::CompressedTexture2D::8707111108030142953::1784709813::1784710014::1::::<><><>0<>0<>171e9c4ecc6f6ae022cb72ff5a3d113e<>res://.godot/imported/library.bg.png-ba6b6fc8b63e7b8e292069c3369f7e07.ctex::
 library.png::CompressedTexture2D::6041449625293774795::1783429231::1783430623::1::::<><><>0<>0<>0cabf1c0cdb096af0ea8c0acf4f30806<>res://.godot/imported/library.png-7c8bd41c3e4eeeb46162b22840670f7f.ctex::
+lock.png::CompressedTexture2D::5290543024189217248::1784882408::1784882714::1::::<><><>0<>0<>d810de7f09f7b84631b69e08038c3962<>res://.godot/imported/lock.png-3e074bee60be96bce44311eb40fc2306.ctex::
 main_bailey.png::CompressedTexture2D::6196022506549691436::1783585091::1783585104::1::::<><><>0<>0<>118af69120c200601d5b8f93e236573a<>res://.godot/imported/main_bailey.png-7d9cadc7329aa97a0bf13c085820ce16.ctex::
 map1.png::CompressedTexture2D::3175464693152241452::1783585091::1782980447::1::::<><><>0<>0<>689a57e61e9616ead66159c4a2fbfa6e<>res://.godot/imported/map1.png-3cdfa3c5b7efde058451f40aa8b9b106.ctex::
 map vertical (2).png::CompressedTexture2D::6057564958718374282::1784709826::1784710014::1::::<><><>0<>0<>1e5afb6a8eeace0b8ff98b6bc9c49fff<>res://.godot/imported/map vertical (2).png-9b3c16c1aef8e29f0af19e29778689a6.ctex::
@@ -297,6 +301,7 @@ Shop_Image.png::CompressedTexture2D::8963091960194278219::1782980431::1782980431
 sidebar.png::CompressedTexture2D::5624810131506267570::1784025319::1784103380::1::::<><><>0<>0<>8ea63dc614c35ef216c3f93f4235c376<>res://.godot/imported/sidebar.png-aab4f4c6a5de54af6d18f248f8ef7eef.ctex::
 sideq.png::CompressedTexture2D::8369161167023668902::1782980431::1782980447::1::::<><><>0<>0<>3bb2b1f6e344ef5128a3159b947c78d7<>res://.godot/imported/sideq.png-f5820220cfafe5481a9a0f21f86b08c3.ctex::
 speed_icon.png::CompressedTexture2D::8447119263900932943::1784809986::1784810506::1::::<><><>0<>0<>2db24dded68821c9d16df34ddb6f73a4<>res://.godot/imported/speed_icon.png-613d3002de2831f10eb71f6bfe12cccf.ctex::
+stats.png::CompressedTexture2D::2869392360369684136::1784881829::1784882714::1::::<><><>0<>0<>35b2795b02e62bfaa9f5f206398ed36d<>res://.godot/imported/stats.png-701f93fe28548dabedd67394bdd91569.ctex::
 streak.png::CompressedTexture2D::8597605168906076239::1782980431::1782980447::1::::<><><>0<>0<>fa8a321d6741a94f06e4e44d1cd5d362<>res://.godot/imported/streak.png-e3ebbc89efc8602cdac986a30f1d0b54.ctex::
 streak_flame.png::CompressedTexture2D::3725044432675110322::1784293421::1784293428::1::::<><><>0<>0<>97de7a131071f78ea0bdd8194b644fd1<>res://.godot/imported/streak_flame.png-a0454f39a1f5f8683303173dea0c4dc8.ctex::
 streak_icon.png::CompressedTexture2D::7156108329566836657::1784811717::1784813380::1::::<><><>0<>0<>ce0302cf83c4da8c5d1064a42e3709ea<>res://.godot/imported/streak_icon.png-c6da3c323249a27715f718de7776324b.ctex::

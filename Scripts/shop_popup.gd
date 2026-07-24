@@ -425,13 +425,15 @@ func _make_equipment_card(catalog: EquipmentCatalog, id: String) -> Control:
 	# ΟΛΑ τα stats που δίνει το αντικείμενο όταν εξοπλιστεί (όχι μόνο το
 	# πρωτεύον Επίθεση/Άμυνα του καταλόγου) — π.χ. ένα όπλο δείχνει Damage ΚΑΙ
 	# AttackSpeed αν δίνει και τα δύο. Βλ. Heroes.display_item_buffs.
+	# Μεγαλύτερα εικονίδιο+αριθμός (28 -> 38, ύψος 40 -> 56) — ήταν δυσδιάκριτα.
 	_stat_row(card, Heroes.display_item_buffs(id),
-		 Vector2(20, 312), Vector2(CARD_W - 40, 40), 28, C_SILVER)
+		 Vector2(20, 312), Vector2(CARD_W - 40, 56), 38, C_SILVER)
 
 	# Χωρίς αναβαθμίσεις (κανένα catalog δεν είναι πλέον upgradable) δεν έχει
-	# νόημα να δείχνεται "Επίπεδο x/3" — απλό "Κατοχή".
+	# νόημα να δείχνεται "Επίπεδο x/3" — απλό "Κατοχή". Μετατοπίστηκε λίγο πιο
+	# κάτω (356 -> 374) ώστε να μη επικαλύπτεται με το ψηλότερο πλέον stat_row.
 	if owned:
-		_lbl(card, "Κατοχή", Vector2(20, 356), Vector2(CARD_W - 40, 44),
+		_lbl(card, "Κατοχή", Vector2(20, 374), Vector2(CARD_W - 40, 44),
 			 26, C_GOLD, HORIZONTAL_ALIGNMENT_CENTER)
 
 	# Το κουμπί δείχνει την τιμή αντί για "ΑΓΟΡΑ" όσο δεν έχει αγοραστεί (βλ.
@@ -450,7 +452,8 @@ func _make_equipment_card(catalog: EquipmentCatalog, id: String) -> Control:
 	_style_iron(buy, not owned)
 	card.add_child(buy)
 	if not owned:
-		_price_row(buy, catalog.get_purchase_cost(id), Vector2.ZERO, buy.size, 34, C_GOLD)
+		# Μεγαλύτερη τιμή (34 -> 44) — δεν φαινόταν καθαρά πόσο κοστίζει.
+		_price_row(buy, catalog.get_purchase_cost(id), Vector2.ZERO, buy.size, 44, C_GOLD)
 		buy.pressed.connect(func(): _buy(catalog, id))
 
 	return card
@@ -493,17 +496,22 @@ func _make_hero_card(def: Dictionary) -> Control:
 	name_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
 	# Τα ΣΤΑΘΕΡΑ stats που θα πάρει ο παίκτης (Heroes.get_hero_stats — ίδια
-	# πάντα, βλ. HERO_DEFS, οπότε η αγορά δίνει ΑΚΡΙΒΩΣ αυτά).
+	# πάντα, βλ. HERO_DEFS, οπότε η αγορά δίνει ΑΚΡΙΒΩΣ αυτά). Μεγαλύτερα
+	# εικονίδιο+αριθμός (28 -> 38, ύψος 44 -> 56) — ήταν δυσδιάκριτα, ίδιο
+	# μέγεθος με την κάρτα εξοπλισμού (βλ. _make_equipment_card).
 	var st := Heroes.get_hero_stats(str(def["id"]))
-	_stat_row(card, st, Vector2(12, 312), Vector2(CARD_W - 24, 44), 28, C_GOLD)
+	_stat_row(card, st, Vector2(12, 312), Vector2(CARD_W - 24, 56), 38, C_GOLD)
 	if owned:
-		_lbl(card, "Στο ρόστερ σου", Vector2(20, 358), Vector2(CARD_W - 40, 44),
+		# Μετατοπίστηκε λίγο πιο κάτω (358 -> 374) ώστε να μη επικαλύπτεται με
+		# το ψηλότερο πλέον stat_row.
+		_lbl(card, "Στο ρόστερ σου", Vector2(20, 374), Vector2(CARD_W - 40, 44),
 			 30, C_SILVER, HORIZONTAL_ALIGNMENT_CENTER)
 
 	# Το κουμπί δείχνει την τιμή αντί για "ΣΤΡΑΤΟΛΟΓΗΣΗ" όσο δεν έχει αγοραστεί
 	# (βλ. _price_row παρακάτω, μπαίνει ΜΕΣΑ στο κουμπί) — μόλις αγοραστεί,
-	# δείχνει "ΣΤΡΑΤΟΛΟΓΗΘΗΚΕ" όπως πριν. Μικρότερη γραμματοσειρά (28) γιατί οι
-	# ήρωες έχουν έως 3 νομίσματα (Χαλκός+Κέρμα+υλικό) αντί για 1.
+	# δείχνει "ΣΤΡΑΤΟΛΟΓΗΘΗΚΕ" όπως πριν. Λίγο μικρότερη γραμματοσειρά τιμής (36
+	# αντί για 44 στην κάρτα εξοπλισμού) γιατί οι ήρωες έχουν έως 3 νομίσματα
+	# (Χαλκός+Κέρμα+υλικό) αντί για 1-2.
 	var buy := Button.new()
 	buy.position = Vector2(20, CARD_H - BTN_H - 20)
 	buy.size     = Vector2(CARD_W - 40, BTN_H)
@@ -514,7 +522,9 @@ func _make_hero_card(def: Dictionary) -> Control:
 	_style_iron(buy, not owned)
 	card.add_child(buy)
 	if not owned:
-		_price_row(buy, def["price"] as Dictionary, Vector2.ZERO, buy.size, 28, C_GOLD)
+		# Μεγαλύτερη τιμή (28 -> 36) — λίγο μικρότερη από την κάρτα εξοπλισμού
+		# (44) γιατί οι ήρωες συχνά έχουν 3 νομίσματα αντί για 1-2.
+		_price_row(buy, def["price"] as Dictionary, Vector2.ZERO, buy.size, 36, C_GOLD)
 		buy.pressed.connect(func(): _buy_hero(str(def["id"])))
 
 	return card

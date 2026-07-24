@@ -368,7 +368,12 @@ func _show_login_gate() -> void:
 	_clear_list()
 	_list.add_child(_hint("Χρειάζεσαι λογαριασμό για να συνομιλήσεις."))
 	var btn := Button.new()
-	btn.text = "🔑  Σύνδεση"
+	if ResourceLoader.exists("res://Εικόνες/key.png"):
+		btn.icon = load("res://Εικόνες/key.png")
+		btn.expand_icon = true
+		btn.text = "Σύνδεση"
+	else:
+		btn.text = "🔑  Σύνδεση"
 	btn.custom_minimum_size = Vector2(0, 80)
 	btn.add_theme_font_size_override("font_size", 30)
 	btn.add_theme_color_override("font_color", C_GOLD)

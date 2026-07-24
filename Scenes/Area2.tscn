@@ -25,6 +25,10 @@
 [ext_resource type="PackedScene" uid="uid://lchemy001" path="res://Scenes/AlchemyPopup.tscn" id="alchemy_popup_scene"]
 [ext_resource type="PackedScene" uid="uid://library001" path="res://Scenes/LibraryPopup.tscn" id="library_popup_scene"]
 [ext_resource type="PackedScene" uid="uid://boywbmrd7cmun" path="res://Scenes/ShopPopup.tscn" id="shop_scene"]
+[ext_resource type="PackedScene" uid="uid://opveruw8oaux" path="res://Scenes/AuthPopup.tscn" id="auth_popup_scene"]
+[ext_resource type="PackedScene" path="res://Scenes/FriendsPopup.tscn" id="friends_popup_scene"]
+[ext_resource type="PackedScene" path="res://Scenes/ClansPopup.tscn" id="clans_popup_scene"]
+[ext_resource type="PackedScene" path="res://Scenes/ChatPopup.tscn" id="chat_popup_scene"]
 
 [sub_resource type="AtlasTexture" id="icon_char"]
 atlas = ExtResource("char")
@@ -278,6 +282,18 @@ stretch_mode = 5
 [node name="ProfilePopup" parent="." instance=ExtResource("profile_popup_scene")]
 visible = false
 
+[node name="AuthPopup" parent="." instance=ExtResource("auth_popup_scene")]
+visible = false
+
+[node name="FriendsPopup" parent="." instance=ExtResource("friends_popup_scene")]
+visible = false
+
+[node name="ClansPopup" parent="." instance=ExtResource("clans_popup_scene")]
+visible = false
+
+[node name="ChatPopup" parent="." instance=ExtResource("chat_popup_scene")]
+visible = false
+
 [node name="MapPopup" parent="." instance=ExtResource("map_popup_scene")]
 visible = false
 
@@ -323,5 +339,14 @@ bus = &"Music"
 [connection signal="pressed" from="HUD/Sidebar/Buttons/Inventory" to="InventoryPopup" method="open"]
 [connection signal="pressed" from="HUD/Sidebar/Buttons/Map" to="MapPopup" method="open"]
 [connection signal="pressed" from="HUD/Sidebar/Buttons/DailyQuest" to="DailyQuestPopup" method="open"]
+[connection signal="pressed" from="HUD/Sidebar/Buttons/Friends" to="FriendsPopup" method="open"]
 [connection signal="pressed" from="HUD/Options" to="OptionsPanel" method="_on_options_pressed"]
+[connection signal="login_requested" from="ProfilePopup" to="AuthPopup" method="open_from_profile"]
+[connection signal="clan_requested" from="FriendsPopup" to="ClansPopup" method="open"]
+[connection signal="dm_requested" from="FriendsPopup" to="ChatPopup" method="open_dm"]
+[connection signal="login_requested" from="FriendsPopup" to="AuthPopup" method="open_from_profile"]
+[connection signal="clan_chat_requested" from="ClansPopup" to="ChatPopup" method="open_clan"]
+[connection signal="friends_requested" from="ClansPopup" to="FriendsPopup" method="open"]
+[connection signal="login_requested" from="ClansPopup" to="AuthPopup" method="open_from_profile"]
+[connection signal="login_requested" from="ChatPopup" to="AuthPopup" method="open_from_profile"]
 [connection signal="go_pressed" from="DailyQuestPopup" to="DailyQuestExercises" method="open"]

@@ -7,9 +7,9 @@ extends Control
 # ανοίγει. Τρεις καρτέλες:
 #   • «Φίλοι»       — εγώ + οι αποδεκτές φιλίες μου σε ΜΙΑ κατάταξη (leaderboard),
 #                     ταξινομημένη κατά ισχύ ομάδας (party_power)· κουμπί αφαίρεσης·
-#                     🎁 κουμπί δώρου 1 Κέρματος Φιλίας/μέρα ανά φίλο — στέλνει
-#                     ΜΟΝΟ αν και οι δύο ολοκληρώσαμε το Daily Quest μας σήμερα,
-#                     αλλιώς εξηγεί γιατί με ένα toast αντί να είναι κλειδωμένο
+#                     🎁 κουμπί δώρου 1 Κέρματος Φιλίας/μέρα ανά φίλο — ΧΩΡΙΣ καμία
+#                     άλλη προϋπόθεση: ο καθένας στέλνει ένα δώρο σε κάθε φίλο του
+#                     τη μέρα, ανεξάρτητα από το τι έχει κάνει ο άλλος
 #                     (βλ. _populate_friends/_claim_incoming_gifts, Φάση 9).
 #   • «Αιτήματα»    — εισερχόμενα (Αποδοχή/Απόρριψη) + εξερχόμενα εκκρεμή (Ακύρωση).
 #   • «Αναζήτηση»   — βρες παίκτη με username → «Πρόσθεσε» (στέλνει αίτημα).
@@ -47,8 +47,8 @@ var _requests_btn: Button
 var _search_btn: Button
 var _search_bar: HBoxContainer
 var _search_edit: LineEdit
-## Μικρό, προσωρινό μήνυμα πάνω από τη λίστα (π.χ. γιατί δεν μπορείς ακόμα να
-## στείλεις δώρο) — δεν υπάρχει έτοιμο toast component στο project, βλ. _show_toast.
+## Μικρό, προσωρινό μήνυμα πάνω από τη λίστα (π.χ. ότι απέτυχε η αποστολή ενός
+## δώρου) — δεν υπάρχει έτοιμο toast component στο project, βλ. _show_toast.
 var _toast: Label
 var _toast_tween: Tween
 
@@ -284,7 +284,6 @@ func _populate_friends(items: Array, my_id: int) -> void:
 			sent_today[str(rec.get("to_user", ""))] = true
 
 	var my_profile := PlayerProfile.build_public_profile()
-	var i_did_quest: bool = bool(my_profile.get("daily_quest_done_today", false))
 	var entries: Array[Dictionary] = [{
 		"name": Net.get_username(),
 		"power": float(my_profile.get("party_power", 0.0)),
@@ -302,7 +301,6 @@ func _populate_friends(items: Array, my_id: int) -> void:
 		var power := 0.0
 		var region_label := "—"
 		var streak := 0
-		var friend_did_quest := false
 		if res["ok"]:
 			var profs: Array = res["data"].get("items", [])
 			if not profs.is_empty():
@@ -310,13 +308,10 @@ func _populate_friends(items: Array, my_id: int) -> void:
 				power = float(p.get("party_power", 0.0))
 				region_label = str(p.get("region_label", "—"))
 				streak = int(p.get("streak", 0))
-				friend_did_quest = bool(p.get("daily_quest_done_today", false))
 		entries.append({
 			"name": other_name, "power": power, "region_label": region_label,
 			"streak": streak, "is_me": false, "rec": rec, "other_id": other_id,
 			"gift_sent": sent_today.has(other_id),
-			"can_gift": i_did_quest and friend_did_quest and not sent_today.has(other_id),
-			"i_did_quest": i_did_quest, "friend_did_quest": friend_did_quest,
 		})
 
 	if my_id != _refresh_id:
@@ -326,17 +321,15 @@ func _populate_friends(items: Array, my_id: int) -> void:
 	if claimed_count > 0:
 		_list.add_child(_hint("🎁 Έλαβες %d Κέρμα%s Φιλίας από φίλους!" %
 			[claimed_count, "τα" if claimed_count != 1 else ""]))
-	if not i_did_quest:
-		_list.add_child(_hint("🎯 Ολοκλήρωσε τη σημερινή αποστολή για να στέλνεις Κέρματα Φιλίας στους φίλους σου!"))
 	for i in entries.size():
 		_list.add_child(_friend_row(i + 1, entries[i]))
 	if accepted.is_empty():
 		_list.add_child(_hint("Δεν έχεις φίλους ακόμα. Δοκίμασε την Αναζήτηση!"))
 
-## Ελέγχει για νέα εισερχόμενα Κέρματα Φιλίας (δώρα από φίλους που ολοκλήρωσαν
-## το Daily Quest την ίδια μέρα με εμένα) και τα πιστώνει ΤΟΠΙΚΑ, μία φορά ανά
-## record id (GameData.friendship_gifts_claimed αποτρέπει διπλή πίστωση σε
-## επόμενα refresh). Επιστρέφει πόσα καινούρια μόλις πιστώθηκαν.
+## Ελέγχει για νέα εισερχόμενα Κέρματα Φιλίας (δώρα που μου έστειλαν φίλοι) και
+## τα πιστώνει ΤΟΠΙΚΑ, μία φορά ανά record id (GameData.friendship_gifts_claimed
+## αποτρέπει διπλή πίστωση σε επόμενα refresh). Επιστρέφει πόσα καινούρια μόλις
+## πιστώθηκαν.
 func _claim_incoming_gifts() -> int:
 	var res := await Net.list_my_gifts_received()
 	if not res["ok"]:
@@ -467,26 +460,18 @@ func _friend_row(rank: int, entry: Dictionary) -> PanelContainer:
 		var me := Net.get_user_id()
 		var other_id := _other_user(rec, me)
 
-		# 🎁 Κέρμα Φιλίας — στέλνει μόνο αν και οι δύο κάναμε Daily Quest σήμερα
-		# και δεν έχω ήδη δωρίσει σε αυτόν τον φίλο σήμερα (βλ. _populate_friends).
-		# ΔΕΝ είναι disabled όταν απλώς δεν πληρούνται οι προϋποθέσεις (μόνο όταν
-		# έχει ήδη σταλεί) — έτσι το πάτημα μπορεί να εξηγήσει γιατί (toast).
+		# 🎁 Κέρμα Φιλίας — 1 δώρο τη μέρα σε κάθε φίλο, ΧΩΡΙΣ άλλη προϋπόθεση.
+		# Η ΜΟΝΗ κατάσταση που κλειδώνει το κουμπί είναι «του το έστειλα ήδη
+		# σήμερα» (✅) — βλ. _populate_friends/sent_today.
 		var gift := Button.new()
 		gift.custom_minimum_size = Vector2(70, 64)
 		gift.add_theme_font_size_override("font_size", 26)
-		var can_gift: bool = entry.get("can_gift", false)
 		if entry.get("gift_sent", false):
 			gift.text = "✅"
 			gift.disabled = true
 		else:
 			gift.text = "🎁"
-			if not can_gift:
-				gift.modulate.a = 0.45
-			gift.pressed.connect(func():
-				if can_gift:
-					_on_gift(rec, other_id, gift)
-				else:
-					_show_gift_blocked_hint(entry))
+			gift.pressed.connect(func(): _on_gift(rec, other_id, gift))
 		row.add_child(gift)
 
 		var chat := Button.new()
@@ -628,8 +613,10 @@ func _on_add(uid: String, uname: String, btn: Button) -> void:
 		btn.disabled = false
 
 ## Στέλνει 1 Κέρμα Φιλίας στον φίλο (κουμπί 🎁 της γραμμής του). Ο server είναι
-## η τελική αρχή (unique index) — αν αποτύχει (π.χ. κάποιο άλλο tab/συσκευή
-## πρόλαβε), το κουμπί ξαναγίνεται πατήσιμο αντί να μείνει κολλημένο σε "…".
+## η τελική αρχή για το «1 τη μέρα» (unique index) — αν αποτύχει (π.χ. άλλη
+## συσκευή πρόλαβε να στείλει σήμερα, ή έπεσε το δίκτυο), το κουμπί ξαναγίνεται
+## πατήσιμο αντί να μείνει κολλημένο σε "…", με toast που το εξηγεί (αλλιώς η
+## αποτυχία θα φαινόταν σαν να «μην κάνει τίποτα» το κουμπί).
 func _on_gift(rec: Dictionary, to_user_id: String, btn: Button) -> void:
 	btn.disabled = true
 	btn.text = "…"
@@ -641,18 +628,7 @@ func _on_gift(rec: Dictionary, to_user_id: String, btn: Button) -> void:
 	else:
 		btn.text = "🎁"
 		btn.disabled = false
-
-## Εξηγεί γιατί το κουμπί δώρου δεν στέλνει ακόμα τίποτα — ποιος από τους δύο
-## (ή και οι δύο) δεν έχει ολοκληρώσει τη σημερινή αποστολή.
-func _show_gift_blocked_hint(entry: Dictionary) -> void:
-	var i_did: bool = entry.get("i_did_quest", false)
-	var friend_did: bool = entry.get("friend_did_quest", false)
-	if not i_did and not friend_did:
-		_show_toast("🎯 Για να ανταλλάξετε Κέρματα Φιλίας, πρέπει ΚΑΙ οι δύο να ολοκληρώσετε τη σημερινή αποστολή!")
-	elif not i_did:
-		_show_toast("🎯 Ολοκλήρωσε πρώτα τη σημερινή σου αποστολή για να στείλεις Κέρμα Φιλίας!")
-	else:
-		_show_toast("🎯 Ο/Η %s δεν έχει ολοκληρώσει ακόμα τη σημερινή του/της αποστολή." % str(entry.get("name", "")))
+		_show_toast("🎁 Το δώρο δεν στάλθηκε. Ίσως του έχεις ήδη στείλει σήμερα — δοκίμασε ξανά αργότερα.")
 
 func _on_respond(id: String, accept: bool) -> void:
 	await Net.respond_friend_request(id, accept)
@@ -669,7 +645,12 @@ func _on_remove(id: String) -> void:
 func _show_login_gate() -> void:
 	_list.add_child(_hint("Χρειάζεσαι λογαριασμό για να προσθέσεις φίλους και να συγκρίνεις την πρόοδό σου."))
 	var btn := Button.new()
-	btn.text = "🔑  Σύνδεση"
+	if ResourceLoader.exists("res://Εικόνες/key.png"):
+		btn.icon = load("res://Εικόνες/key.png")
+		btn.expand_icon = true
+		btn.text = "Σύνδεση"
+	else:
+		btn.text = "🔑  Σύνδεση"
 	btn.custom_minimum_size = Vector2(0, 80)
 	btn.add_theme_font_size_override("font_size", 30)
 	btn.add_theme_color_override("font_color", C_GOLD)
